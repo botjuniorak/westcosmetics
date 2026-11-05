@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "westcosmetics",
+  "version": "${version}",
+  "name": "WestCosmetics",
+  "description": "Autorskie kosmetyki WestMC: skrzydla, czapki, aureole.",
+  "authors": ["WestMC"],
+  "contact": { "homepage": "https://westmc.eu" },
+  "license": "All-Rights-Reserved",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["pl.westmc.cosmetics.WestCosmeticsClient"]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "fabric-api": "*",
+    "minecraft": "~1.21.4"
+  }
+}
