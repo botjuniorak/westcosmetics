@@ -3,3 +3,5 @@ build/
 run/
 *.iml
 .idea/
+installer/bin/
+installer/obj/

@@ -29,3 +29,21 @@ jobs:
           body: "Pobierz plik WestCosmetics-*.jar (bez -sources) i wrzuć do folderu mods (Fabric 1.21.4 + Fabric API)."
           files: build/libs/WestCosmetics-*.jar
           make_latest: true
+
+  installer:
+    runs-on: windows-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - name: Build instalatora
+        run: dotnet build installer/WestMCInstaller.csproj -c Release -o out
+      - name: Nazwa pliku
+        shell: bash
+        run: cp out/WestMC-Instalator.exe WestMC-Instalator.exe
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: najnowsza
+          files: WestMC-Instalator.exe
