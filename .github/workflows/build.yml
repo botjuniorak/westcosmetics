@@ -2,6 +2,8 @@ name: build
 on:
   push:
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -19,3 +21,11 @@ jobs:
         with:
           name: WestCosmetics
           path: build/libs/*.jar
+      - name: Wydanie (Releases)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: najnowsza
+          name: WestCosmetics - najnowsza wersja
+          body: "Pobierz plik WestCosmetics-*.jar (bez -sources) i wrzuć do folderu mods (Fabric 1.21.4 + Fabric API)."
+          files: build/libs/WestCosmetics-*.jar
+          make_latest: true
