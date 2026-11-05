@@ -21,17 +21,17 @@
     "appId": "eu.westmc.atomic",
     "productName": "Atomic",
     "artifactName": "Atomic-Setup.${ext}",
-    "directories": { "buildResources": "build", "output": "dist" },
+    "directories": { "buildResources": "assets", "output": "dist" },
     "files": ["main.js", "preload.js", "config.json", "src/**", "renderer/**"],
-    "win": { "target": "nsis", "icon": "build/icon.ico" },
+    "win": { "target": "nsis", "icon": "assets/icon.ico" },
     "nsis": {
       "oneClick": true,
       "perMachine": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Atomic",
-      "installerIcon": "build/icon.ico",
-      "uninstallerIcon": "build/icon.ico"
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico"
     }
   }
 }
