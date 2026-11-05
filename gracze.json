@@ -1,5 +1,9 @@
 {
   "gracze": {
-    "botjuniorak": ["skrzydla_west", "korona", "aureola"]
+    "_marc1nek": [
+      "skrzydla_west",
+      "korona",
+      "aureola"
+    ]
   }
 }

@@ -31,15 +31,11 @@ public final class CosmeticsFeature extends FeatureRenderer<PlayerEntityRenderSt
     public CosmeticsFeature(FeatureRendererContext<PlayerEntityRenderState, PlayerEntityModel> context) {
         super(context);
 
-        // --- skrzydla: dwa skrzydla z dwoch czesci (ramie + piora) ---
+        // --- skrzydla: ramie + 5 pior rozlozonych wachlarzem ---
         ModelData wd = new ModelData();
         ModelPartData wr = wd.getRoot();
-        ModelPartData left = wr.addChild("left", ModelPartBuilder.create()
-                .uv(0, 0).cuboid(0.0F, -3.0F, 0.0F, 18.0F, 22.0F, 1.0F, Dilation.NONE),
-            ModelTransform.pivot(1.5F, 1.0F, 2.6F));
-        ModelPartData right = wr.addChild("right", ModelPartBuilder.create()
-                .uv(0, 0).mirrored().cuboid(-18.0F, -3.0F, 0.0F, 18.0F, 22.0F, 1.0F, Dilation.NONE),
-            ModelTransform.pivot(-1.5F, 1.0F, 2.6F));
+        buildWing(wr.addChild("left", ModelPartBuilder.create(), ModelTransform.pivot(1.5F, 1.0F, 2.6F)), 1);
+        buildWing(wr.addChild("right", ModelPartBuilder.create(), ModelTransform.pivot(-1.5F, 1.0F, 2.6F)), -1);
         wings = TexturedModelData.of(wd, 64, 32).createModel();
         wingLeft = wings.getChild("left");
         wingRight = wings.getChild("right");
@@ -82,6 +78,29 @@ public final class CosmeticsFeature extends FeatureRenderer<PlayerEntityRenderSt
         halo = TexturedModelData.of(ad, 32, 16).createModel();
     }
 
+    private static final float[] FEATHER_LEN = {21.0F, 19.0F, 17.0F, 14.0F, 10.0F};
+
+    /** Jedno skrzydlo: ramie u gory i piora zwisajace od niego, coraz krotsze i bardziej odchylone na zewnatrz. */
+    private static void buildWing(ModelPartData wing, int side) {
+        ModelPartBuilder arm = ModelPartBuilder.create().uv(12, 0);
+        if (side < 0) arm.mirrored();
+        wing.addChild("arm", arm.cuboid(side > 0 ? 0.0F : -22.0F, -3.0F, -0.2F, 22.0F, 3.0F, 1.4F, Dilation.NONE),
+            ModelTransform.NONE);
+        for (int i = 0; i < FEATHER_LEN.length; i++) {
+            ModelPartBuilder f = ModelPartBuilder.create().uv(0, 0);
+            if (side < 0) f.mirrored();
+            float x = side * (2.5F + i * 4.3F);
+            float z = (i % 2) * 0.35F;
+            wing.addChild("f" + i, f.cuboid(-2.0F, 0.0F, 0.0F, 4.0F, FEATHER_LEN[i], 1.0F, Dilation.NONE),
+                ModelTransform.of(x, -1.0F, z, 0.0F, 0.0F, -side * (0.04F + i * 0.11F)));
+        }
+    }
+
+    private static void spread(ModelPart wing, int side, float extra) {
+        for (int i = 0; i < FEATHER_LEN.length; i++)
+            wing.getChild("f" + i).roll = -side * (0.04F + i * (0.11F + extra));
+    }
+
     private static Identifier tex(Cosmetic c) {
         return Identifier.of("westcosmetics", "textures/cosmetic/" + c.texture + ".png");
     }
@@ -114,6 +133,9 @@ public final class CosmeticsFeature extends FeatureRenderer<PlayerEntityRenderSt
             wingRight.yaw = -(open + flap);
             wingLeft.roll = -0.12F;
             wingRight.roll = 0.12F;
+            float fan = MathHelper.sin(age * 0.12F + 0.6F) * 0.02F;
+            spread(wingLeft, 1, fan);
+            spread(wingRight, -1, fan);
             wingLeft.pitch = wingRight.pitch = 0.18F;
             wings.render(matrices, vertexConsumers.getBuffer(RenderLayer.getEntityCutoutNoCull(tex(wingsC))),
                 light, OverlayTexture.DEFAULT_UV);
