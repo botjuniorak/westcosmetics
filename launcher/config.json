@@ -1,0 +1,8 @@
+{
+  "_info": "clientId: identyfikator aplikacji z Azure (App registrations). Logowanie dziala dopiero po zatwierdzeniu wniosku aka.ms/mce-reviewappid.",
+  "clientId": "",
+  "minecraft": "1.21.4",
+  "cosmeticsRepo": "botjuniorak/westcosmetics",
+  "server": { "name": "WestMC", "ip": "westmc.eu" },
+  "folder": ".atomic"
+}

@@ -47,3 +47,22 @@ jobs:
         with:
           tag_name: najnowsza
           files: WestMC-Instalator.exe
+
+  launcher:
+    runs-on: windows-latest
+    needs: build
+    defaults:
+      run:
+        working-directory: launcher
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-audit --no-fund
+      - run: node -e "require('./src/auth'); require('./src/java'); require('./src/game'); console.log('moduly OK')"
+      - run: npx electron-builder --win nsis --publish never
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: najnowsza
+          files: launcher/dist/Atomic-Setup.exe

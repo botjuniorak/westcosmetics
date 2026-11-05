@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' https://mc-heads.net data:; style-src 'self'; script-src 'self'">
+  <title>Atomic</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="titlebar">
+    <div class="drag"><img src="logo.png" alt=""><span>Atomic</span></div>
+    <div class="winbtns">
+      <button id="btnMin" title="Minimalizuj">&#8211;</button>
+      <button id="btnClose" class="close" title="Zamknij">&#10005;</button>
+    </div>
+  </div>
+
+  <div class="app">
+    <nav class="side">
+      <button class="nav active" data-page="home">
+        <svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
+        <span>Start</span>
+      </button>
+      <button class="nav" data-page="settings">
+        <svg viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7zm8.4-2.3l1.8 1.4-2 3.4-2.1-.8a7.6 7.6 0 0 1-2 1.2L15.8 21h-3.9l-.3-2.2a7.6 7.6 0 0 1-2-1.2l-2.1.8-2-3.4 1.8-1.4a7.7 7.7 0 0 1 0-2.4L5.5 9.8l2-3.4 2.1.8a7.6 7.6 0 0 1 2-1.2L11.9 3h3.9l.3 2.2a7.6 7.6 0 0 1 2 1.2l2.1-.8 2 3.4-1.8 1.4a7.7 7.7 0 0 1 0 2.4z"/></svg>
+        <span>Ustawienia</span>
+      </button>
+      <div class="spacer"></div>
+      <button class="nav small" id="btnFolder">
+        <svg viewBox="0 0 24 24"><path d="M3 6a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        <span>Folder gry</span>
+      </button>
+    </nav>
+
+    <main>
+      <section class="page active" id="page-home">
+        <div class="hero">
+          <div class="hero-text">
+            <div class="kicker">MINECRAFT <span id="mcVersion">1.21.4</span> · FABRIC</div>
+            <h1>Atomic</h1>
+            <p>Szybki klient z autorskimi kosmetykami. Skrzydła, korony i aureole widoczne dla wszystkich graczy Atomic.</p>
+          </div>
+          <div class="server" id="serverCard">
+            <div class="server-dot" id="serverDot"></div>
+            <div>
+              <div class="server-name" id="serverName">WestMC</div>
+              <div class="server-sub" id="serverSub">sprawdzam...</div>
+            </div>
+            <button class="ghost" id="btnCopyIp" title="Kopiuj IP">westmc.eu</button>
+          </div>
+        </div>
+
+        <div class="cards">
+          <div class="card">
+            <div class="card-icon gold">✦</div>
+            <h3>Kosmetyki</h3>
+            <p>Twoje kosmetyki wczytują się automatycznie po zalogowaniu.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon violet">⚡</div>
+            <h3>Więcej FPS</h3>
+            <p>Sodium i Iris instalują się same. Wyłączysz je w ustawieniach.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon blue">⟳</div>
+            <h3>Aktualizacje</h3>
+            <p>Mody aktualizują się przy każdym uruchomieniu gry.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="page-settings">
+        <h2>Ustawienia</h2>
+        <div class="setting">
+          <div>
+            <div class="label">Pamięć RAM</div>
+            <div class="hint">Ile pamięci może użyć gra. 4 GB wystarczy w większości przypadków.</div>
+          </div>
+          <div class="ram"><input type="range" id="ram" min="2" max="16" step="1"><span id="ramVal">4 GB</span></div>
+        </div>
+        <div class="setting">
+          <div>
+            <div class="label">Sodium + Iris</div>
+            <div class="hint">Więcej FPS i obsługa shaderów.</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="perf"><span></span></label>
+        </div>
+        <div class="setting">
+          <div>
+            <div class="label">Wchodź od razu na serwer</div>
+            <div class="hint">Po starcie gra łączy się z <b id="autoJoinIp">westmc.eu</b>.</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="autoJoin"><span></span></label>
+        </div>
+        <div class="setting">
+          <div>
+            <div class="label">Nie minimalizuj launchera</div>
+            <div class="hint">Launcher zostaje na wierzchu po uruchomieniu gry.</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="keepOpen"><span></span></label>
+        </div>
+        <div class="version" id="appVersion"></div>
+      </section>
+    </main>
+  </div>
+
+  <footer class="bar">
+    <div class="account" id="account">
+      <img id="avatar" src="logo.png" alt="">
+      <div>
+        <div class="acc-name" id="accName">Nie zalogowano</div>
+        <button class="link" id="btnAccount">Zaloguj kontem Microsoft</button>
+      </div>
+    </div>
+    <div class="status">
+      <div class="status-text" id="status">Gotowy.</div>
+      <div class="progress"><div id="progressFill"></div></div>
+    </div>
+    <button class="play" id="btnPlay">GRAJ</button>
+  </footer>
+
+  <div class="modal" id="loginModal">
+    <div class="modal-box">
+      <h3>Logowanie Microsoft</h3>
+      <p>Otworzyła się strona Microsoftu. Wpisz tam ten kod i zaloguj się kontem z Minecraftem:</p>
+      <div class="code" id="loginCode">········</div>
+      <p class="hint">Strona: <a href="#" id="loginUrl">microsoft.com/link</a></p>
+      <button class="ghost" id="btnCancelLogin">Anuluj</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>

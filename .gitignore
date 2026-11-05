@@ -5,3 +5,5 @@ run/
 .idea/
 installer/bin/
 installer/obj/
+launcher/node_modules/
+launcher/dist/
