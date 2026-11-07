@@ -66,3 +66,27 @@ jobs:
         with:
           tag_name: najnowsza
           files: launcher/dist/Atomic-Setup.exe
+
+  westpanel:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.12"
+      - name: Build WestPanel
+        working-directory: westpanel
+        run: gradle build --no-daemon --stacktrace
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: westpanel
+          name: WestPanel - panel administracji
+          body: "WestPanel-Velocity na proxy, WestPanel-Paper na gildie/duels/lobby."
+          files: |
+            westpanel/velocity/build/libs/WestPanel-Velocity-*.jar
+            westpanel/paper/build/libs/WestPanel-Paper-*.jar
+          make_latest: false

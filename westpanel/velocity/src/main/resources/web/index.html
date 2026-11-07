@@ -1,0 +1,924 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>WestMC Panel</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>[hidden]{display:none!important}
+
+/* Konsola administracji: boczne menu + widoki na hashu; ciemny wyglad celowo (praca przy serwerze), kolory marki WestMC: niebieski i zloto */
+:root {
+  --bg: #0a0f1a;
+  --panel: #111a2b;
+  --panel2: #16223a;
+  --line: #22314d;
+  --ink: #e6eefb;
+  --muted: #8a9bba;
+  --blue: #2f8cff;
+  --gold: #ffc23d;
+  --ok: #3ad08b;
+  --warn: #ffb02e;
+  --bad: #ff5b6b;
+  --violet: #a98bff;
+  --display: "Chakra Petch", "Segoe UI", sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14.5px/1.5 var(--body); }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 4px; }
+h1, h2, h3 { font-family: var(--display); margin: 0; letter-spacing: .01em; text-wrap: balance; }
+.mono { font-family: var(--mono); }
+.tnum { font-variant-numeric: tabular-nums; }
+
+/* ---------- logowanie ---------- */
+.login { min-height: 100%; display: grid; place-items: center; padding-block: 32px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background: radial-gradient(600px 400px at 70% 20%, rgba(47, 140, 255, .18), transparent 70%), radial-gradient(500px 300px at 20% 90%, rgba(255, 194, 61, .1), transparent 70%), var(--bg); }
+.login-box { width: 100%; max-width: 400px; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 30px; display: grid; gap: 16px; }
+.login-box .logo { display: flex; align-items: center; gap: 12px; }
+.login-box h1 { font-size: 26px; }
+.login-box p { color: var(--muted); margin: 0; }
+.field { display: grid; gap: 6px; min-width: 0; }
+.field label { font-size: 12.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+.field input, .field select, .field textarea { width: 100%; background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 9px; padding: 11px 12px; font: 400 14.5px/1.4 var(--body); }
+.field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--blue); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 42px; padding: 0 16px; border-radius: 9px; border: 1px solid var(--line); background: var(--panel2); font-weight: 600; font-size: 14px; white-space: nowrap; }
+.btn:hover { border-color: var(--blue); }
+.btn-blue { background: var(--blue); border-color: var(--blue); color: #fff; }
+.btn-blue:hover { filter: brightness(1.1); }
+.btn-bad { background: rgba(255, 91, 107, .14); border-color: rgba(255, 91, 107, .45); color: var(--bad); }
+.btn-sm { height: 32px; padding: 0 10px; font-size: 13px; border-radius: 7px; }
+.demo-note { font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 12px; }
+.err { color: var(--bad); font-size: 13.5px; }
+.twofa { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+.twofa input { text-align: center; font: 600 18px/1 var(--mono); padding: 10px 0; }
+
+/* ---------- uklad panelu ---------- */
+.app { display: grid; grid-template-columns: 236px 1fr; min-height: 100%; }
+.side { background: #0c1322; border-right: 1px solid var(--line); padding: 18px 12px; display: flex; flex-direction: column; gap: 4px; position: sticky; top: 0; height: 100vh; overflow: auto; }
+.side .brand { display: flex; align-items: center; gap: 10px; padding: 4px 8px 18px; font: 700 18px/1 var(--display); }
+.side .brand b { color: var(--gold); }
+.navlbl { font: 600 11px/1 var(--mono); letter-spacing: .14em; color: var(--muted); text-transform: uppercase; padding: 14px 10px 6px; }
+.nav { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; text-decoration: none; color: var(--muted); font-weight: 500; }
+.nav svg { width: 18px; height: 18px; flex: none; }
+.nav:hover { background: rgba(255, 255, 255, .04); color: var(--ink); }
+.nav.active { background: rgba(47, 140, 255, .14); color: var(--ink); }
+.nav.active svg { color: var(--blue); }
+.nav .count { margin-left: auto; font: 600 11px/1 var(--mono); background: var(--bad); color: #fff; border-radius: 99px; padding: 4px 7px; }
+.me { margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 12px 8px 0; border-top: 1px solid var(--line); }
+.avatar { width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center; font: 700 14px/1 var(--display); color: #0a0f1a; flex: none; }
+.me .n { font-weight: 600; }
+.me .r { font-size: 12px; color: var(--gold); }
+.me button { margin-left: auto; background: none; border: 0; color: var(--muted); }
+
+.main { min-width: 0; display: flex; flex-direction: column; }
+.top { display: flex; align-items: center; gap: 14px; padding-block: 14px; padding-left: max(22px, env(safe-area-inset-left, 0px)); padding-right: max(22px, env(safe-area-inset-right, 0px)); border-bottom: 1px solid var(--line); background: rgba(10, 15, 26, .85); backdrop-filter: blur(8px); position: sticky; top: env(safe-area-inset-top, 0px); z-index: 4; }
+.top h1 { font-size: 22px; }
+.demo-pill { font: 600 11px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--gold); border: 1px solid rgba(255, 194, 61, .45); padding: 6px 8px; border-radius: 6px; }
+.duty { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
+.switch { position: relative; width: 40px; height: 22px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.switch span { position: absolute; inset: 0; background: var(--line); border-radius: 99px; transition: background .2s; cursor: pointer; }
+.switch span::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .2s; }
+.switch input:checked + span { background: var(--ok); }
+.switch input:checked + span::after { transform: translateX(18px); }
+.menu-btn { display: none; background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; width: 38px; height: 38px; }
+.view { display: none; padding-block: 22px 40px; padding-left: max(22px, env(safe-area-inset-left, 0px)); padding-right: max(22px, env(safe-area-inset-right, 0px)); }
+.view.active { display: block; }
+
+@media (max-width: 900px) {
+  .app { grid-template-columns: 1fr; }
+  .side { position: fixed; inset: 0 auto 0 0; width: 260px; z-index: 20; transform: translateX(-100%); transition: transform .2s; padding-top: max(18px, env(safe-area-inset-top, 0px)); padding-left: max(12px, env(safe-area-inset-left, 0px)); }
+  .side.open { transform: none; box-shadow: 0 0 0 100vmax rgba(0, 0, 0, .5); }
+  .menu-btn { display: grid; place-items: center; }
+  .duty span.lbl { display: none; }
+}
+
+/* ---------- elementy ---------- */
+.grid { display: grid; gap: 14px; }
+.g4 { grid-template-columns: repeat(4, 1fr); }
+.g2 { grid-template-columns: 1.5fr 1fr; }
+@media (max-width: 1100px) { .g4 { grid-template-columns: repeat(2, 1fr); } .g2 { grid-template-columns: 1fr; } }
+@media (max-width: 520px) { .g4 { grid-template-columns: 1fr; } }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; min-width: 0; }
+.card h3 { font-size: 15px; display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.card h3 .sub { margin-left: auto; font: 500 12px/1 var(--body); color: var(--muted); }
+.srv { display: grid; gap: 10px; }
+.srv .head { display: flex; align-items: center; gap: 8px; }
+.srv .name { font: 700 17px/1 var(--display); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 3px rgba(58, 208, 139, .18); flex: none; }
+.dot.warn { background: var(--warn); box-shadow: 0 0 0 3px rgba(255, 176, 46, .18); }
+.dot.off { background: var(--bad); box-shadow: 0 0 0 3px rgba(255, 91, 107, .18); }
+.srv .port { margin-left: auto; font: 500 11.5px/1 var(--mono); color: var(--muted); }
+.kv { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.kv div { background: var(--bg); border-radius: 8px; padding: 8px; }
+.kv b { display: block; font: 600 16px/1.1 var(--mono); }
+.kv span { font-size: 11.5px; color: var(--muted); }
+.bar { height: 6px; border-radius: 3px; background: var(--bg); overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--blue); border-radius: 3px; }
+.big { font: 700 34px/1 var(--display); }
+.chart svg { width: 100%; height: 190px; display: block; }
+.alerts { display: grid; gap: 8px; }
+.alert { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: start; padding: 10px; border-radius: 9px; background: var(--bg); border-left: 3px solid var(--sev, var(--blue)); }
+.alert .t { font: 500 12px/1.4 var(--mono); color: var(--muted); }
+.alert b { font-weight: 600; }
+.sev-bad { --sev: var(--bad); } .sev-warn { --sev: var(--warn); } .sev-ok { --sev: var(--ok); }
+
+.toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
+.search { flex: 1; min-width: 180px; max-width: 360px; background: var(--panel); border: 1px solid var(--line); border-radius: 9px; padding: 10px 12px; color: var(--ink); font: inherit; }
+.seg { display: inline-flex; background: var(--panel); border: 1px solid var(--line); border-radius: 9px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; color: var(--muted); padding: 7px 11px; border-radius: 6px; font-size: 13px; font-weight: 600; }
+.seg button[aria-pressed="true"] { background: var(--panel2); color: var(--ink); }
+
+.tablewrap { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
+table { width: 100%; border-collapse: collapse; min-width: 720px; }
+th { text-align: left; font: 600 11.5px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding: 12px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td { padding: 10px 14px; border-bottom: 1px solid rgba(34, 49, 77, .6); vertical-align: middle; }
+tr:last-child td { border-bottom: 0; }
+tr:hover td { background: rgba(255, 255, 255, .02); }
+.pl { display: flex; align-items: center; gap: 10px; }
+.pl .avatar { width: 28px; height: 28px; border-radius: 6px; font-size: 12px; }
+.rank { font: 700 11px/1 var(--mono); padding: 4px 6px; border-radius: 5px; letter-spacing: .04em; }
+.r-west { background: rgba(255, 194, 61, .16); color: var(--gold); } .r-svip { background: rgba(169, 139, 255, .16); color: var(--violet); }
+.r-vip { background: rgba(58, 208, 139, .14); color: var(--ok); } .r-gracz { background: rgba(138, 155, 186, .14); color: var(--muted); }
+.r-admin { background: rgba(255, 91, 107, .14); color: var(--bad); } .r-mod { background: rgba(47, 140, 255, .16); color: var(--blue); }
+.acts { display: flex; gap: 6px; justify-content: flex-end; }
+.ping-ok { color: var(--ok); } .ping-mid { color: var(--warn); } .ping-bad { color: var(--bad); }
+
+/* mapa */
+.mapwrap { position: relative; background: #070b13; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; height: min(640px, 70vh); touch-action: none; }
+.mapwrap canvas { width: 100%; height: 100%; display: block; cursor: grab; }
+.mapwrap canvas:active { cursor: grabbing; }
+.map-ui { position: absolute; top: 12px; left: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+.map-zoom { position: absolute; right: 12px; top: 12px; display: grid; gap: 6px; }
+.map-zoom button { width: 36px; height: 36px; border-radius: 8px; background: rgba(17, 26, 43, .92); border: 1px solid var(--line); font-size: 18px; }
+.map-coords { position: absolute; left: 12px; bottom: 12px; font: 500 12px/1 var(--mono); background: rgba(17, 26, 43, .92); border: 1px solid var(--line); padding: 7px 9px; border-radius: 7px; }
+.map-info { position: absolute; right: 12px; bottom: 12px; width: 240px; max-width: calc(100% - 24px); background: rgba(17, 26, 43, .96); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: grid; gap: 8px; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 10px; font-size: 12.5px; color: var(--muted); }
+.legend span { display: flex; align-items: center; gap: 6px; }
+.legend i { width: 10px; height: 10px; border-radius: 2px; }
+
+/* logi */
+.console { background: #060a12; border: 1px solid var(--line); border-radius: 12px; font: 400 12.8px/1.65 var(--mono); height: min(560px, 62vh); overflow: auto; padding: 12px 14px; }
+.ln { display: grid; grid-template-columns: 70px 74px 90px 1fr; gap: 10px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.ln .tm { color: #5d6f8f; } .ln .sv { color: var(--muted); }
+.lt-chat { color: #d8e3f7; } .lt-cmd { color: var(--blue); } .lt-join { color: var(--ok); } .lt-ac { color: var(--bad); } .lt-kara { color: var(--gold); }
+@media (max-width: 640px) { .ln { grid-template-columns: 58px 1fr; } .ln .sv, .ln .ty { display: none; } }
+.cmdline { display: flex; gap: 8px; margin-top: 10px; }
+.cmdline input { flex: 1; min-width: 0; background: #060a12; border: 1px solid var(--line); border-radius: 9px; color: var(--ink); font: 400 13.5px/1 var(--mono); padding: 11px 12px; }
+
+/* listy */
+.cmds { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+@media (max-width: 800px) { .cmds { grid-template-columns: 1fr; } }
+.cmd { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; min-width: 0; }
+.cmd code { font: 600 13.5px/1.4 var(--mono); color: var(--gold); overflow-wrap: anywhere; }
+.cmd p { margin: 0; color: var(--muted); font-size: 13.5px; grid-column: 1 / -1; }
+.cmd .tag { font: 600 10.5px/1 var(--mono); color: var(--muted); border: 1px solid var(--line); border-radius: 5px; padding: 4px 6px; align-self: start; }
+.copy-b { background: none; border: 0; color: var(--muted); padding: 0; font-size: 12px; text-align: left; }
+.copy-b:hover { color: var(--blue); }
+
+.tariff td:nth-child(3) { font-family: var(--mono); color: var(--gold); white-space: nowrap; }
+.lvl { font: 700 11px/1 var(--mono); padding: 4px 7px; border-radius: 5px; }
+.lvl-1 { background: rgba(58, 208, 139, .14); color: var(--ok); } .lvl-2 { background: rgba(255, 176, 46, .14); color: var(--warn); } .lvl-3 { background: rgba(255, 91, 107, .14); color: var(--bad); }
+
+.rules { display: grid; gap: 12px; max-width: 860px; }
+.rule { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; display: grid; grid-template-columns: 44px 1fr; gap: 14px; }
+.rule b.no { font: 700 22px/1 var(--display); color: var(--blue); }
+.rule h3 { font-size: 16px; margin-bottom: 4px; }
+.rule p { margin: 0; color: var(--muted); }
+.ranks { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 6px; }
+@media (max-width: 800px) { .ranks { grid-template-columns: repeat(2, 1fr); } }
+.rk { border-radius: 10px; padding: 14px; background: var(--panel); border: 1px solid var(--line); border-top: 3px solid var(--c); }
+.rk b { font: 700 15px/1 var(--display); color: var(--c); }
+.rk p { margin: 6px 0 0; font-size: 13px; color: var(--muted); }
+
+.reports { display: grid; gap: 10px; }
+.rep { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: grid; grid-template-columns: 1fr auto; gap: 8px 14px; align-items: center; border-left: 3px solid var(--sev, var(--blue)); }
+.rep .meta { font: 500 12px/1.4 var(--mono); color: var(--muted); }
+.rep .who { font-weight: 600; }
+.rep .st { font: 600 11px/1 var(--mono); padding: 5px 7px; border-radius: 5px; background: var(--panel2); color: var(--muted); }
+.rep .st.claimed { color: var(--blue); } .rep .st.done { color: var(--ok); }
+.rep .actions { grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap; }
+
+.modal { position: fixed; inset: 0; background: rgba(3, 6, 12, .7); display: grid; place-items: center; z-index: 30; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.modal-box { width: 100%; max-width: 460px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: grid; gap: 14px; max-height: 90vh; overflow: auto; }
+.presets { display: flex; flex-wrap: wrap; gap: 6px; }
+.presets button { background: var(--bg); border: 1px solid var(--line); border-radius: 7px; padding: 6px 9px; font-size: 12.5px; color: var(--muted); }
+.presets button:hover { color: var(--ink); border-color: var(--blue); }
+.preview { font: 500 13px/1.4 var(--mono); background: #060a12; border: 1px solid var(--line); border-radius: 8px; padding: 10px; color: var(--gold); overflow-wrap: anywhere; }
+.toast { position: fixed; left: 50%; bottom: max(22px, env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 16px); opacity: 0; pointer-events: none; background: var(--panel2); border: 1px solid var(--line); padding: 10px 16px; border-radius: 9px; font-size: 13.5px; transition: .2s; z-index: 40; }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.empty { color: var(--muted); padding: 18px; text-align: center; }
+.note { font-size: 13px; color: var(--muted); margin-top: 12px; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9H3z"/><path d="M9 20v-6h6v6"/></symbol>
+  <symbol id="i-map" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.5-3.5 3-5.5 6.5-5.5s6 2 6.5 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M17 14.5c2.5 0 4 1.5 4.5 4"/></symbol>
+  <symbol id="i-term" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13 15h4"/></symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M5 21V4h11l-2 4 2 4H5"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M7 21h10M5 7h14M5 7l-3 6a3 3 0 0 0 6 0zM19 7l-3 6a3 3 0 0 0 6 0z"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+  <symbol id="i-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+</svg>
+<!-- ================= LOGOWANIE ================= -->
+<div class="login" id="loginView">
+  <form class="login-box" id="loginForm" novalidate>
+    <div class="logo">
+      <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="9" fill="#16223a"/><path d="M9 12l4 16 4-11 3 11 4-11 3 11 4-16" fill="none" stroke="#2f8cff" stroke-width="3" stroke-linejoin="round"/><rect x="10" y="31" width="20" height="2.5" rx="1" fill="#ffc23d"/></svg>
+      <div><h1>Panel administracji</h1><p>WestMC · tylko dla ekipy</p></div>
+    </div>
+    <div id="stepPass" class="grid">
+      <div class="field"><label for="lUser">Login</label><input id="lUser" autocomplete="username"></div>
+      <div class="field"><label for="lPass">Hasło</label><input id="lPass" type="password" autocomplete="current-password"></div>
+    </div>
+    <div id="stepSetup" class="grid" hidden>
+      <p>Pierwsze logowanie: włącz weryfikację dwuetapową. W aplikacji <b>Google Authenticator</b> wybierz <b>+ → Wpisz klucz konfiguracyjny</b>, nazwa dowolna, klucz poniżej, typ „Na podstawie czasu”.</p>
+      <div class="preview" id="setupSecret" style="user-select:all;letter-spacing:.08em"></div>
+    </div>
+    <div id="stepCode" class="grid" hidden>
+      <div class="field"><label for="lCode">Kod z aplikacji (6 cyfr)</label><input id="lCode" inputmode="numeric" autocomplete="one-time-code" maxlength="7" style="font:600 22px/1 var(--mono);letter-spacing:.3em;text-align:center"></div>
+    </div>
+    <div id="stepNewPass" class="grid" hidden>
+      <p>Ustaw własne hasło zamiast startowego. Minimum 10 znaków.</p>
+      <div class="field"><label for="lNew">Nowe hasło</label><input id="lNew" type="password" autocomplete="new-password"></div>
+      <div class="field"><label for="lNew2">Powtórz hasło</label><input id="lNew2" type="password" autocomplete="new-password"></div>
+    </div>
+    <div class="err" id="loginErr" hidden></div>
+    <button class="btn btn-blue" type="submit" id="loginBtn">Dalej</button>
+  </form>
+</div>
+
+<!-- ================= PANEL ================= -->
+<div class="app" id="appView" hidden>
+  <aside class="side" id="side">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="9" fill="#16223a"/><path d="M9 12l4 16 4-11 3 11 4-11 3 11 4-16" fill="none" stroke="#2f8cff" stroke-width="3" stroke-linejoin="round"/><rect x="10" y="31" width="20" height="2.5" rx="1" fill="#ffc23d"/></svg>
+      <span>West<b>MC</b></span>
+    </div>
+    <div class="navlbl">Serwer</div>
+    <a class="nav" href="#pulpit"><svg><use href="#i-home"/></svg>Pulpit</a>
+    <a class="nav" href="#mapa"><svg><use href="#i-map"/></svg>Mapa na żywo</a>
+    <a class="nav" href="#gracze"><svg><use href="#i-users"/></svg>Gracze online</a>
+    <a class="nav" href="#logi"><svg><use href="#i-term"/></svg>Logi i konsola</a>
+    <div class="navlbl">Moderacja</div>
+    <a class="nav" href="#zgloszenia"><svg><use href="#i-flag"/></svg>Zgłoszenia<span class="count" id="repCount" hidden>0</span></a>
+    <a class="nav" href="#dziennik"><svg><use href="#i-list"/></svg>Dziennik kar</a>
+    <a class="nav" href="#taryfikator"><svg><use href="#i-scale"/></svg>Taryfikator</a>
+    <div class="navlbl">Wiedza</div>
+    <a class="nav" href="#komendy"><svg><use href="#i-book"/></svg>Komendy</a>
+    <a class="nav" href="#zasady"><svg><use href="#i-shield"/></svg>Zasady ekipy</a>
+    <a class="nav" href="#ekipa" id="navEkipa" hidden><svg><use href="#i-users"/></svg>Konta ekipy</a>
+    <div class="me">
+      <div class="avatar" style="background:var(--gold)" id="meAv">?</div>
+      <div><div class="n" id="meName"></div><div class="r" id="meRole"></div></div>
+      <button id="logout" title="Wyloguj"><svg width="18" height="18"><use href="#i-out"/></svg></button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="top">
+      <button class="menu-btn" id="menuBtn" aria-label="Menu"><svg width="18" height="18"><use href="#i-menu"/></svg></button>
+      <h1 id="viewTitle">Pulpit</h1>
+      <span class="demo-pill" id="connPill" hidden>Brak połączenia</span>
+      <label class="duty"><span class="lbl">Na służbie</span><span class="switch"><input type="checkbox" id="duty"><span></span></span></label>
+    </header>
+
+    <section class="view" id="v-pulpit">
+      <div class="grid g4" id="servers"></div>
+      <div class="grid g2" style="margin-top:14px">
+        <div class="card chart">
+          <h3>Gracze online · ostatnie 24 h <span class="sub">rekord: <b id="peak" class="tnum">–</b></span></h3>
+          <svg id="playersChart" viewBox="0 0 600 190" preserveAspectRatio="none" aria-label="Wykres graczy online"></svg>
+        </div>
+        <div class="card">
+          <h3>Ostatnie zdarzenia <span class="sub">kary, zgłoszenia, panel</span></h3>
+          <div class="alerts" id="alerts"></div>
+        </div>
+      </div>
+      <div class="grid g4" style="margin-top:14px">
+        <div class="card"><h3>Online teraz</h3><div class="big tnum" id="kOnline">0</div></div>
+        <div class="card"><h3>Kary dziś</h3><div class="big tnum" id="kKary">0</div></div>
+        <div class="card"><h3>Otwarte zgłoszenia</h3><div class="big tnum" id="kReports">0</div></div>
+        <div class="card"><h3>Ekipa na służbie</h3><div class="big tnum" id="kDuty">0</div></div>
+      </div>
+    </section>
+
+    <section class="view" id="v-mapa">
+      <div class="toolbar">
+        <select class="btn" id="worldSel" aria-label="Świat"></select>
+        <a class="btn" id="bluemapBtn" target="_blank" rel="noopener" hidden>Otwórz pełną mapę (BlueMap)</a>
+      </div>
+      <div class="mapwrap" id="mapwrap">
+        <canvas id="map"></canvas>
+        <div class="map-zoom"><button id="zIn" aria-label="Przybliż">+</button><button id="zOut" aria-label="Oddal">−</button></div>
+        <div class="map-coords mono" id="coords">X 0 · Z 0</div>
+        <div class="map-info" id="mapInfo" hidden></div>
+      </div>
+      <div class="legend"><span><i style="background:var(--blue)"></i>Gracz</span><span><i style="background:var(--gold)"></i>Członek ekipy</span><span><i style="border:1.5px solid var(--ink)"></i>Spawn (0, 0)</span></div>
+      <p class="note">Pozycje odświeżają się co 2 sekundy. Kliknij kropkę gracza. Teren świata pokazuje pełna mapa BlueMap, jeśli jest ustawiona w configu.</p>
+    </section>
+
+    <section class="view" id="v-gracze">
+      <div class="toolbar">
+        <input class="search" id="pSearch" placeholder="Szukaj gracza..." aria-label="Szukaj gracza">
+        <div class="seg" id="pSrv"></div>
+      </div>
+      <div class="tablewrap"><table><thead><tr><th>Gracz</th><th>Serwer</th><th>Ping</th><th>Sesja</th><th>Pozycja</th><th>Życie</th><th></th></tr></thead><tbody id="pBody"></tbody></table></div>
+    </section>
+
+    <section class="view" id="v-logi">
+      <div class="toolbar">
+        <input class="search" id="lSearch" placeholder="Szukaj w logach (nick, słowo)..." aria-label="Szukaj w logach">
+        <div class="seg" id="lType">
+          <button aria-pressed="true" data-t="all">Wszystko</button>
+          <button aria-pressed="false" data-t="chat">Czat</button>
+          <button aria-pressed="false" data-t="cmd">Komendy</button>
+          <button aria-pressed="false" data-t="join">Wejścia</button>
+          <button aria-pressed="false" data-t="death">Śmierci</button>
+          <button aria-pressed="false" data-t="kara">Kary</button>
+          <button aria-pressed="false" data-t="panel">Panel</button>
+        </div>
+        <button class="btn btn-sm" id="pauseLogs">Pauza</button>
+      </div>
+      <div class="console" id="console"></div>
+      <form class="cmdline" id="cmdForm">
+        <input id="cmdInput" placeholder="Komenda do konsoli (np. say Restart za 5 minut)" autocomplete="off" aria-label="Komenda do konsoli">
+        <select id="cmdSrv" class="btn" aria-label="Serwer"></select>
+        <button class="btn btn-blue" type="submit">Wyślij</button>
+      </form>
+      <p class="note" id="cmdNote">Konsola jest dostępna od rangi Administrator. Pełne logi z każdego dnia są też w plikach plugins/westpanel/logi na proxy.</p>
+    </section>
+
+    <section class="view" id="v-zgloszenia">
+      <div class="toolbar"><div class="seg" id="rFilter"><button aria-pressed="true" data-f="open">Otwarte</button><button aria-pressed="false" data-f="all">Wszystkie</button></div></div>
+      <div class="reports" id="reports"></div>
+      <p class="note">Gracze zgłaszają w grze komendą <span class="mono">/zglos &lt;nick&gt; &lt;powód&gt;</span>. Ekipa z uprawnieniem westpanel.powiadomienia dostaje też wiadomość w grze.</p>
+    </section>
+
+    <section class="view" id="v-dziennik">
+      <div class="toolbar">
+        <input class="search" id="dSearch" placeholder="Szukaj po nicku lub powodzie..." aria-label="Szukaj w dzienniku">
+        <button class="btn btn-blue" id="addKara">+ Ukarz gracza</button>
+      </div>
+      <div class="tablewrap"><table><thead><tr><th>Data</th><th>Gracz</th><th>Kara</th><th>Powód</th><th>Czas</th><th>Nadał</th><th>Serwery</th></tr></thead><tbody id="dBody"></tbody></table></div>
+    </section>
+
+    <section class="view" id="v-taryfikator">
+      <div class="tablewrap tariff"><table><thead><tr><th>Przewinienie</th><th>Waga</th><th>1. raz</th><th>2. raz</th><th>3. raz</th><th>Uwagi</th></tr></thead><tbody id="tBody"></tbody></table></div>
+      <p class="note">Kara rośnie przy kolejnym takim samym przewinieniu w ciągu 30 dni. Historię gracza sprawdzisz komendą /history &lt;nick&gt;.</p>
+    </section>
+
+    <section class="view" id="v-komendy">
+      <div class="toolbar"><input class="search" id="cSearch" placeholder="Szukaj komendy..." aria-label="Szukaj komendy"><div class="seg" id="cCat"></div></div>
+      <div class="cmds" id="cmds"></div>
+    </section>
+
+    <section class="view" id="v-zasady">
+      <div class="rules" id="rules"></div>
+      <h2 style="font-size:20px;margin:26px 0 10px">Rangi w ekipie i uprawnienia w panelu</h2>
+      <div class="ranks">
+        <div class="rk" style="--c:var(--ok)"><b>Pomocnik</b><p>Mute do 1 h, kick, ostrzeżenie. Obsługa zgłoszeń.</p></div>
+        <div class="rk" style="--c:var(--blue)"><b>Moderator</b><p>Mute dowolny, ban do 7 dni.</p></div>
+        <div class="rk" style="--c:var(--bad)"><b>Administrator</b><p>Bany permanentne i konsola serwerów.</p></div>
+        <div class="rk" style="--c:var(--gold)"><b>Właściciel</b><p>Wszystko oraz konta ekipy.</p></div>
+      </div>
+    </section>
+
+    <section class="view" id="v-ekipa">
+      <form class="toolbar" id="accForm">
+        <input class="search" id="accLogin" placeholder="Login nowego konta" aria-label="Login">
+        <select class="btn" id="accRole" aria-label="Ranga"><option value="pomocnik">Pomocnik</option><option value="moderator">Moderator</option><option value="admin">Administrator</option><option value="wlasciciel">Właściciel</option></select>
+        <button class="btn btn-blue" type="submit">Załóż konto</button>
+      </form>
+      <div class="preview" id="accResult" hidden></div>
+      <div class="tablewrap" style="margin-top:14px"><table><thead><tr><th>Login</th><th>Ranga</th><th>2FA</th><th>Ostatnie logowanie</th><th></th></tr></thead><tbody id="accBody"></tbody></table></div>
+    </section>
+  </div>
+</div>
+
+<div class="modal" id="karaModal" hidden>
+  <form class="modal-box" id="karaForm" novalidate>
+    <h2 style="font-size:20px">Ukarz gracza</h2>
+    <div class="field"><label for="kNick">Gracz</label><input id="kNick" autocomplete="off"></div>
+    <div class="field"><label>Szybki wybór z taryfikatora</label><div class="presets" id="presets"></div></div>
+    <div class="grid" style="grid-template-columns:1fr 1fr;gap:10px">
+      <div class="field"><label for="kTyp">Kara</label><select id="kTyp"><option value="mute">Mute</option><option value="ban">Ban</option><option value="kick">Kick</option><option value="warn">Ostrzeżenie</option></select></div>
+      <div class="field"><label for="kCzas">Czas</label><input id="kCzas" placeholder="30m, 6h, 7d, perm" value="1h"></div>
+    </div>
+    <div class="field"><label for="kPowod">Powód</label><input id="kPowod"></div>
+    <div class="field"><label for="kSrv">Serwer</label><select id="kSrv"></select></div>
+    <div class="field"><label>Komenda AdvancedBan</label><div class="preview" id="kPrev"></div></div>
+    <div class="err" id="kErr" hidden></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end"><button type="button" class="btn" id="kCancel">Anuluj</button><button class="btn btn-bad" type="submit">Nałóż karę</button></div>
+  </form>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const pad = (n) => String(n).padStart(2, '0');
+  const toast = (t) => { const e = $('toast'); e.textContent = t; e.classList.add('show'); clearTimeout(toast.h); toast.h = setTimeout(() => e.classList.remove('show'), 2800); };
+  const colorFor = (s) => { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) % 360; return `hsl(${h} 55% 62%)`; };
+  const ROLE = { pomocnik: 'Pomocnik', moderator: 'Moderator', admin: 'Administrator', wlasciciel: 'Właściciel' };
+  const LVL = { pomocnik: 1, moderator: 2, admin: 3, wlasciciel: 4 };
+  const fmtTime = (ms) => { const d = new Date(ms); return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; };
+  const fmtDate = (ms) => { const d = new Date(ms), t = new Date(); const same = d.toDateString() === t.toDateString(); return (same ? 'dziś ' : `${pad(d.getDate())}.${pad(d.getMonth() + 1)} `) + `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+  const mb = (b) => b == null ? '–' : Math.round(b / 1048576);
+
+  async function api(path, body) {
+    const opt = body === undefined ? { credentials: 'same-origin' } : { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-WestPanel': '1' }, body: JSON.stringify(body) };
+    const r = await fetch(path, opt);
+    let data = {};
+    try { data = await r.json(); } catch { /* pusta odpowiedz */ }
+    if (!r.ok) { const e = new Error(data.error || ('Błąd ' + r.status)); e.status = r.status; throw e; }
+    return data;
+  }
+
+  // ======================= logowanie =======================
+  let loginStep = 'pass';
+  function showStep(s) {
+    loginStep = s;
+    $('stepPass').hidden = s !== 'pass';
+    $('stepSetup').hidden = s !== 'setup';
+    $('stepCode').hidden = !(s === 'setup' || s === 'totp');
+    $('stepNewPass').hidden = s !== 'password';
+    $('loginBtn').textContent = s === 'pass' ? 'Dalej' : s === 'password' ? 'Zapisz hasło' : 'Zaloguj';
+    $('loginErr').hidden = true;
+    const f = { pass: 'lUser', setup: 'lCode', totp: 'lCode', password: 'lNew' }[s];
+    setTimeout(() => $(f).focus(), 30);
+  }
+  function loginError(m) { $('loginErr').hidden = false; $('loginErr').textContent = m; }
+  $('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = $('loginBtn'); btn.disabled = true;
+    try {
+      if (loginStep === 'pass') {
+        const r = await api('/api/login', { login: $('lUser').value, password: $('lPass').value });
+        $('lPass').value = '';
+        if (r.need === 'setup') { $('setupSecret').textContent = r.secret.replace(/(.{4})/g, '$1 ').trim(); showStep('setup'); }
+        else showStep('totp');
+      } else if (loginStep === 'setup' || loginStep === 'totp') {
+        const r = await api('/api/totp', { code: $('lCode').value });
+        $('lCode').value = '';
+        if (r.need === 'password') showStep('password'); else enterApp();
+      } else if (loginStep === 'password') {
+        if ($('lNew').value !== $('lNew2').value) { loginError('Hasła się różnią.'); return; }
+        await api('/api/password', { new: $('lNew').value });
+        $('lNew').value = $('lNew2').value = '';
+        enterApp();
+      }
+    } catch (err) {
+      if (err.status === 401 && loginStep !== 'pass' && /Sesja|ponownie/.test(err.message)) showStep('pass');
+      loginError(err.message);
+    } finally { btn.disabled = false; }
+  });
+  $('logout').onclick = async () => { try { await api('/api/logout', {}); } catch { /* i tak wylogowujemy */ } location.hash = ''; location.reload(); };
+
+  // ======================= stan =======================
+  let me = null, lastLog = 0, logs = [], state = null, polling = null, failCount = 0;
+  async function enterApp() {
+    $('loginView').hidden = true; $('appView').hidden = false;
+    await poll();
+    if (!state) return;
+    polling = setInterval(poll, 2000);
+    loadPunishments(); loadReports();
+    if (!location.hash) location.hash = '#pulpit'; else route();
+  }
+  async function poll() {
+    try {
+      const s = await api('/api/state?since=' + lastLog);
+      failCount = 0; $('connPill').hidden = true;
+      state = s; me = s.me;
+      if (s.logs.length) { logs = logs.concat(s.logs).slice(-3000); lastLog = s.logs[s.logs.length - 1].id; if (!paused) renderLogs(); }
+      renderMe(); renderServers(); renderPlayers(); renderChart(); renderAlerts();
+      $('kOnline').textContent = s.players.length;
+      $('kReports').textContent = s.reportsOpen; $('repCount').textContent = s.reportsOpen; $('repCount').hidden = !s.reportsOpen;
+      $('kDuty').textContent = s.onDuty;
+      if (s.reportsOpen !== lastReportsOpen) { lastReportsOpen = s.reportsOpen; loadReports(); }
+    } catch (e) {
+      if (e.status === 401 || e.status === 403) { clearInterval(polling); $('appView').hidden = true; $('loginView').hidden = false; showStep('pass'); if (e.status === 403) loginError(e.message); return; }
+      if (++failCount > 1) { $('connPill').hidden = false; }
+    }
+  }
+  let lastReportsOpen = -1;
+  function renderMe() {
+    $('meName').textContent = me.login; $('meRole').textContent = ROLE[me.role] || me.role; $('meAv').textContent = me.login[0].toUpperCase();
+    $('duty').checked = me.onDuty;
+    $('navEkipa').hidden = LVL[me.role] < 4;
+    const canConsole = LVL[me.role] >= 3;
+    $('cmdForm').hidden = !canConsole;
+  }
+  $('duty').onchange = async (e) => { try { await api('/api/duty', { on: e.target.checked }); toast(e.target.checked ? 'Jesteś na służbie.' : 'Zszedłeś ze służby.'); } catch (err) { toast(err.message); } };
+
+  // ======================= routing =======================
+  const TITLES = { pulpit: 'Pulpit', mapa: 'Mapa na żywo', gracze: 'Gracze online', logi: 'Logi i konsola', zgloszenia: 'Zgłoszenia graczy', dziennik: 'Dziennik kar', taryfikator: 'Taryfikator kar', komendy: 'Komendy', zasady: 'Zasady ekipy', ekipa: 'Konta ekipy' };
+  function route() {
+    if ($('appView').hidden) return;
+    let v = location.hash.slice(1); if (!TITLES[v]) v = 'pulpit';
+    if (v === 'ekipa' && (!me || LVL[me.role] < 4)) v = 'pulpit';
+    document.querySelectorAll('.view').forEach((s) => s.classList.toggle('active', s.id === 'v-' + v));
+    document.querySelectorAll('.nav').forEach((a) => a.classList.toggle('active', a.getAttribute('href') === '#' + v));
+    $('viewTitle').textContent = TITLES[v];
+    $('side').classList.remove('open');
+    if (v === 'mapa') sizeMap();
+    if (v === 'ekipa') loadAccounts();
+    if (v === 'logi') renderLogs();
+  }
+  window.addEventListener('hashchange', route);
+  $('menuBtn').onclick = (e) => { e.stopPropagation(); $('side').classList.toggle('open'); };
+  document.addEventListener('click', (e) => { if (!e.target.closest('#side') && !e.target.closest('#menuBtn')) $('side').classList.remove('open'); });
+  function segment(id, cb) {
+    $(id).addEventListener('click', (e) => {
+      const b = e.target.closest('button'); if (!b) return;
+      $(id).querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      cb(Object.values(b.dataset)[0]);
+    });
+  }
+
+  // ======================= pulpit =======================
+  function renderServers() {
+    $('servers').innerHTML = state.servers.map((s) => {
+      const ram = s.ramMax ? Math.round(s.ramUsed / s.ramMax * 100) : null;
+      const st = s.name === 'proxy' ? 'ok' : !s.connected ? 'none' : s.up ? (s.tps != null && s.tps < 18 ? 'warn' : 'ok') : 'off';
+      return `<div class="card srv">
+        <div class="head"><i class="dot ${st === 'warn' ? 'warn' : st === 'off' ? 'off' : ''}" ${st === 'none' ? 'style="background:var(--muted);box-shadow:none"' : ''}></i><span class="name">${esc(s.name)}</span><span class="port">${st === 'none' ? 'brak pluginu' : st === 'off' ? 'nie odpowiada' : ''}</span></div>
+        <div class="kv">
+          <div><b class="tnum">${s.online}</b><span>online</span></div>
+          <div><b class="tnum" style="color:${st === 'warn' ? 'var(--warn)' : 'var(--ink)'}">${s.tps == null ? '–' : s.tps.toFixed(1)}</b><span>TPS</span></div>
+          <div><b class="tnum">${ram == null ? '–' : ram + '%'}</b><span>RAM ${s.ramMax ? mb(s.ramMax) + ' MB' : ''}</span></div>
+        </div>
+        <div class="bar"><i style="width:${ram || 0}%;background:${ram > 80 ? 'var(--warn)' : 'var(--blue)'}"></i></div>
+      </div>`;
+    }).join('');
+    const opts = state.servers.map((s) => `<option value="${esc(s.name)}">${esc(s.name)}</option>`).join('');
+    if ($('cmdSrv').dataset.v !== opts) { $('cmdSrv').innerHTML = opts; $('cmdSrv').dataset.v = opts; }
+    const kOpts = '<option value="wszystkie">Wszystkie serwery</option>' + state.servers.filter((s) => s.connected).map((s) => `<option value="${esc(s.name)}">${esc(s.name)}</option>`).join('');
+    if ($('kSrv').dataset.v !== kOpts) { $('kSrv').innerHTML = kOpts; $('kSrv').dataset.v = kOpts; }
+    const segs = ['all', ...state.servers.filter((s) => s.name !== 'proxy').map((s) => s.name)];
+    const segHtml = segs.map((s) => `<button aria-pressed="${s === pFilter}" data-s="${esc(s)}">${s === 'all' ? 'Wszystkie' : esc(s)}</button>`).join('');
+    if ($('pSrv').dataset.v !== segHtml) { $('pSrv').innerHTML = segHtml; $('pSrv').dataset.v = segHtml; }
+  }
+  function renderChart() {
+    const h = state.history;
+    const svg = $('playersChart');
+    if (h.length < 2) { svg.innerHTML = '<text x="300" y="95" fill="#8a9bba" font-size="13" text-anchor="middle" font-family="IBM Plex Sans">Wykres wypełni się w ciągu kilku godzin (pomiar co 5 minut).</text>'; $('peak').textContent = h.length ? h[0][1] : '–'; return; }
+    const W = 600, H = 190, L = 30, B = 22, T = 10;
+    const t0 = h[0][0], t1 = h[h.length - 1][0], span = Math.max(1, t1 - t0);
+    const peak = Math.max(...h.map((p) => p[1])); $('peak').textContent = peak;
+    const step = peak <= 10 ? 2 : peak <= 50 ? 10 : 20, max = Math.max(step, Math.ceil(peak / step) * step);
+    const x = (m) => L + ((m - t0) / span) * (W - L - 8), y = (v) => T + (1 - v / max) * (H - T - B);
+    let g = '';
+    for (let v = 0; v <= max; v += step) g += `<line x1="${L}" x2="${W - 8}" y1="${y(v)}" y2="${y(v)}" stroke="#22314d"/><text x="${L - 6}" y="${y(v) + 4}" fill="#8a9bba" font-size="10" text-anchor="end" font-family="JetBrains Mono">${v}</text>`;
+    for (let i = 0; i <= 4; i++) { const m = t0 + span * i / 4, d = new Date(m * 60000); g += `<text x="${x(m)}" y="${H - 6}" fill="#8a9bba" font-size="10" text-anchor="${i === 0 ? 'start' : i === 4 ? 'end' : 'middle'}" font-family="JetBrains Mono">${pad(d.getHours())}:${pad(d.getMinutes())}</text>`; }
+    const line = h.map((p, i) => `${i ? 'L' : 'M'}${x(p[0]).toFixed(1)},${y(p[1]).toFixed(1)}`).join('');
+    const pi = h.findIndex((p) => p[1] === peak);
+    svg.innerHTML = `<defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2f8cff" stop-opacity=".35"/><stop offset="1" stop-color="#2f8cff" stop-opacity="0"/></linearGradient></defs>${g}<path d="${line}L${x(t1)},${y(0)}L${x(t0)},${y(0)}Z" fill="url(#ga)"/><path d="${line}" fill="none" stroke="#2f8cff" stroke-width="2.2" vector-effect="non-scaling-stroke"/><circle cx="${x(h[pi][0])}" cy="${y(peak)}" r="4" fill="#ffc23d"/>`;
+  }
+  function renderAlerts() {
+    const important = logs.filter((l) => l.type === 'kara' || l.type === 'report' || l.type === 'panel').slice(-5).reverse();
+    $('alerts').innerHTML = important.map((l) => `<div class="alert ${l.type === 'kara' ? 'sev-warn' : l.type === 'report' ? 'sev-bad' : 'sev-ok'}"><i class="dot ${l.type === 'report' ? 'off' : l.type === 'kara' ? 'warn' : ''}" style="margin-top:6px"></i><div>${esc(l.text)}<div class="t">${fmtTime(l.time)} · ${esc(l.server)}</div></div><a class="btn btn-sm" href="#${l.type === 'report' ? 'zgloszenia' : l.type === 'kara' ? 'dziennik' : 'logi'}">Otwórz</a></div>`).join('') || '<div class="empty">Na razie spokojnie.</div>';
+  }
+
+  // ======================= gracze =======================
+  let pFilter = 'all';
+  const pingCls = (p) => p < 60 ? 'ping-ok' : p < 120 ? 'ping-mid' : 'ping-bad';
+  function renderPlayers() {
+    const q = $('pSearch').value.toLowerCase();
+    const list = state.players.filter((p) => (pFilter === 'all' || p.server === pFilter) && p.name.toLowerCase().includes(q)).sort((a, b) => a.name.localeCompare(b.name));
+    $('pBody').innerHTML = list.length ? list.map((p) => `
+      <tr>
+        <td><div class="pl"><img class="avatar" src="https://mc-heads.net/avatar/${encodeURIComponent(p.name)}/28" alt="" width="28" height="28" style="background:${colorFor(p.name)}"><span>${esc(p.name)}</span>${p.staff ? '<span class="rank r-west">EKIPA</span>' : ''}</div></td>
+        <td>${esc(p.server)}</td>
+        <td class="mono tnum ${pingCls(p.ping)}">${p.ping} ms</td>
+        <td class="mono tnum">${Math.floor(p.sessionMin / 60)}h ${pad(p.sessionMin % 60)}m</td>
+        <td class="mono tnum" style="color:var(--muted)">${p.world ? `${esc(p.world)} ${p.x}, ${p.z}` : '–'}</td>
+        <td class="mono tnum">${p.health != null ? '♥ ' + p.health : '–'}</td>
+        <td><div class="acts">
+          ${p.world ? `<button class="btn btn-sm" data-act="map" data-n="${esc(p.name)}">Mapa</button>` : ''}
+          <button class="btn btn-sm btn-bad" data-act="kara" data-n="${esc(p.name)}" data-s="${esc(p.server)}">Ukarz</button>
+        </div></td>
+      </tr>`).join('') : `<tr><td colspan="7" class="empty">${state.players.length ? 'Nikt nie pasuje do wyszukiwania.' : 'Nikogo nie ma na serwerze.'}</td></tr>`;
+  }
+  $('pSearch').oninput = () => state && renderPlayers();
+  segment('pSrv', (v) => { pFilter = v; renderPlayers(); });
+  $('pBody').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-act]'); if (!b) return;
+    if (b.dataset.act === 'kara') openKara(b.dataset.n, '', null, b.dataset.s);
+    if (b.dataset.act === 'map') { focusPlayer(b.dataset.n); location.hash = '#mapa'; }
+  });
+
+  // ======================= mapa =======================
+  const cv = $('map'), cx = cv.getContext('2d');
+  let world = null, zoom = .5, camX = 0, camZ = 0, selected = null;
+  function sizeMap() { const r = cv.getBoundingClientRect(); const d = window.devicePixelRatio || 1; cv.width = r.width * d; cv.height = r.height * d; cx.setTransform(d, 0, 0, d, 0, 0); }
+  const toScreen = (x, z) => { const r = cv.getBoundingClientRect(); return [r.width / 2 + (x - camX) * zoom, r.height / 2 + (z - camZ) * zoom]; };
+  const mapPlayers = () => state ? state.players.filter((p) => p.world && p.world === world) : [];
+  function updateWorlds() {
+    if (!state) return;
+    const worlds = [...new Set(state.players.filter((p) => p.world).map((p) => p.server + '|' + p.world))];
+    const html = worlds.length ? worlds.map((w) => { const [s, wn] = w.split('|'); return `<option value="${esc(wn)}">${esc(s)} · ${esc(wn)}</option>`; }).join('') : '<option value="">Brak graczy z pozycją</option>';
+    if ($('worldSel').dataset.v !== html) { $('worldSel').innerHTML = html; $('worldSel').dataset.v = html; if (world && worlds.some((w) => w.endsWith('|' + world))) $('worldSel').value = world; }
+    if (!world || !worlds.some((w) => w.endsWith('|' + world))) world = $('worldSel').value || null;
+    if (state.bluemap) { $('bluemapBtn').hidden = false; $('bluemapBtn').href = state.bluemap; }
+  }
+  $('worldSel').onchange = (e) => { world = e.target.value; selected = null; $('mapInfo').hidden = true; camX = camZ = 0; };
+  function drawMap() {
+    const r = cv.getBoundingClientRect(); if (!r.width) return;
+    updateWorlds();
+    cx.fillStyle = '#0b111d'; cx.fillRect(0, 0, r.width, r.height);
+    let grid = 16; while (grid * zoom < 40) grid *= 2;
+    const left = camX - r.width / 2 / zoom, top = camZ - r.height / 2 / zoom;
+    cx.lineWidth = 1;
+    for (let gx = Math.floor(left / grid) * grid; gx < left + r.width / zoom; gx += grid) {
+      const [sx] = toScreen(gx, 0); cx.strokeStyle = gx % (grid * 4) === 0 ? 'rgba(255,255,255,.09)' : 'rgba(255,255,255,.04)';
+      cx.beginPath(); cx.moveTo(sx, 0); cx.lineTo(sx, r.height); cx.stroke();
+    }
+    for (let gz = Math.floor(top / grid) * grid; gz < top + r.height / zoom; gz += grid) {
+      const [, sz] = toScreen(0, gz); cx.strokeStyle = gz % (grid * 4) === 0 ? 'rgba(255,255,255,.09)' : 'rgba(255,255,255,.04)';
+      cx.beginPath(); cx.moveTo(0, sz); cx.lineTo(r.width, sz); cx.stroke();
+    }
+    const [sx, sz] = toScreen(0, 0);
+    cx.strokeStyle = '#e6eefb'; cx.lineWidth = 1.5; cx.strokeRect(sx - 6, sz - 6, 12, 12);
+    cx.fillStyle = '#e6eefb'; cx.font = '600 11px JetBrains Mono, monospace'; cx.fillText('Spawn', sx + 10, sz + 4);
+    for (const p of mapPlayers()) {
+      const [px, pz] = toScreen(p.x, p.z);
+      cx.fillStyle = p.staff ? '#ffc23d' : '#2f8cff';
+      cx.beginPath(); cx.arc(px, pz, selected === p.name ? 7 : 5, 0, Math.PI * 2); cx.fill();
+      cx.strokeStyle = '#0a0f1a'; cx.lineWidth = 2; cx.stroke();
+      cx.fillStyle = '#e6eefb'; cx.font = '500 11px IBM Plex Sans, sans-serif'; cx.fillText(p.name, px + 9, pz + 4);
+    }
+    if (selected) { const p = mapPlayers().find((x) => x.name === selected); if (p) showInfo(p); }
+  }
+  function showInfo(p) {
+    const box = $('mapInfo'); box.hidden = false;
+    const html = `<div class="pl"><img class="avatar" src="https://mc-heads.net/avatar/${encodeURIComponent(p.name)}/32" alt="" width="32" height="32"><div><b>${esc(p.name)}</b><div class="mono" style="font-size:12px;color:var(--muted)">X ${p.x} · Z ${p.z}</div></div></div>
+      <div style="font-size:13px;color:var(--muted)">${esc(p.server)} · ${esc(p.world)} · ♥ ${p.health} · ${esc(p.gamemode || '')}</div>
+      <div class="acts" style="justify-content:flex-start"><button class="btn btn-sm btn-bad" data-k="${esc(p.name)}">Ukarz</button><button class="btn btn-sm" data-close="1">Zamknij</button></div>`;
+    if (box.dataset.v !== html) { box.innerHTML = html; box.dataset.v = html; }
+  }
+  $('mapInfo').addEventListener('click', (e) => {
+    if (e.target.dataset.k) openKara(e.target.dataset.k);
+    if (e.target.dataset.close) { selected = null; $('mapInfo').hidden = true; }
+  });
+  function focusPlayer(n) {
+    const p = state.players.find((x) => x.name === n); if (!p || !p.world) return;
+    world = p.world; $('worldSel').value = p.world; selected = p.name; camX = p.x; camZ = p.z; zoom = 1.5;
+  }
+  let drag = null;
+  cv.addEventListener('pointerdown', (e) => { drag = { x: e.clientX, y: e.clientY, cx: camX, cz: camZ, moved: false }; cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener('pointermove', (e) => {
+    const r = cv.getBoundingClientRect();
+    $('coords').textContent = `X ${Math.round(camX + (e.clientX - r.left - r.width / 2) / zoom)} · Z ${Math.round(camZ + (e.clientY - r.top - r.height / 2) / zoom)}`;
+    if (!drag) return;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true;
+    camX = drag.cx - dx / zoom; camZ = drag.cz - dy / zoom;
+  });
+  cv.addEventListener('pointerup', (e) => {
+    if (drag && !drag.moved) {
+      const r = cv.getBoundingClientRect(); let best = null, bd = 14;
+      for (const p of mapPlayers()) { const [px, pz] = toScreen(p.x, p.z); const d = Math.hypot(px - (e.clientX - r.left), pz - (e.clientY - r.top)); if (d < bd) { bd = d; best = p; } }
+      if (best) selected = best.name;
+    }
+    drag = null;
+  });
+  cv.addEventListener('wheel', (e) => { e.preventDefault(); zoom = Math.min(8, Math.max(.05, zoom * (e.deltaY < 0 ? 1.15 : .87))); }, { passive: false });
+  $('zIn').onclick = () => { zoom = Math.min(8, zoom * 1.3); };
+  $('zOut').onclick = () => { zoom = Math.max(.05, zoom / 1.3); };
+  window.addEventListener('resize', () => { if ($('v-mapa').classList.contains('active')) sizeMap(); });
+  (function frame() { if ($('v-mapa').classList.contains('active')) drawMap(); requestAnimationFrame(frame); })();
+
+  // ======================= logi =======================
+  let paused = false, lType = 'all';
+  const LBL = { chat: 'CZAT', cmd: 'KOMENDA', join: 'WEJŚCIE', death: 'ŚMIERĆ', kara: 'KARA', report: 'ZGŁOSZENIE', panel: 'PANEL', ac: 'ANTICHEAT' };
+  function renderLogs() {
+    const q = $('lSearch').value.toLowerCase();
+    const list = logs.filter((l) => (lType === 'all' || l.type === lType || (lType === 'kara' && l.type === 'report')) && (l.text + ' ' + l.server).toLowerCase().includes(q));
+    const c = $('console'); const atBottom = c.scrollHeight - c.scrollTop - c.clientHeight < 40;
+    c.innerHTML = list.slice(-400).map((l) => `<div class="ln lt-${l.type === 'report' || l.type === 'panel' ? 'kara' : l.type === 'death' ? 'ac' : esc(l.type)}"><span class="tm">${fmtTime(l.time)}</span><span class="sv">${esc(l.server)}</span><span class="ty">${LBL[l.type] || esc(l.type)}</span><span>${esc(l.text)}</span></div>`).join('') || '<div class="empty">Brak wpisów dla tego filtra.</div>';
+    if (atBottom) c.scrollTop = c.scrollHeight;
+  }
+  $('lSearch').oninput = renderLogs;
+  segment('lType', (t) => { lType = t; renderLogs(); });
+  $('pauseLogs').onclick = (e) => { paused = !paused; e.target.textContent = paused ? 'Wznów' : 'Pauza'; if (!paused) renderLogs(); };
+  $('cmdForm').addEventListener('submit', async (e) => {
+    e.preventDefault(); const v = $('cmdInput').value.trim(); if (!v) return;
+    try { await api('/api/command', { server: $('cmdSrv').value, command: v }); $('cmdInput').value = ''; toast('Wysłano na ' + $('cmdSrv').value); }
+    catch (err) { toast(err.message); }
+  });
+
+  // ======================= zgloszenia =======================
+  let reports = [], rFilter = 'open';
+  async function loadReports() { try { reports = (await api('/api/reports')).items; renderReports(); } catch { /* sprobujemy przy nastepnym odswiezeniu */ } }
+  function renderReports() {
+    const list = reports.filter((r) => rFilter === 'all' || r.status !== 'done');
+    $('reports').innerHTML = list.map((r) => `
+      <div class="rep" style="--sev:${r.status === 'done' ? 'var(--ok)' : 'var(--bad)'}">
+        <div><div class="who">${esc(r.target)} <span style="color:var(--muted);font-weight:400">· ${esc(r.reason)}</span></div>
+        <div class="meta">${esc(r.server)} · zgłosił ${esc(r.from)} · ${fmtDate(r.time)}${r.claimedBy ? ' · ' + esc(r.claimedBy) : ''}${r.resolution ? ' · ' + esc(r.resolution) : ''}</div></div>
+        <span class="st ${r.status === 'claimed' ? 'claimed' : r.status === 'done' ? 'done' : ''}">${{ open: 'NOWE', claimed: 'W TOKU', done: 'ZAMKNIĘTE' }[r.status]}</span>
+        ${r.status === 'done' ? '' : `<div class="actions">
+          ${r.status === 'open' ? `<button class="btn btn-sm btn-blue" data-r="${r.id}" data-a="claim">Biorę to</button>` : ''}
+          <button class="btn btn-sm btn-bad" data-r="${r.id}" data-a="kara">Ukarz</button>
+          <button class="btn btn-sm" data-r="${r.id}" data-a="close">Zamknij bez kary</button></div>`}
+      </div>`).join('') || '<div class="empty card">Brak otwartych zgłoszeń.</div>';
+  }
+  $('reports').addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-a]'); if (!b) return;
+    const r = reports.find((x) => x.id === +b.dataset.r);
+    if (b.dataset.a === 'kara') { openKara(r.target, r.reason, r.id, r.server); return; }
+    try { await api('/api/report', { id: r.id, action: b.dataset.a }); toast(b.dataset.a === 'claim' ? 'Zgłoszenie przypisane do Ciebie.' : 'Zgłoszenie zamknięte.'); loadReports(); }
+    catch (err) { toast(err.message); }
+  });
+  segment('rFilter', (f) => { rFilter = f; renderReports(); });
+
+  // ======================= taryfikator i kary =======================
+  const TARIFF = [
+    { w: 'Cheaty (KillAura, Fly, X-Ray, autoklik)', l: 3, t: ['ban 30d', 'ban perm', '—'], u: 'Dowód: log anticheatu albo nagranie' },
+    { w: 'Reklama innego serwera', l: 3, t: ['ban 3d', 'ban 14d', 'ban perm'], u: 'Także w wiadomościach prywatnych' },
+    { w: 'Oszustwo w handlu (scam)', l: 3, t: ['ban 3d', 'ban 14d', 'ban perm'], u: 'Przedmioty zwracamy, jeśli się da' },
+    { w: 'Wykorzystywanie bugów', l: 2, t: ['ban 1d', 'ban 7d', 'ban 30d'], u: 'Zgłoszenie buga = nagroda, nie kara' },
+    { w: 'Ucieczka z walki (logout)', l: 2, t: ['warn', 'ban 1h', 'ban 1d'], u: 'Tylko przy aktywnym combat-tagu' },
+    { w: 'Wyzwiska, obrażanie graczy', l: 2, t: ['mute 1h', 'mute 6h', 'mute 3d'], u: 'Groźby i rasizm od razu próg 3' },
+    { w: 'Obrażanie ekipy', l: 2, t: ['mute 3h', 'mute 1d', 'ban 3d'], u: '' },
+    { w: 'Spam, flood, caps lock', l: 1, t: ['warn', 'mute 30m', 'mute 3h'], u: '' },
+    { w: 'Nieodpowiedni nick lub skin', l: 1, t: ['kick', 'ban 1d', 'ban perm'], u: 'Ban do zmiany nicku' },
+    { w: 'Multikonta do farmienia', l: 2, t: ['ban 7d', 'ban 30d', 'ban perm'], u: 'Alt zawsze perm' }
+  ];
+  $('tBody').innerHTML = TARIFF.map((t) => `<tr><td>${t.w}</td><td><span class="lvl lvl-${t.l}">${['', 'LEKKIE', 'ŚREDNIE', 'CIĘŻKIE'][t.l]}</span></td><td>${t.t[0]}</td><td>${t.t[1]}</td><td>${t.t[2]}</td><td style="color:var(--muted)">${t.u}</td></tr>`).join('');
+
+  let punishments = [];
+  async function loadPunishments() { try { punishments = (await api('/api/punishments')).items; renderPunishments(); } catch { /* pozniej */ } }
+  function renderPunishments() {
+    const q = $('dSearch').value.toLowerCase();
+    const list = punishments.filter((p) => (p.nick + ' ' + p.reason + ' ' + p.by).toLowerCase().includes(q));
+    const today = new Date().toDateString();
+    $('kKary').textContent = punishments.filter((p) => new Date(p.time).toDateString() === today).length;
+    const T = { ban: ['BAN', 'lvl-3'], mute: ['MUTE', 'lvl-2'], kick: ['KICK', 'lvl-1'], warn: ['OSTRZEŻENIE', 'lvl-1'] };
+    $('dBody').innerHTML = list.map((p) => `<tr><td class="mono" style="white-space:nowrap">${fmtDate(p.time)}</td><td>${esc(p.nick)}</td><td><span class="lvl ${(T[p.type] || ['', 'lvl-1'])[1]}">${(T[p.type] || [esc(p.type)])[0]}</span></td><td>${esc(p.reason)}</td><td class="mono">${esc(p.duration)}</td><td>${esc(p.by)}</td><td style="color:var(--muted)">${esc(p.server)}</td></tr>`).join('') || '<tr><td colspan="7" class="empty">Dziennik jest pusty. Kary nałożone w panelu zapisują się tutaj same.</td></tr>';
+  }
+  $('dSearch').oninput = renderPunishments;
+
+  let karaReport = null;
+  $('presets').innerHTML = TARIFF.map((t, i) => `<button type="button" data-i="${i}">${esc(t.w.split(' (')[0].split(',')[0])}</button>`).join('');
+  $('presets').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-i]'); if (!b) return;
+    const t = TARIFF[+b.dataset.i];
+    const n = $('kNick').value.trim().toLowerCase();
+    const prior = punishments.filter((p) => p.nick.toLowerCase() === n && p.reason === t.w && Date.now() - p.time < 30 * 86400000).length;
+    const pick = t.t[Math.min(prior, 2)] === '—' ? t.t[1] : t.t[Math.min(prior, 2)];
+    const [typ, czas] = pick.split(' ');
+    $('kTyp').value = typ; $('kCzas').value = czas || ''; $('kPowod').value = t.w; prev();
+    if (prior) toast(`${prior + 1}. raz w ciągu 30 dni, dobrano wyższy próg.`);
+  });
+  function prev() {
+    const n = $('kNick').value.trim() || '<nick>', c = $('kCzas').value.trim() || '<czas>', p = $('kPowod').value.trim() || '<powód>', t = $('kTyp').value;
+    $('kCzas').disabled = t === 'kick' || t === 'warn';
+    $('kPrev').textContent = t === 'ban' ? (c === 'perm' ? `/ban ${n} ${p}` : `/tempban ${n} ${c} ${p}`) : t === 'mute' ? (c === 'perm' ? `/mute ${n} ${p}` : `/tempmute ${n} ${c} ${p}`) : t === 'kick' ? `/kick ${n} ${p}` : `/warn ${n} ${p}`;
+  }
+  ['kNick', 'kTyp', 'kCzas', 'kPowod'].forEach((id) => $(id).addEventListener('input', prev));
+  function openKara(n, why, reportId, server) {
+    karaReport = reportId || null;
+    $('kNick').value = n || ''; $('kPowod').value = why || ''; $('kErr').hidden = true;
+    if (server && [...$('kSrv').options].some((o) => o.value === server)) $('kSrv').value = server; else $('kSrv').value = 'wszystkie';
+    $('karaModal').hidden = false; prev(); $('kNick').focus();
+  }
+  $('addKara').onclick = () => openKara('');
+  $('kCancel').onclick = () => { $('karaModal').hidden = true; karaReport = null; };
+  $('karaModal').addEventListener('click', (e) => { if (e.target.id === 'karaModal') $('kCancel').click(); });
+  $('karaForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      const r = await api('/api/punish', { nick: $('kNick').value.trim(), type: $('kTyp').value, duration: $('kCzas').value.trim(), reason: $('kPowod').value.trim(), server: $('kSrv').value, reportId: karaReport });
+      $('karaModal').hidden = true; karaReport = null;
+      toast(`Wysłano ${r.command} na: ${r.servers.join(', ')}`);
+      loadPunishments(); loadReports();
+    } catch (err) { $('kErr').hidden = false; $('kErr').textContent = err.message; }
+  });
+
+  // ======================= komendy =======================
+  const CMDLIST = [
+    { c: 'lp user <nick> parent add <ranga>', d: 'Nadaje rangę na stałe.', k: 'Rangi' },
+    { c: 'lp user <nick> parent addtemp <ranga> 30d', d: 'Nadaje rangę na czas.', k: 'Rangi' },
+    { c: 'lp user <nick> parent remove <ranga>', d: 'Zabiera rangę.', k: 'Rangi' },
+    { c: 'lp listgroups', d: 'Lista wszystkich rang.', k: 'Rangi' },
+    { c: '/tempban <nick> <czas> <powód>', d: 'Ban czasowy (AdvancedBan), np. 7d.', k: 'Kary' },
+    { c: '/ban <nick> <powód>', d: 'Ban permanentny.', k: 'Kary' },
+    { c: '/tempmute <nick> <czas> <powód>', d: 'Wyciszenie na czas, np. 1h.', k: 'Kary' },
+    { c: '/kick <nick> <powód>', d: 'Wyrzuca z serwera.', k: 'Kary' },
+    { c: '/warn <nick> <powód>', d: 'Ostrzeżenie zapisane w historii.', k: 'Kary' },
+    { c: '/unban <nick>', d: 'Zdejmuje bana.', k: 'Kary' },
+    { c: '/unmute <nick>', d: 'Zdejmuje wyciszenie.', k: 'Kary' },
+    { c: '/check <nick>', d: 'Aktywne kary gracza.', k: 'Kary' },
+    { c: '/history <nick>', d: 'Pełna historia kar gracza.', k: 'Kary' },
+    { c: '/duels castle info', d: 'Stan Castle: mapa, spawny, strefy.', k: 'Duels' },
+    { c: '/duels monety <nick> dodaj <ile> [castle]', d: 'Dodaje monety Duels albo Castle.', k: 'Duels' },
+    { c: '/duels npc <castle|ranked|ffa|sklep|nagrody>', d: 'Stawia NPC trybu tam, gdzie stoisz.', k: 'Duels' },
+    { c: '/duels topka <elo|zabojstwa|wygrane>', d: 'Stawia posąg z topką.', k: 'Duels' },
+    { c: '/duels przeladuj', d: 'Przeładowuje config WestDuels.', k: 'Duels' },
+    { c: '/meteoryt start [tutaj] [szybko]', d: 'Odpala meteoryt losowo albo tam, gdzie stoisz.', k: 'Gildie' },
+    { c: '/meteoryt stop', d: 'Zatrzymuje meteoryt i przywraca teren.', k: 'Gildie' },
+    { c: '/meteoryt zapisz <nazwa>', d: 'Zapisuje przedmiot z ręki do nagród.', k: 'Gildie' },
+    { c: '/hity miecz <mnożnik>', d: 'Siła hitów PvP, np. 1.5 = +50%.', k: 'Gildie' },
+    { c: '/killcam', d: 'Włącza lub wyłącza sobie killcam.', k: 'Gildie' },
+    { c: '/sc-drop reload', d: 'Przeładowuje drop z kamienia.', k: 'Gildie' },
+    { c: '/westcase admin przeladuj', d: 'Przeładowuje skrzynki.', k: 'Gildie' },
+    { c: '/lobby postac <typ>', d: 'Stawia figurę trybu na lobby.', k: 'Lobby' },
+    { c: '/lobby przeladuj', d: 'Przeładowuje config lobby.', k: 'Lobby' },
+    { c: 'velocity reload', d: 'Przeładowuje proxy bez restartu.', k: 'Proxy' },
+    { c: 'panel konto <login> <ranga>', d: 'Zakłada konto w panelu lub resetuje hasło (konsola proxy).', k: 'Proxy' },
+    { c: '/effect clear @s', d: 'Zdejmuje z siebie wszystkie efekty.', k: 'Inne' }
+  ];
+  const cats = ['Wszystkie', ...new Set(CMDLIST.map((c) => c.k))];
+  $('cCat').innerHTML = cats.map((c, i) => `<button aria-pressed="${i === 0}" data-k="${c}">${c}</button>`).join('');
+  let cCat = 'Wszystkie';
+  function renderCmds() {
+    const q = $('cSearch').value.toLowerCase();
+    const list = CMDLIST.filter((c) => (cCat === 'Wszystkie' || c.k === cCat) && (c.c + ' ' + c.d).toLowerCase().includes(q));
+    $('cmds').innerHTML = list.map((c) => `<div class="cmd"><code>${esc(c.c)}</code><span class="tag">${c.k}</span><p>${c.d}</p><button class="copy-b" data-c="${esc(c.c)}">Kopiuj</button></div>`).join('') || '<div class="empty">Nie ma takiej komendy.</div>';
+  }
+  $('cSearch').oninput = renderCmds;
+  segment('cCat', (k) => { cCat = k; renderCmds(); });
+  $('cmds').addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-c]'); if (!b) return;
+    try { await navigator.clipboard.writeText(b.dataset.c); b.textContent = 'Skopiowano'; } catch { b.textContent = 'Zaznacz i skopiuj ręcznie'; }
+    setTimeout(() => { b.textContent = 'Kopiuj'; }, 1500);
+  });
+  renderCmds();
+
+  // ======================= zasady =======================
+  const RULES = [
+    ['Kara zawsze z taryfikatora', 'Nie wymyślamy własnych kar. Jak przewinienia nie ma w taryfikatorze, pytasz administratora.'],
+    ['Najpierw dowód, potem kara', 'Log anticheatu, zrzut czatu albo nagranie. Bez dowodu nie banujemy, tylko obserwujemy.'],
+    ['Karzemy przez panel', 'Wtedy kara sama trafia do dziennika i na wszystkie serwery.'],
+    ['Nie dajemy przedmiotów graczom', 'Żadnych /give, /gamemode i rozdawania itemów, także znajomym. Wyjątek: zwrot po potwierdzonym bugu.'],
+    ['Spokojny ton', 'Nie kłócimy się na czacie. Rozmowę z graczem przenosimy na Discord albo do ticketu.'],
+    ['Służba w panelu', 'Kiedy moderujesz, włącz przełącznik „Na służbie”.'],
+    ['Nie udostępniamy konta', 'Login, hasło i 2FA są tylko Twoje. Każdy z ekipy ma własne konto.'],
+    ['Odwołania rozpatruje ktoś inny', 'Nie rozpatrujesz odwołania od własnej kary.']
+  ];
+  $('rules').innerHTML = RULES.map((r, i) => `<div class="rule"><b class="no">${i + 1}</b><div><h3>${r[0]}</h3><p>${r[1]}</p></div></div>`).join('');
+
+  // ======================= konta ekipy =======================
+  async function loadAccounts() {
+    try {
+      const items = (await api('/api/accounts')).items;
+      $('accBody').innerHTML = items.map((a) => `<tr><td>${esc(a.login)}</td><td>
+        <select class="btn btn-sm" data-role="${esc(a.login)}" ${a.login === me.login ? 'disabled' : ''}>${Object.keys(ROLE).map((r) => `<option value="${r}" ${r === a.role ? 'selected' : ''}>${ROLE[r]}</option>`).join('')}</select></td>
+        <td>${a.twofa ? '<span style="color:var(--ok)">włączone</span>' : '<span style="color:var(--warn)">czeka na 1. logowanie</span>'}</td>
+        <td class="mono">${a.lastLogin ? fmtDate(a.lastLogin) : '–'}</td>
+        <td><div class="acts">${a.login === me.login ? '' : `<button class="btn btn-sm" data-reset="${esc(a.login)}">Reset hasła i 2FA</button><button class="btn btn-sm btn-bad" data-del="${esc(a.login)}">Usuń</button>`}</div></td></tr>`).join('');
+    } catch (err) { toast(err.message); }
+  }
+  $('accForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      const login = $('accLogin').value.trim();
+      const r = await api('/api/accounts', { action: 'add', login, role: $('accRole').value });
+      showSecret(login, r.password); $('accLogin').value = ''; loadAccounts();
+    } catch (err) { toast(err.message); }
+  });
+  function showSecret(login, pw) {
+    const box = $('accResult'); box.hidden = false;
+    box.textContent = `Konto ${login}: hasło startowe ${pw}. Przekaż je tej osobie prywatnie. Przy pierwszym logowaniu ustawi 2FA i własne hasło.`;
+  }
+  let pendingDelete = null;
+  $('accBody').addEventListener('click', async (e) => {
+    const t = e.target;
+    try {
+      if (t.dataset.reset) { const r = await api('/api/accounts', { action: 'reset', login: t.dataset.reset }); showSecret(t.dataset.reset, r.password); loadAccounts(); }
+      if (t.dataset.del) {
+        if (pendingDelete !== t.dataset.del) { pendingDelete = t.dataset.del; t.textContent = 'Na pewno usunąć?'; setTimeout(() => { if (pendingDelete === t.dataset.del) { pendingDelete = null; t.textContent = 'Usuń'; } }, 3000); return; }
+        pendingDelete = null; await api('/api/accounts', { action: 'delete', login: t.dataset.del }); toast('Konto usunięte.'); loadAccounts();
+      }
+    } catch (err) { toast(err.message); }
+  });
+  $('accBody').addEventListener('change', async (e) => {
+    if (!e.target.dataset.role) return;
+    try { await api('/api/accounts', { action: 'role', login: e.target.dataset.role, role: e.target.value }); toast('Ranga zmieniona.'); } catch (err) { toast(err.message); loadAccounts(); }
+  });
+
+  // ======================= start =======================
+  (async () => {
+    try { await api('/api/state?since=0'); enterApp(); } catch { showStep('pass'); }
+  })();
+})();
+
+</script>
+</body>
+</html>

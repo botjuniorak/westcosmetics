@@ -1,0 +1,13 @@
+# WestPanel - polaczenie z panelem administracji (plugin na proxy)
+# adres panelu widziany z tego serwera (siec wewnetrzna hostingu albo VPS)
+panel: "http://172.18.0.1:8123"
+# klucz z konsoli proxy: komenda "panel klucz"
+klucz: "WPISZ-KLUCZ"
+# nazwa tego serwera DOKLADNIE jak w velocity.toml (np. gildie, duels, lobby)
+serwer: "gildie"
+# co ile sekund wysylac dane (2-10)
+co-ile-sekund: 2
+# czy wysylac wiadomosci z czatu do logow panelu
+logi-czatu: true
+# odstep miedzy zgloszeniami jednego gracza (sekundy)
+zglos-cooldown: 60

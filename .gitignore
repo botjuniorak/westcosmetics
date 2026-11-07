@@ -7,3 +7,5 @@ installer/bin/
 installer/obj/
 launcher/node_modules/
 launcher/dist/
+westpanel/**/build/
+westpanel/.gradle/

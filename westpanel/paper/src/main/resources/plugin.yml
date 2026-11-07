@@ -1,0 +1,13 @@
+name: WestPanel
+version: '${version}'
+main: pl.westmc.panel.paper.WestPanelPaper
+api-version: '1.21'
+description: Wysyla dane serwera do panelu administracji WestMC
+commands:
+  zglos:
+    description: Zglos gracza do administracji
+    usage: /zglos <nick> <powod>
+    aliases: [report]
+permissions:
+  westpanel.zglos:
+    default: true
