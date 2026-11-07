@@ -90,6 +90,12 @@ final class Web {
         int lvl = Store.ROLE_LEVEL.getOrDefault(a.role, 0);
         switch (method + " " + path) {
             case "GET /api/state" -> json(ex, 200, pl.state(a, longParam(ex, "since")));
+            case "GET /api/tiles" -> {
+                String q = ex.getRequestURI().getQuery();
+                String world = "";
+                if (q != null) for (String part : q.split("&")) if (part.startsWith("world=")) world = java.net.URLDecoder.decode(part.substring(6), StandardCharsets.UTF_8);
+                json(ex, 200, Map.of("tiles", st.tilesSince(world, longParam(ex, "since")), "now", System.currentTimeMillis()));
+            }
             case "POST /api/duty" -> {
                 a.onDuty = body(ex).get("on").getAsBoolean();
                 st.saveAccounts();
@@ -387,6 +393,15 @@ final class Web {
             players.add(m);
         }
         s.players = players;
+        if (b.has("spawns")) for (var e : b.getAsJsonObject("spawns").entrySet()) {
+            var arr = e.getValue().getAsJsonArray();
+            st.spawns.put(name + "/" + e.getKey(), new int[]{arr.get(0).getAsInt(), arr.get(1).getAsInt()});
+        }
+        if (b.has("tiles")) for (var e : b.getAsJsonArray("tiles")) {
+            JsonObject t = e.getAsJsonObject();
+            String d = str(t, "data");
+            if (d.length() <= 1100) st.putTile(name + "/" + str(t, "world"), t.get("cx").getAsInt(), t.get("cz").getAsInt(), d);
+        }
         s.online = players.size();
         if (b.has("events")) for (var e : b.getAsJsonArray("events")) {
             JsonObject ev = e.getAsJsonObject();

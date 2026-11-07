@@ -75,7 +75,10 @@ final class Store {
     final Map<String, ServerState> servers = new ConcurrentHashMap<>();
     final Map<String, Deque<String>> commandQueues = new ConcurrentHashMap<>();
     final Deque<LogLine> logs = new ArrayDeque<>();
-    final Deque<int[]> history = new ArrayDeque<>();   // [minuta od epoki, gracze online], co 5 min, 24 h
+    final Deque<int[]> history = new ArrayDeque<>();
+    /** Teren mapy: swiat -> "cx:cz" -> [czas, base64 RGB 16x16]. */
+    final Map<String, Map<String, Object[]>> tiles = new ConcurrentHashMap<>();
+    final Map<String, int[]> spawns = new ConcurrentHashMap<>();   // [minuta od epoki, gracze online], co 5 min, 24 h
     private final AtomicLong logSeq = new AtomicLong();
     private long nextId = 1;
 
@@ -115,6 +118,48 @@ final class Store {
     }
 
     synchronized long nextId() { return nextId++; }
+
+    void putTile(String world, int cx, int cz, String data) {
+        tiles.computeIfAbsent(world, k -> new ConcurrentHashMap<>()).put(cx + ":" + cz, new Object[]{System.currentTimeMillis(), data});
+    }
+
+    List<Map<String, Object>> tilesSince(String world, long since) {
+        List<Map<String, Object>> out = new ArrayList<>();
+        Map<String, Object[]> m = tiles.get(world);
+        if (m == null) return out;
+        for (var e : m.entrySet()) {
+            long t = (Long) e.getValue()[0];
+            if (t <= since) continue;
+            String[] c = e.getKey().split(":");
+            Map<String, Object> o = new LinkedHashMap<>();
+            o.put("cx", Integer.parseInt(c[0])); o.put("cz", Integer.parseInt(c[1])); o.put("t", t); o.put("d", e.getValue()[1]);
+            out.add(o);
+        }
+        return out;
+    }
+
+    /** Teren zapisywany do pliku (gzip), zeby mapa nie znikala po restarcie proxy. */
+    void saveTiles() {
+        try (var os = new java.util.zip.GZIPOutputStream(Files.newOutputStream(dir.resolve("mapa.json.gz")));
+             var w = new java.io.OutputStreamWriter(os, StandardCharsets.UTF_8)) {
+            gson.toJson(tiles, w);
+        } catch (IOException ignored) { }
+    }
+
+    void loadTiles() {
+        Path f = dir.resolve("mapa.json.gz");
+        if (!Files.exists(f)) return;
+        try (var is = new java.util.zip.GZIPInputStream(Files.newInputStream(f));
+             var r = new java.io.InputStreamReader(is, StandardCharsets.UTF_8)) {
+            Map<String, Map<String, List<Object>>> raw = gson.fromJson(r, new TypeToken<Map<String, Map<String, List<Object>>>>() { }.getType());
+            if (raw == null) return;
+            for (var w : raw.entrySet()) {
+                Map<String, Object[]> m = new ConcurrentHashMap<>();
+                for (var t : w.getValue().entrySet()) m.put(t.getKey(), new Object[]{((Number) t.getValue().get(0)).longValue(), t.getValue().get(1)});
+                tiles.put(w.getKey(), m);
+            }
+        } catch (Exception ignored) { }
+    }
 
     // ------------------------------------------------------------ logi
     void log(String server, String type, String text) {

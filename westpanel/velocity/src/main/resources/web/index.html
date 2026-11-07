@@ -327,7 +327,7 @@ tr:hover td { background: rgba(255, 255, 255, .02); }
         <div class="map-info" id="mapInfo" hidden></div>
       </div>
       <div class="legend"><span><i style="background:var(--blue)"></i>Gracz</span><span><i style="background:var(--gold)"></i>Członek ekipy</span><span><i style="border:1.5px solid var(--ink)"></i>Spawn (0, 0)</span></div>
-      <p class="note">Pozycje odświeżają się co 2 sekundy. Kliknij kropkę gracza. Teren świata pokazuje pełna mapa BlueMap, jeśli jest ustawiona w configu.</p>
+      <p class="note">Pozycje odświeżają się co 2 sekundy. Kliknij kropkę gracza. Teren rysuje się sam wokół graczy (do 6 chunków od każdego) i zostaje zapamiętany. Im więcej ludzi lata po mapie, tym więcej jej widać.</p>
     </section>
 
     <section class="view" id="v-gracze">
@@ -627,40 +627,72 @@ tr:hover td { background: rgba(255, 255, 255, .02); }
   let world = null, zoom = .5, camX = 0, camZ = 0, selected = null;
   function sizeMap() { const r = cv.getBoundingClientRect(); const d = window.devicePixelRatio || 1; cv.width = r.width * d; cv.height = r.height * d; cx.setTransform(d, 0, 0, d, 0, 0); }
   const toScreen = (x, z) => { const r = cv.getBoundingClientRect(); return [r.width / 2 + (x - camX) * zoom, r.height / 2 + (z - camZ) * zoom]; };
-  const mapPlayers = () => state ? state.players.filter((p) => p.world && p.world === world) : [];
+  const wid = (p) => p.server + '/' + p.world;
+  const mapPlayers = () => state ? state.players.filter((p) => p.world && wid(p) === world) : [];
+  const tileCache = {}, tileSince = {};
+  let tileBusy = false;
+  async function loadTiles() {
+    if (!world || tileBusy || !$('v-mapa').classList.contains('active')) return;
+    tileBusy = true;
+    try {
+      const w = world, r = await api('/api/tiles?world=' + encodeURIComponent(w) + '&since=' + (tileSince[w] || 0));
+      const cache = tileCache[w] || (tileCache[w] = new Map());
+      for (const t of r.tiles) {
+        const bin = atob(t.d), c = document.createElement('canvas'); c.width = c.height = 16;
+        const g = c.getContext('2d'), img = g.createImageData(16, 16);
+        for (let i = 0, j = 0; i < 256; i++, j += 3) { img.data[i * 4] = bin.charCodeAt(j); img.data[i * 4 + 1] = bin.charCodeAt(j + 1); img.data[i * 4 + 2] = bin.charCodeAt(j + 2); img.data[i * 4 + 3] = 255; }
+        g.putImageData(img, 0, 0); cache.set(t.cx + ':' + t.cz, c);
+        tileSince[w] = Math.max(tileSince[w] || 0, t.t);
+      }
+    } catch { /* sprobujemy za chwile */ } finally { tileBusy = false; }
+  }
+  setInterval(loadTiles, 3000);
   function updateWorlds() {
     if (!state) return;
-    const worlds = [...new Set(state.players.filter((p) => p.world).map((p) => p.server + '|' + p.world))];
-    const html = worlds.length ? worlds.map((w) => { const [s, wn] = w.split('|'); return `<option value="${esc(wn)}">${esc(s)} · ${esc(wn)}</option>`; }).join('') : '<option value="">Brak graczy z pozycją</option>';
-    if ($('worldSel').dataset.v !== html) { $('worldSel').innerHTML = html; $('worldSel').dataset.v = html; if (world && worlds.some((w) => w.endsWith('|' + world))) $('worldSel').value = world; }
-    if (!world || !worlds.some((w) => w.endsWith('|' + world))) world = $('worldSel').value || null;
+    const worlds = [...new Set([...state.players.filter((p) => p.world).map(wid), ...Object.keys(tileCache), ...Object.keys(state.spawns || {})])];
+    const html = worlds.length ? worlds.sort().map((w) => { const [s, wn] = w.split('/'); return `<option value="${esc(w)}">${esc(s)} · ${esc(wn)}</option>`; }).join('') : '<option value="">Brak połączonych serwerów</option>';
+    if ($('worldSel').dataset.v !== html) { $('worldSel').innerHTML = html; $('worldSel').dataset.v = html; if (world && worlds.includes(world)) $('worldSel').value = world; }
+    if (!world || !worlds.includes(world)) { world = $('worldSel').value || null; loadTiles(); }
     if (state.bluemap) { $('bluemapBtn').hidden = false; $('bluemapBtn').href = state.bluemap; }
   }
-  $('worldSel').onchange = (e) => { world = e.target.value; selected = null; $('mapInfo').hidden = true; camX = camZ = 0; };
+  $('worldSel').onchange = (e) => { world = e.target.value; selected = null; $('mapInfo').hidden = true; const sp = state.spawns && state.spawns[world]; camX = sp ? sp[0] : 0; camZ = sp ? sp[1] : 0; loadTiles(); };
   function drawMap() {
     const r = cv.getBoundingClientRect(); if (!r.width) return;
     updateWorlds();
     cx.fillStyle = '#0b111d'; cx.fillRect(0, 0, r.width, r.height);
+    const cache = tileCache[world];
+    if (cache) {
+      cx.imageSmoothingEnabled = false;
+      const sz = 16 * zoom + .5;
+      for (const [k, c] of cache) {
+        const [tx, tz] = k.split(':').map(Number);
+        const [px, pz] = toScreen(tx * 16, tz * 16);
+        if (px > r.width || pz > r.height || px + sz < 0 || pz + sz < 0) continue;
+        cx.drawImage(c, px, pz, sz, sz);
+      }
+    }
     let grid = 16; while (grid * zoom < 40) grid *= 2;
     const left = camX - r.width / 2 / zoom, top = camZ - r.height / 2 / zoom;
     cx.lineWidth = 1;
     for (let gx = Math.floor(left / grid) * grid; gx < left + r.width / zoom; gx += grid) {
-      const [sx] = toScreen(gx, 0); cx.strokeStyle = gx % (grid * 4) === 0 ? 'rgba(255,255,255,.09)' : 'rgba(255,255,255,.04)';
+      const [sx] = toScreen(gx, 0); cx.strokeStyle = gx % (grid * 4) === 0 ? 'rgba(255,255,255,.08)' : 'rgba(255,255,255,.03)';
       cx.beginPath(); cx.moveTo(sx, 0); cx.lineTo(sx, r.height); cx.stroke();
     }
     for (let gz = Math.floor(top / grid) * grid; gz < top + r.height / zoom; gz += grid) {
-      const [, sz] = toScreen(0, gz); cx.strokeStyle = gz % (grid * 4) === 0 ? 'rgba(255,255,255,.09)' : 'rgba(255,255,255,.04)';
+      const [, sz] = toScreen(0, gz); cx.strokeStyle = gz % (grid * 4) === 0 ? 'rgba(255,255,255,.08)' : 'rgba(255,255,255,.03)';
       cx.beginPath(); cx.moveTo(0, sz); cx.lineTo(r.width, sz); cx.stroke();
     }
-    const [sx, sz] = toScreen(0, 0);
-    cx.strokeStyle = '#e6eefb'; cx.lineWidth = 1.5; cx.strokeRect(sx - 6, sz - 6, 12, 12);
-    cx.fillStyle = '#e6eefb'; cx.font = '600 11px JetBrains Mono, monospace'; cx.fillText('Spawn', sx + 10, sz + 4);
+    const spw = (state && state.spawns && state.spawns[world]) || [0, 0];
+    const [sx, sz] = toScreen(spw[0], spw[1]);
+    cx.strokeStyle = '#ffc23d'; cx.lineWidth = 2; cx.strokeRect(sx - 7, sz - 7, 14, 14);
+    cx.font = '700 11px JetBrains Mono, monospace'; cx.lineWidth = 3; cx.strokeStyle = 'rgba(10,15,26,.85)';
+    cx.strokeText('SPAWN', sx - 18, sz - 12); cx.fillStyle = '#ffc23d'; cx.fillText('SPAWN', sx - 18, sz - 12);
     for (const p of mapPlayers()) {
       const [px, pz] = toScreen(p.x, p.z);
       cx.fillStyle = p.staff ? '#ffc23d' : '#2f8cff';
       cx.beginPath(); cx.arc(px, pz, selected === p.name ? 7 : 5, 0, Math.PI * 2); cx.fill();
       cx.strokeStyle = '#0a0f1a'; cx.lineWidth = 2; cx.stroke();
-      cx.fillStyle = '#e6eefb'; cx.font = '500 11px IBM Plex Sans, sans-serif'; cx.fillText(p.name, px + 9, pz + 4);
+      cx.font = '600 11.5px IBM Plex Sans, sans-serif'; cx.lineWidth = 3; cx.strokeStyle = 'rgba(10,15,26,.85)'; cx.strokeText(p.name, px + 9, pz + 4); cx.fillStyle = '#ffffff'; cx.fillText(p.name, px + 9, pz + 4);
     }
     if (selected) { const p = mapPlayers().find((x) => x.name === selected); if (p) showInfo(p); }
   }
@@ -677,7 +709,7 @@ tr:hover td { background: rgba(255, 255, 255, .02); }
   });
   function focusPlayer(n) {
     const p = state.players.find((x) => x.name === n); if (!p || !p.world) return;
-    world = p.world; $('worldSel').value = p.world; selected = p.name; camX = p.x; camZ = p.z; zoom = 1.5;
+    world = wid(p); $('worldSel').value = world; loadTiles(); selected = p.name; camX = p.x; camZ = p.z; zoom = 1.5;
   }
   let drag = null;
   cv.addEventListener('pointerdown', (e) => { drag = { x: e.clientX, y: e.clientY, cx: camX, cz: camZ, moved: false }; cv.setPointerCapture(e.pointerId); });

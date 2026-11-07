@@ -32,7 +32,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-@Plugin(id = "westpanel", name = "WestPanel", version = "1.0.0", description = "Panel administracji WestMC", authors = {"WestMC"})
+@Plugin(id = "westpanel", name = "WestPanel", version = "1.1.0", description = "Panel administracji WestMC", authors = {"WestMC"})
 public final class WestPanel {
     private final ProxyServer proxy;
     private final Logger logger;
@@ -60,6 +60,7 @@ public final class WestPanel {
             loadConfig();
             store = new Store(dir);
             store.load();
+            store.loadTiles();
             web = new Web(this, store);
             int port = Integer.parseInt(cfg.getProperty("port", "8123").trim());
             web.start(cfg.getProperty("adres", "0.0.0.0").trim(), port);
@@ -72,11 +73,13 @@ public final class WestPanel {
         proxy.getCommandManager().register(proxy.getCommandManager().metaBuilder("panel").plugin(this).build(), new PanelCommand());
         proxy.getScheduler().buildTask(this, () -> store.recordHistory(proxy.getPlayerCount())).repeat(5, TimeUnit.MINUTES).schedule();
         store.recordHistory(proxy.getPlayerCount());
+        proxy.getScheduler().buildTask(this, store::saveTiles).repeat(5, TimeUnit.MINUTES).schedule();
     }
 
     @Subscribe
     public void onShutdown(ProxyShutdownEvent e) {
         if (web != null) web.stop();
+        if (store != null) store.saveTiles();
     }
 
     private void loadConfig() throws IOException {
@@ -190,6 +193,7 @@ public final class WestPanel {
         List<int[]> h = store.history();
         out.put("history", h);
         out.put("bluemap", cfg.getProperty("bluemap", ""));
+        out.put("spawns", store.spawns);
         return out;
     }
 

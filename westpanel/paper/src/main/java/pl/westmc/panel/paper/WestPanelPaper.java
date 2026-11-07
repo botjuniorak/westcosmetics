@@ -95,6 +95,14 @@ public final class WestPanelPaper extends JavaPlugin implements Listener {
             players.add(o);
         }
         body.add("players", players);
+        JsonObject spawns = new JsonObject();
+        for (org.bukkit.World w : Bukkit.getWorlds()) {
+            Location sp = w.getSpawnLocation();
+            JsonArray a = new JsonArray(); a.add(sp.getBlockX()); a.add(sp.getBlockZ());
+            spawns.add(w.getName(), a);
+        }
+        body.add("spawns", spawns);
+        body.add("tiles", renderTiles());
         JsonArray ev = new JsonArray();
         List<JsonObject> taken = new ArrayList<>();
         JsonObject e;
@@ -138,6 +146,68 @@ public final class WestPanelPaper extends JavaPlugin implements Listener {
                 getLogger().warning("Zła odpowiedź panelu: " + ex.getMessage());
             }
         });
+    }
+
+    // ------------------------------------------------------------ teren na mape panelu
+
+    private final Map<String, Long> rendered = new java.util.HashMap<>();   // swiat:cx:cz -> czas
+    private static final int TILE_RADIUS = 6;          // chunki wokol gracza
+    private static final int TILES_PER_TICK = 10;      // limit na jedna wysylke (lekko dla serwera)
+    private static final long RERENDER_MS = 10 * 60 * 1000L;
+
+    /** Kolory wierzcholkow chunkow wokol graczy, jak mapa w grze: 16x16 pikseli RGB na chunk. */
+    private JsonArray renderTiles() {
+        JsonArray out = new JsonArray();
+        long now = System.currentTimeMillis();
+        int done = 0;
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            org.bukkit.World w = p.getWorld();
+            if (w.getEnvironment() == org.bukkit.World.Environment.NETHER) continue;
+            int pcx = p.getLocation().getBlockX() >> 4, pcz = p.getLocation().getBlockZ() >> 4;
+            for (int r = 0; r <= TILE_RADIUS && done < TILES_PER_TICK; r++) {
+                for (int dx = -r; dx <= r && done < TILES_PER_TICK; dx++) {
+                    for (int dz = -r; dz <= r && done < TILES_PER_TICK; dz++) {
+                        if (Math.max(Math.abs(dx), Math.abs(dz)) != r) continue;
+                        int cx = pcx + dx, cz = pcz + dz;
+                        if (!w.isChunkLoaded(cx, cz)) continue;
+                        String k = w.getName() + ":" + cx + ":" + cz;
+                        Long last = rendered.get(k);
+                        if (last != null && now - last < RERENDER_MS) continue;
+                        rendered.put(k, now);
+                        JsonObject t = new JsonObject();
+                        t.addProperty("world", w.getName());
+                        t.addProperty("cx", cx);
+                        t.addProperty("cz", cz);
+                        t.addProperty("data", renderChunk(w, cx, cz));
+                        out.add(t);
+                        done++;
+                    }
+                }
+            }
+        }
+        if (rendered.size() > 50000) rendered.clear();
+        return out;
+    }
+
+    private static String renderChunk(org.bukkit.World w, int cx, int cz) {
+        byte[] rgb = new byte[16 * 16 * 3];
+        int bx = cx << 4, bz = cz << 4;
+        for (int x = 0; x < 16; x++) {
+            int prevY = w.getHighestBlockYAt(bx + x, bz - 1);
+            for (int z = 0; z < 16; z++) {
+                org.bukkit.block.Block b = w.getHighestBlockAt(bx + x, bz + z);
+                int y = b.getY();
+                org.bukkit.Color c = b.getBlockData().getMapColor();
+                double shade = y > prevY ? 1.12 : y < prevY ? 0.82 : 1.0;   // cieniowanie jak w mapach
+                if (b.getType() == org.bukkit.Material.WATER) shade = 0.9 + Math.min(0.15, (y - 40) / 400.0);
+                int i = (z * 16 + x) * 3;
+                rgb[i] = (byte) Math.min(255, (int) (c.getRed() * shade));
+                rgb[i + 1] = (byte) Math.min(255, (int) (c.getGreen() * shade));
+                rgb[i + 2] = (byte) Math.min(255, (int) (c.getBlue() * shade));
+                prevY = y;
+            }
+        }
+        return java.util.Base64.getEncoder().encodeToString(rgb);
     }
 
     // ------------------------------------------------------------ zdarzenia do logow
