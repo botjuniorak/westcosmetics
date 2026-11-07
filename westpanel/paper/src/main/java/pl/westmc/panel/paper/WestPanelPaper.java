@@ -113,7 +113,13 @@ public final class WestPanelPaper extends JavaPlugin implements Listener {
                 events.addAll(taken);   // sprobuj wyslac zdarzenia nastepnym razem
                 if (!warned) {
                     warned = true;
-                    getLogger().warning("Panel nie odpowiada (" + (err != null ? err.getClass().getSimpleName() : "HTTP " + res.statusCode()) + "). Sprawdź adres i klucz w configu.");
+                    String why;
+                    if (err != null) {
+                        Throwable c = err;
+                        while (c.getCause() != null) c = c.getCause();
+                        why = c.getClass().getSimpleName() + (c.getMessage() != null ? ": " + c.getMessage() : "");
+                    } else why = res.statusCode() == 403 ? "HTTP 403 - zły klucz" : "HTTP " + res.statusCode();
+                    getLogger().warning("Panel nie odpowiada pod " + url + " (" + why + "). Sprawdź adres i klucz w configu.");
                 }
                 return;
             }
