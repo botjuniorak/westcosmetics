@@ -43,6 +43,12 @@ final class Store {
         String from, target, reason, server, status = "open", claimedBy, resolution;
     }
 
+    static final class AcAlert {
+        long time;
+        int vl;
+        String server, player, check, info, src;
+    }
+
     static final class LogLine {
         long id, time;
         String server, type, text;
@@ -71,6 +77,7 @@ final class Store {
     final Map<String, Account> accounts = new ConcurrentHashMap<>();
     final List<Punishment> punishments = new ArrayList<>();
     final List<Report> reports = new ArrayList<>();
+    final List<AcAlert> acAlerts = new ArrayList<>();
     final Map<String, Session> sessions = new ConcurrentHashMap<>();
     final Map<String, ServerState> servers = new ConcurrentHashMap<>();
     final Map<String, Deque<String>> commandQueues = new ConcurrentHashMap<>();
@@ -93,6 +100,8 @@ final class Store {
         if (p != null) punishments.addAll(p);
         List<Report> r = read("zgloszenia.json", new TypeToken<List<Report>>() { });
         if (r != null) reports.addAll(r);
+        List<AcAlert> ac = read("anticheat.json", new TypeToken<List<AcAlert>>() { });
+        if (ac != null) acAlerts.addAll(ac);
         for (Punishment x : punishments) nextId = Math.max(nextId, x.id + 1);
         for (Report x : reports) nextId = Math.max(nextId, x.id + 1);
     }
@@ -106,6 +115,12 @@ final class Store {
     synchronized void saveAccounts() { write("konta.json", new ArrayList<>(accounts.values())); }
     synchronized void savePunishments() { write("kary.json", punishments); }
     synchronized void saveReports() { write("zgloszenia.json", reports); }
+    synchronized void saveAc() { write("anticheat.json", acAlerts); }
+
+    synchronized void addAc(AcAlert a) {
+        acAlerts.add(a);
+        while (acAlerts.size() > 3000) acAlerts.remove(0);
+    }
 
     private void write(String file, Object data) {
         try {

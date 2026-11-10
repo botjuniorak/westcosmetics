@@ -1,0 +1,40 @@
+# ==========================================================
+#  WestGuard - dodatek do Grima (alerty w panelu i w grze)
+# ==========================================================
+# tryb: "alerty" = tylko alerty (zalecane przez pierwszy tydzien)
+#       "kary"   = alerty + automatyczne kary z sekcji "kary"
+tryb: alerty
+
+# przekazywac wykrycia Grima do panelu
+grim: true
+
+xray:
+  wlaczony: true
+  okno-minut: 60              # z jakiego okresu liczymy
+  min-zyl-diamentow: 4        # od ilu zyl diamentow zaczynamy sprawdzac
+  kamien-na-zyle: 120         # mniej kamienia na 1 zyle = podejrzane
+  min-zyl-netherytu: 4
+  netherrack-na-zyle: 150
+
+autoklik:
+  wlaczony: true               # wymaga pluginu packetevents (jest u Ciebie)
+  max-cps: 20                  # powyzej = alert
+  min-cps-regularnosc: 9       # od ilu CPS sprawdzac rownosc klikania
+  max-odchylenie-ms: 9         # ludzie klikaja nierowno (zwykle 20-40 ms); autoklik bardzo rowno
+
+killaura:
+  wlaczony: true
+  max-kat: 75                  # bicie celu poza polem widzenia (stopnie)
+  multi-cele: true             # bicie 2 roznych celow w tym samym ticku
+
+# ile punktow VL zbiera sie, zanim pojdzie alert (zeby nie spamowac)
+progi-alertu:
+  xray: 1
+  autoklik: 3
+  killaura: 4
+
+# automatyczne kary (dzialaja tylko przy tryb: kary). %player% = nick
+kary:
+  xray: { vl: 3, komenda: "tempban %player% 7d X-Ray (WestGuard)" }
+  autoklik: { vl: 15, komenda: "tempban %player% 3d Autoclicker (WestGuard)" }
+  killaura: { vl: 20, komenda: "tempban %player% 14d KillAura (WestGuard)" }

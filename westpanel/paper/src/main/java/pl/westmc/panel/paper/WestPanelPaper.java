@@ -43,6 +43,24 @@ public final class WestPanelPaper extends JavaPlugin implements Listener {
     private boolean warned;
     private String url, key, server;
     private boolean chatLogs;
+    Guard guard;
+
+    /** Alert anticheatu: do panelu i do ekipy online (uprawnienie westguard.alerty). */
+    void acAlert(String player, String check, int vl, String info, String source) {
+        JsonObject o = new JsonObject();
+        o.addProperty("type", "ac");
+        o.addProperty("player", player);
+        o.addProperty("check", check);
+        o.addProperty("vl", vl);
+        o.addProperty("info", info);
+        o.addProperty("src", source);
+        o.addProperty("text", "[" + source + "] " + player + " · " + check + " (VL " + vl + ")" + (info.isBlank() ? "" : " · " + info));
+        events.add(o);
+        String msg = "§8[§c§lAC§8] §f" + player + " §7" + check + " §8(§cVL " + vl + "§8) §7" + info;
+        Bukkit.getScheduler().runTask(this, () -> {
+            for (Player p : Bukkit.getOnlinePlayers()) if (p.hasPermission("westguard.alerty")) p.sendMessage(msg);
+        });
+    }
 
     @Override
     public void onEnable() {
@@ -54,6 +72,16 @@ public final class WestPanelPaper extends JavaPlugin implements Listener {
         chatLogs = getConfig().getBoolean("logi-czatu", true);
         int every = Math.max(2, Math.min(10, getConfig().getInt("co-ile-sekund", 2)));
         getServer().getPluginManager().registerEvents(this, this);
+        guard = new Guard(this);
+        getServer().getPluginManager().registerEvents(guard, this);
+        Bukkit.getScheduler().runTask(this, () -> {
+            boolean grim = guard.cfg.getBoolean("grim", true) && GrimHook.register(guard);
+            boolean clicks = false;
+            if (Bukkit.getPluginManager().getPlugin("packetevents") != null) {
+                try { ClickCheck.register(guard); clicks = true; } catch (Throwable t) { getLogger().warning("Autoklik wyłączony: " + t); }
+            }
+            getLogger().info("WestGuard: x-ray i killaura włączone, autoklik " + (clicks ? "włączony" : "wyłączony (brak packetevents)") + ", Grim " + (grim ? "podpięty" : "nie znaleziony") + ", tryb: " + (guard.punishMode ? "kary" : "alerty") + ".");
+        });
         if (key.isBlank() || key.equals("WPISZ-KLUCZ")) {
             getLogger().warning("Wpisz klucz panelu w plugins/WestPanel/config.yml (konsola proxy: panel klucz) i zrestartuj serwer.");
             return;
@@ -62,7 +90,7 @@ public final class WestPanelPaper extends JavaPlugin implements Listener {
         getLogger().info("Wysyłam dane do panelu jako serwer '" + server + "'.");
     }
 
-    private void event(String type, String text) {
+    void event(String type, String text) {
         JsonObject o = new JsonObject();
         o.addProperty("type", type);
         o.addProperty("text", text);
@@ -242,6 +270,12 @@ public final class WestPanelPaper extends JavaPlugin implements Listener {
 
     @Override
     public boolean onCommand(CommandSender s, Command c, String label, String[] a) {
+        if (c.getName().equalsIgnoreCase("westguard")) {
+            if (!s.hasPermission("westguard.admin")) { s.sendMessage("§cBrak uprawnień."); return true; }
+            if (a.length > 0 && a[0].equalsIgnoreCase("przeladuj")) { guard.reload(); s.sendMessage("§aWestGuard przeładowany. Tryb: " + (guard.punishMode ? "kary" : "alerty")); return true; }
+            s.sendMessage("§7/westguard przeladuj §8- wczytuje guard.yml");
+            return true;
+        }
         if (!(s instanceof Player p)) { s.sendMessage("Tylko dla graczy."); return true; }
         if (a.length < 2) { p.sendMessage("§cUżycie: /zglos <nick> <powód>"); return true; }
         if (!a[0].matches("[A-Za-z0-9_]{1,16}")) { p.sendMessage("§cZły nick."); return true; }

@@ -34,6 +34,9 @@ final class Web {
     private final Gson gson = new Gson();
     private final Map<String, int[]> loginFails = new ConcurrentHashMap<>();   // ip -> [ile, minuta]
     private HttpServer http;
+    private volatile boolean acDirty;
+    private volatile long acSaved;
+    private static final Map<String, Double> AC_WEIGHT = Map.of("xray", 3.0, "killaura", 2.0, "autoklik", 2.0);
     private byte[] indexHtml;
 
     Web(WestPanel pl, Store st) { this.pl = pl; this.st = st; }
@@ -108,6 +111,29 @@ final class Web {
                 json(ex, 200, Map.of("items", list.size() > 500 ? list.subList(0, 500) : list));
             }
             case "POST /api/punish" -> punish(ex, a, lvl);
+            case "GET /api/anticheat" -> {
+                List<Store.AcAlert> list;
+                synchronized (st) { list = new ArrayList<>(st.acAlerts); }
+                long since = System.currentTimeMillis() - 24 * 3600 * 1000L;
+                Map<String, Map<String, Object>> sus = new LinkedHashMap<>();
+                for (Store.AcAlert x : list) {
+                    if (x.time < since) continue;
+                    Map<String, Object> m = sus.computeIfAbsent(x.player.toLowerCase(Locale.ROOT), k -> {
+                        Map<String, Object> n = new LinkedHashMap<>();
+                        n.put("player", x.player); n.put("score", 0.0); n.put("alerts", 0); n.put("checks", new LinkedHashMap<String, Integer>());
+                        return n;
+                    });
+                    m.put("score", (Double) m.get("score") + AC_WEIGHT.getOrDefault(x.check.toLowerCase(Locale.ROOT), 1.0));
+                    m.put("alerts", (Integer) m.get("alerts") + 1);
+                    @SuppressWarnings("unchecked") Map<String, Integer> c = (Map<String, Integer>) m.get("checks");
+                    c.merge(x.check, 1, Integer::sum);
+                    m.put("last", x.time); m.put("server", x.server);
+                }
+                List<Map<String, Object>> suspects = new ArrayList<>(sus.values());
+                suspects.sort((p, q) -> Double.compare((Double) q.get("score"), (Double) p.get("score")));
+                java.util.Collections.reverse(list);
+                json(ex, 200, Map.of("alerts", list.size() > 500 ? list.subList(0, 500) : list, "suspects", suspects));
+            }
             case "GET /api/reports" -> {
                 List<Store.Report> list;
                 synchronized (st) { list = new ArrayList<>(st.reports); }
@@ -415,10 +441,23 @@ final class Web {
                 st.saveReports();
                 st.log(name, "report", r.from + " zgłosił " + r.target + ": " + r.reason);
                 pl.notifyStaff("§c[Zgłoszenie] §f" + r.from + " §7zgłosił §f" + r.target + "§7: " + r.reason);
-            } else if (List.of("chat", "cmd", "join", "death", "ac").contains(type)) {
+            } else if (type.equals("ac")) {
+                Store.AcAlert a = new Store.AcAlert();
+                a.time = System.currentTimeMillis();
+                a.server = name;
+                a.player = clean(str(ev, "player"), 16);
+                a.check = clean(str(ev, "check"), 40);
+                a.vl = ev.has("vl") ? ev.get("vl").getAsInt() : 0;
+                a.info = clean(str(ev, "info"), 200);
+                a.src = clean(str(ev, "src"), 16);
+                st.addAc(a);
+                acDirty = true;
+                st.log(name, "ac", clean(str(ev, "text"), 400));
+            } else if (List.of("chat", "cmd", "join", "death", "kara").contains(type)) {
                 st.log(name, type, clean(str(ev, "text"), 400));
             }
         }
+        if (acDirty && System.currentTimeMillis() - acSaved > 10000) { acDirty = false; acSaved = System.currentTimeMillis(); st.saveAc(); }
         json(ex, 200, Map.of("commands", st.drainCommands(name)));
     }
 

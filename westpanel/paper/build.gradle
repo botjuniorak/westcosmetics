@@ -1,5 +1,9 @@
+repositories {
+    maven { url = 'https://repo.codemc.io/repository/maven-releases/' }
+}
 dependencies {
     compileOnly 'io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT'
+    compileOnly 'com.github.retrooper:packetevents-spigot:2.7.0'
 }
 processResources { filesMatching('plugin.yml') { expand 'version': project.version } }
 jar { archiveFileName = 'WestPanel-Paper-' + project.version + '.jar' }

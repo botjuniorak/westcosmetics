@@ -274,6 +274,7 @@ tr:hover td { background: rgba(255, 255, 255, .02); }
     <a class="nav" href="#logi"><svg><use href="#i-term"/></svg>Logi i konsola</a>
     <div class="navlbl">Moderacja</div>
     <a class="nav" href="#zgloszenia"><svg><use href="#i-flag"/></svg>Zgłoszenia<span class="count" id="repCount" hidden>0</span></a>
+    <a class="nav" href="#anticheat"><svg><use href="#i-shield"/></svg>Anticheat<span class="count" id="acCount" hidden>0</span></a>
     <a class="nav" href="#dziennik"><svg><use href="#i-list"/></svg>Dziennik kar</a>
     <a class="nav" href="#taryfikator"><svg><use href="#i-scale"/></svg>Taryfikator</a>
     <div class="navlbl">Wiedza</div>
@@ -347,6 +348,7 @@ tr:hover td { background: rgba(255, 255, 255, .02); }
           <button aria-pressed="false" data-t="cmd">Komendy</button>
           <button aria-pressed="false" data-t="join">Wejścia</button>
           <button aria-pressed="false" data-t="death">Śmierci</button>
+          <button aria-pressed="false" data-t="ac">Anticheat</button>
           <button aria-pressed="false" data-t="kara">Kary</button>
           <button aria-pressed="false" data-t="panel">Panel</button>
         </div>
@@ -365,6 +367,24 @@ tr:hover td { background: rgba(255, 255, 255, .02); }
       <div class="toolbar"><div class="seg" id="rFilter"><button aria-pressed="true" data-f="open">Otwarte</button><button aria-pressed="false" data-f="all">Wszystkie</button></div></div>
       <div class="reports" id="reports"></div>
       <p class="note">Gracze zgłaszają w grze komendą <span class="mono">/zglos &lt;nick&gt; &lt;powód&gt;</span>. Ekipa z uprawnieniem westpanel.powiadomienia dostaje też wiadomość w grze.</p>
+    </section>
+
+    <section class="view" id="v-anticheat">
+      <div class="toolbar">
+        <div class="seg" id="acSrc"><button aria-pressed="true" data-s="all">Wszystko</button><button aria-pressed="false" data-s="Grim">Grim</button><button aria-pressed="false" data-s="WestGuard">WestGuard</button></div>
+        <input class="search" id="acSearch" placeholder="Szukaj gracza..." aria-label="Szukaj gracza w alertach">
+      </div>
+      <div class="grid g2">
+        <div class="card" style="padding:0">
+          <h3 style="padding:16px 16px 0">Podejrzani · ostatnie 24 h <span class="sub">wynik = waga alertów (x-ray 3, killaura 2, autoklik 2, Grim 1)</span></h3>
+          <div style="overflow-x:auto"><table style="min-width:560px"><thead><tr><th>Gracz</th><th>Wynik</th><th>Alerty</th><th>Wykrycia</th><th>Ostatnio</th><th></th></tr></thead><tbody id="acSus"></tbody></table></div>
+        </div>
+        <div class="card">
+          <h3>Ostatnie alerty</h3>
+          <div class="alerts" id="acList" style="max-height:560px;overflow:auto"></div>
+        </div>
+      </div>
+      <p class="note">Ekipa z uprawnieniem <span class="mono">westguard.alerty</span> widzi alerty też na czacie w grze. Ustawienia czułości i automatyczne kary są w <span class="mono">plugins/WestPanel/guard.yml</span> na każdym serwerze (po zmianie: <span class="mono">/westguard przeladuj</span>).</p>
     </section>
 
     <section class="view" id="v-dziennik">
@@ -509,13 +529,35 @@ tr:hover td { background: rgba(255, 255, 255, .02); }
       $('kOnline').textContent = s.players.length;
       $('kReports').textContent = s.reportsOpen; $('repCount').textContent = s.reportsOpen; $('repCount').hidden = !s.reportsOpen;
       $('kDuty').textContent = s.onDuty;
+      $('acCount').textContent = s.acHour; $('acCount').hidden = !s.acHour;
+      if ($('v-anticheat').classList.contains('active') && ++acTick % 3 === 0) loadAc();
       if (s.reportsOpen !== lastReportsOpen) { lastReportsOpen = s.reportsOpen; loadReports(); }
     } catch (e) {
       if (e.status === 401 || e.status === 403) { clearInterval(polling); $('appView').hidden = true; $('loginView').hidden = false; showStep('pass'); if (e.status === 403) loginError(e.message); return; }
       if (++failCount > 1) { $('connPill').hidden = false; }
     }
   }
-  let lastReportsOpen = -1;
+  let lastReportsOpen = -1, acTick = 0;
+  let acData = { alerts: [], suspects: [] }, acSrc = 'all';
+  async function loadAc() { try { acData = await api('/api/anticheat'); renderAc(); } catch { /* pozniej */ } }
+  function renderAc() {
+    const q = $('acSearch').value.toLowerCase();
+    const max = Math.max(1, ...acData.suspects.map((s) => s.score));
+    $('acSus').innerHTML = acData.suspects.filter((s) => s.player.toLowerCase().includes(q)).slice(0, 50).map((s) => `<tr>
+      <td><div class="pl"><img class="avatar" src="https://mc-heads.net/avatar/${encodeURIComponent(s.player)}/28" alt="" width="28" height="28"><span>${esc(s.player)}</span></div></td>
+      <td style="min-width:120px"><div class="bar"><i style="width:${Math.round(s.score / max * 100)}%;background:${s.score >= 15 ? 'var(--bad)' : s.score >= 6 ? 'var(--warn)' : 'var(--blue)'}"></i></div><span class="mono tnum" style="font-size:12px">${s.score.toFixed(0)}</span></td>
+      <td class="mono tnum">${s.alerts}</td>
+      <td>${Object.entries(s.checks).map(([k, n]) => `<span class="rank r-gracz" style="margin:2px">${esc(k)} ×${n}</span>`).join(' ')}</td>
+      <td class="mono" style="white-space:nowrap">${fmtDate(s.last)}</td>
+      <td><div class="acts"><button class="btn btn-sm" data-aclog="${esc(s.player)}">Logi</button><button class="btn btn-sm btn-bad" data-ackara="${esc(s.player)}" data-s="${esc(s.server)}">Ukarz</button></div></td></tr>`).join('') || '<tr><td colspan="6" class="empty">Brak podejrzanych w ostatniej dobie.</td></tr>';
+    const list = acData.alerts.filter((a) => (acSrc === 'all' || a.src === acSrc) && a.player.toLowerCase().includes(q)).slice(0, 200);
+    $('acList').innerHTML = list.map((a) => `<div class="alert ${/xray|killaura/i.test(a.check) ? 'sev-bad' : 'sev-warn'}"><i class="dot ${/xray|killaura/i.test(a.check) ? 'off' : 'warn'}" style="margin-top:6px"></i><div><b>${esc(a.player)}</b> · ${esc(a.check)} <span class="mono" style="color:var(--muted)">VL ${a.vl}</span><div class="t">${esc(a.info || '')}</div><div class="t">${fmtDate(a.time)} · ${esc(a.server)} · ${esc(a.src)}</div></div><button class="btn btn-sm btn-bad" data-ackara="${esc(a.player)}" data-s="${esc(a.server)}">Ukarz</button></div>`).join('') || '<div class="empty">Brak alertów. Gdy Grim albo WestGuard coś wykryje, pojawi się tutaj.</div>';
+  }
+  $('acSearch').oninput = renderAc;
+  document.getElementById('v-anticheat').addEventListener('click', (e) => {
+    const k = e.target.closest('[data-ackara]'); if (k) { const a = acData.alerts.find((x) => x.player === k.dataset.ackara); openKara(k.dataset.ackara, a ? (/xray/i.test(a.check) ? 'Cheaty (X-Ray)' : 'Cheaty (' + a.check + ')') : '', null, k.dataset.s); return; }
+    const l = e.target.closest('[data-aclog]'); if (l) { $('lSearch').value = l.dataset.aclog; location.hash = '#logi'; }
+  });
   function renderMe() {
     $('meName').textContent = me.login; $('meRole').textContent = ROLE[me.role] || me.role; $('meAv').textContent = me.login[0].toUpperCase();
     $('duty').checked = me.onDuty;
@@ -526,7 +568,7 @@ tr:hover td { background: rgba(255, 255, 255, .02); }
   $('duty').onchange = async (e) => { try { await api('/api/duty', { on: e.target.checked }); toast(e.target.checked ? 'Jesteś na służbie.' : 'Zszedłeś ze służby.'); } catch (err) { toast(err.message); } };
 
   // ======================= routing =======================
-  const TITLES = { pulpit: 'Pulpit', mapa: 'Mapa na żywo', gracze: 'Gracze online', logi: 'Logi i konsola', zgloszenia: 'Zgłoszenia graczy', dziennik: 'Dziennik kar', taryfikator: 'Taryfikator kar', komendy: 'Komendy', zasady: 'Zasady ekipy', ekipa: 'Konta ekipy' };
+  const TITLES = { anticheat: 'Anticheat', pulpit: 'Pulpit', mapa: 'Mapa na żywo', gracze: 'Gracze online', logi: 'Logi i konsola', zgloszenia: 'Zgłoszenia graczy', dziennik: 'Dziennik kar', taryfikator: 'Taryfikator kar', komendy: 'Komendy', zasady: 'Zasady ekipy', ekipa: 'Konta ekipy' };
   function route() {
     if ($('appView').hidden) return;
     let v = location.hash.slice(1); if (!TITLES[v]) v = 'pulpit';
@@ -538,6 +580,7 @@ tr:hover td { background: rgba(255, 255, 255, .02); }
     if (v === 'mapa') sizeMap();
     if (v === 'ekipa') loadAccounts();
     if (v === 'logi') renderLogs();
+    if (v === 'anticheat') loadAc();
   }
   window.addEventListener('hashchange', route);
   $('menuBtn').onclick = (e) => { e.stopPropagation(); $('side').classList.toggle('open'); };
@@ -590,7 +633,7 @@ tr:hover td { background: rgba(255, 255, 255, .02); }
     svg.innerHTML = `<defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2f8cff" stop-opacity=".35"/><stop offset="1" stop-color="#2f8cff" stop-opacity="0"/></linearGradient></defs>${g}<path d="${line}L${x(t1)},${y(0)}L${x(t0)},${y(0)}Z" fill="url(#ga)"/><path d="${line}" fill="none" stroke="#2f8cff" stroke-width="2.2" vector-effect="non-scaling-stroke"/><circle cx="${x(h[pi][0])}" cy="${y(peak)}" r="4" fill="#ffc23d"/>`;
   }
   function renderAlerts() {
-    const important = logs.filter((l) => l.type === 'kara' || l.type === 'report' || l.type === 'panel').slice(-5).reverse();
+    const important = logs.filter((l) => l.type === 'kara' || l.type === 'report' || l.type === 'panel' || l.type === 'ac').slice(-5).reverse();
     $('alerts').innerHTML = important.map((l) => `<div class="alert ${l.type === 'kara' ? 'sev-warn' : l.type === 'report' ? 'sev-bad' : 'sev-ok'}"><i class="dot ${l.type === 'report' ? 'off' : l.type === 'kara' ? 'warn' : ''}" style="margin-top:6px"></i><div>${esc(l.text)}<div class="t">${fmtTime(l.time)} · ${esc(l.server)}</div></div><a class="btn btn-sm" href="#${l.type === 'report' ? 'zgloszenia' : l.type === 'kara' ? 'dziennik' : 'logi'}">Otwórz</a></div>`).join('') || '<div class="empty">Na razie spokojnie.</div>';
   }
 
@@ -778,6 +821,7 @@ tr:hover td { background: rgba(255, 255, 255, .02); }
     catch (err) { toast(err.message); }
   });
   segment('rFilter', (f) => { rFilter = f; renderReports(); });
+  segment('acSrc', (s) => { acSrc = s; renderAc(); });
 
   // ======================= taryfikator i kary =======================
   const TARIFF = [

@@ -32,7 +32,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-@Plugin(id = "westpanel", name = "WestPanel", version = "1.1.0", description = "Panel administracji WestMC", authors = {"WestMC"})
+@Plugin(id = "westpanel", name = "WestPanel", version = "1.2.0", description = "Panel administracji WestMC", authors = {"WestMC"})
 public final class WestPanel {
     private final ProxyServer proxy;
     private final Logger logger;
@@ -194,6 +194,10 @@ public final class WestPanel {
         out.put("history", h);
         out.put("bluemap", cfg.getProperty("bluemap", ""));
         out.put("spawns", store.spawns);
+        long hourAgo = now - 3600_000L;
+        long ac;
+        synchronized (store) { ac = store.acAlerts.stream().filter(x -> x.time > hourAgo).count(); }
+        out.put("acHour", ac);
         return out;
     }
 

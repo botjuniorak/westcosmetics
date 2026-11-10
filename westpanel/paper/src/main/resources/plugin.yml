@@ -2,12 +2,24 @@ name: WestPanel
 version: '${version}'
 main: pl.westmc.panel.paper.WestPanelPaper
 api-version: '1.21'
+softdepend: [GrimAC, packetevents]
 description: Wysyla dane serwera do panelu administracji WestMC
 commands:
   zglos:
     description: Zglos gracza do administracji
     usage: /zglos <nick> <powod>
     aliases: [report]
+  westguard:
+    description: WestGuard - anticheat
+    usage: /westguard przeladuj
 permissions:
+  westguard.alerty:
+    description: Alerty anticheatu na czacie
+    default: op
+  westguard.admin:
+    default: op
+  westguard.pomijaj:
+    description: Gracz nie jest sprawdzany przez WestGuard
+    default: false
   westpanel.zglos:
     default: true
