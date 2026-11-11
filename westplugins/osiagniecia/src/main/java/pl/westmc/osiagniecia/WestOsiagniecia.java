@@ -23,6 +23,7 @@ import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -51,6 +52,7 @@ public final class WestOsiagniecia extends JavaPlugin implements Listener {
     private final Map<UUID, Integer> streak = new HashMap<>();
     private File dataFile;
     private YamlConfiguration data;
+    private boolean dirty;
 
     @Override
     public void onEnable() {
@@ -59,7 +61,7 @@ public final class WestOsiagniecia extends JavaPlugin implements Listener {
         data = YamlConfiguration.loadConfiguration(dataFile);
         loadAchs();
         getServer().getPluginManager().registerEvents(this, this);
-        Bukkit.getScheduler().runTaskTimer(this, () -> { for (Player p : Bukkit.getOnlinePlayers()) check(p); }, 200L, 1200L);
+        Bukkit.getScheduler().runTaskTimer(this, () -> { for (Player p : Bukkit.getOnlinePlayers()) check(p); if (dirty) { dirty = false; saveData(); } }, 200L, 1200L);
     }
 
     @Override
@@ -128,8 +130,12 @@ public final class WestOsiagniecia extends JavaPlugin implements Listener {
 
     private void check(Player p) {
         boolean changed = false;
+        String base = p.getUniqueId().toString();
+        data.set(base + ".nick", p.getName());
+        data.set(base + ".ostatnio", System.currentTimeMillis());
         for (Ach a : achs.values()) {
             long v = value(p, a);
+            data.set(base + ".wartosci." + a.id, v);
             int lvl = level(p, a);
             while (lvl < a.thresholds.length && v >= a.thresholds[lvl]) {
                 lvl++;
@@ -139,6 +145,7 @@ public final class WestOsiagniecia extends JavaPlugin implements Listener {
                 reward(p, a, lvl);
             }
         }
+        dirty = true;
         if (changed) saveData();
     }
 
@@ -173,8 +180,12 @@ public final class WestOsiagniecia extends JavaPlugin implements Listener {
 
     // ------------------------------------------------------------ menu
 
+    private static final int[] CARD_SLOTS = {19, 21, 23, 25, 37, 39, 41, 43};
+    private static final int PREV = 45, NEXT = 53, HEAD = 4;
+
     private static final class Holder implements InventoryHolder {
         Inventory inv;
+        int page;
         @Override public Inventory getInventory() { return inv; }
     }
 
@@ -185,63 +196,111 @@ public final class WestOsiagniecia extends JavaPlugin implements Listener {
 
     private static String num(long v) { return String.format(Locale.ROOT, "%,d", v).replace(',', ' '); }
 
-    private void open(Player p) {
-        Holder h = new Holder();
-        int rows = Math.max(3, Math.min(6, (achs.size() + 8) / 9 + 2));
-        Inventory inv = Bukkit.createInventory(h, rows * 9, c("&8Osiągnięcia"));
-        h.inv = inv;
-        ItemStack pane = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
-        ItemMeta pm = pane.getItemMeta(); pm.setDisplayName(" "); pane.setItemMeta(pm);
-        for (int i = 0; i < inv.getSize(); i++) inv.setItem(i, pane);
-        int done = 0, total = 0;
-        int slot = 10;
-        for (Ach a : achs.values()) {
-            if (slot % 9 == 8) slot += 2;
-            if (slot >= inv.getSize() - 9) break;
-            int lvl = level(p, a);
-            long v = value(p, a);
-            total += a.thresholds.length;
-            done += lvl;
-            boolean max = lvl >= a.thresholds.length;
-            ItemStack it = new ItemStack(a.icon);
-            ItemMeta m = it.getItemMeta();
-            m.setDisplayName(c((max ? "&6&l" : "&e&l") + a.name + (lvl > 0 ? " " + ROMAN[Math.min(lvl - 1, ROMAN.length - 1)] : "")));
-            List<String> lore = new ArrayList<>();
-            lore.add(c("&7" + a.desc));
-            lore.add("");
-            if (max) {
-                lore.add(c("&6✔ Wszystkie poziomy zdobyte!"));
-                lore.add(c("&7Wynik: &f" + num(v)));
-            } else {
-                long prev = lvl == 0 ? 0 : a.thresholds[lvl - 1];
-                long next = a.thresholds[lvl];
-                double f = Math.max(0, Math.min(1, (double) (v - prev) / Math.max(1, next - prev)));
-                lore.add(c("&7Poziom " + ROMAN[Math.min(lvl, ROMAN.length - 1)] + ": &f" + num(v) + " &8/ &f" + num(next)));
-                lore.add(c(bar(f) + " &e" + (int) (f * 100) + "%"));
-                if (lvl < a.rewardDesc.size()) lore.add(c("&7Nagroda: &a" + a.rewardDesc.get(lvl)));
-            }
-            lore.add("");
-            StringBuilder tiers = new StringBuilder("&7Poziomy: ");
-            for (int i = 0; i < a.thresholds.length; i++) tiers.append(i < lvl ? "&a" : "&8").append(ROMAN[Math.min(i, ROMAN.length - 1)]).append(' ');
-            lore.add(c(tiers.toString().trim()));
-            m.setLore(lore);
-            m.addItemFlags(ItemFlag.values());
-            if (max) m.setEnchantmentGlintOverride(true);
-            it.setItemMeta(m);
-            inv.setItem(slot++, it);
+    private static ItemStack named(Material m, String name, List<String> lore) {
+        ItemStack it = new ItemStack(m);
+        ItemMeta im = it.getItemMeta();
+        im.setDisplayName(c(name));
+        if (lore != null) { List<String> l = new ArrayList<>(); for (String x : lore) l.add(c(x)); im.setLore(l); }
+        im.addItemFlags(ItemFlag.values());
+        it.setItemMeta(im);
+        return it;
+    }
+
+    private ItemStack card(Player p, Ach a) {
+        int lvl = level(p, a);
+        long v = value(p, a);
+        boolean max = lvl >= a.thresholds.length;
+        ItemStack it = new ItemStack(a.icon);
+        ItemMeta m = it.getItemMeta();
+        m.setDisplayName(c((max ? "&6&l" : lvl > 0 ? "&e&l" : "&f&l") + a.name + (lvl > 0 ? " " + ROMAN[Math.min(lvl - 1, ROMAN.length - 1)] : "")));
+        List<String> lore = new ArrayList<>();
+        lore.add(c("&7" + a.desc));
+        lore.add("");
+        if (max) {
+            lore.add(c("&6✔ Wszystkie poziomy zdobyte!"));
+            lore.add(c("&7Wynik: &f" + num(v)));
+        } else {
+            long prev = lvl == 0 ? 0 : a.thresholds[lvl - 1];
+            long next = a.thresholds[lvl];
+            double f = Math.max(0, Math.min(1, (double) (v - prev) / Math.max(1, next - prev)));
+            lore.add(c("&7Poziom " + ROMAN[Math.min(lvl, ROMAN.length - 1)] + ": &f" + num(v) + " &8/ &f" + num(next)));
+            lore.add(c(bar(f) + " &e" + (int) (f * 100) + "%"));
+            if (lvl < a.rewardDesc.size()) lore.add(c("&7Nagroda: &a" + a.rewardDesc.get(lvl)));
         }
-        ItemStack sum = new ItemStack(Material.NETHER_STAR);
-        ItemMeta sm = sum.getItemMeta();
-        sm.setDisplayName(c("&b&lTwoje postępy"));
-        sm.setLore(List.of(c("&7Zdobyte poziomy: &f" + done + " &8/ &f" + total), c(bar(total == 0 ? 0 : (double) done / total) + " &e" + (total == 0 ? 0 : done * 100 / total) + "%"),
-            c("&7Najlepsza seria: &f" + data.getInt(p.getUniqueId() + ".najlepsza-seria", 0))));
-        sum.setItemMeta(sm);
-        inv.setItem(inv.getSize() - 5, sum);
+        lore.add("");
+        StringBuilder tiers = new StringBuilder("&7Poziomy: ");
+        for (int i = 0; i < a.thresholds.length; i++) tiers.append(i < lvl ? (max ? "&6" : "&a") : "&8").append(ROMAN[Math.min(i, ROMAN.length - 1)]).append(' ');
+        lore.add(c(tiers.toString().trim()));
+        m.setLore(lore);
+        m.addItemFlags(ItemFlag.values());
+        if (max) m.setEnchantmentGlintOverride(true);
+        it.setItemMeta(m);
+        return it;
+    }
+
+    private void open(Player p, int page) {
+        boolean tex = getConfig().getBoolean("tekstury", true);
+        List<Ach> list = new ArrayList<>(achs.values());
+        int pages = Math.max(1, (list.size() + CARD_SLOTS.length - 1) / CARD_SLOTS.length);
+        page = Math.max(0, Math.min(page, pages - 1));
+        int done = 0, total = 0;
+        for (Ach a : list) { total += a.thresholds.length; done += Math.min(level(p, a), a.thresholds.length); }
+        int from = page * CARD_SLOTS.length;
+
+        String title;
+        if (tex) {
+            Tytul t = new Tytul().obraz(0, '\uE3A3', 176);
+            int step = total == 0 ? 0 : (int) Math.floor(done * 20.0 / total);
+            if (step > 0) {
+                int w = (int) Math.round(124 * step / 20.0);
+                t.obraz(26, (char) (0xE3C0 + step), w);
+            }
+            for (int i = 0; i < CARD_SLOTS.length && from + i < list.size(); i++) {
+                Ach a = list.get(from + i);
+                int lvl = Math.min(5, Math.max(0, level(p, a) * 5 / Math.max(1, a.thresholds.length)));
+                if (a.thresholds.length == 5) lvl = Math.min(5, level(p, a));
+                int col = CARD_SLOTS[i] % 9, row = CARD_SLOTS[i] / 9;
+                boolean top = row == 2;
+                if (level(p, a) >= a.thresholds.length) t.obraz(18 * col, top ? '\uE3A5' : '\uE3A6', 33);
+                t.obraz(18 * col + 4, (char) ((top ? 0xE3B0 : 0xE3B8) + lvl), 24);
+            }
+            title = t.tekst(c("&fOsiągnięcia" + (pages > 1 ? " &8· &7" + (page + 1) + "/" + pages : "")));
+        } else title = c("&8Osiągnięcia");
+
+        Holder h = new Holder();
+        h.page = page;
+        Inventory inv = Bukkit.createInventory(h, 54, title);
+        h.inv = inv;
+        if (!tex) {
+            ItemStack pane = named(Material.BLACK_STAINED_GLASS_PANE, " ", null);
+            for (int i = 0; i < inv.getSize(); i++) inv.setItem(i, pane);
+        }
+        for (int i = 0; i < CARD_SLOTS.length && from + i < list.size(); i++) inv.setItem(CARD_SLOTS[i], card(p, list.get(from + i)));
+
+        ItemStack head = new ItemStack(Material.PLAYER_HEAD);
+        SkullMeta sm = (SkullMeta) head.getItemMeta();
+        sm.setOwningPlayer(p);
+        sm.setDisplayName(c("&6&l" + p.getName()));
+        int pct = total == 0 ? 0 : done * 100 / total;
+        sm.setLore(List.of(c("&7Zdobyte poziomy: &f" + done + " &8/ &f" + total), c(bar(total == 0 ? 0 : (double) done / total) + " &e" + pct + "%"),
+            c("&7Najlepsza seria: &f" + data.getInt(p.getUniqueId() + ".najlepsza-seria", 0)), "", c("&8Nagrody wpadają same po zdobyciu poziomu.")));
+        head.setItemMeta(sm);
+        inv.setItem(HEAD, head);
+        if (page > 0) inv.setItem(PREV, named(Material.ARROW, "&f« Poprzednia strona", null));
+        if (page < pages - 1) inv.setItem(NEXT, named(Material.ARROW, "&fNastępna strona »", null));
         p.openInventory(inv);
     }
 
     @EventHandler
-    public void onClick(InventoryClickEvent e) { if (e.getView().getTopInventory().getHolder() instanceof Holder) e.setCancelled(true); }
+    public void onClick(InventoryClickEvent e) {
+        if (!(e.getView().getTopInventory().getHolder() instanceof Holder h)) return;
+        e.setCancelled(true);
+        if (!(e.getWhoClicked() instanceof Player p) || e.getClickedInventory() != e.getView().getTopInventory()) return;
+        ItemStack it = e.getCurrentItem();
+        if (it == null || it.getType() != Material.ARROW) return;
+        if (e.getRawSlot() == PREV) open(p, h.page - 1);
+        else if (e.getRawSlot() == NEXT) open(p, h.page + 1);
+    }
 
     @EventHandler
     public void onDrag(InventoryDragEvent e) { if (e.getView().getTopInventory().getHolder() instanceof Holder) e.setCancelled(true); }
@@ -255,7 +314,7 @@ public final class WestOsiagniecia extends JavaPlugin implements Listener {
         }
         if (!(s instanceof Player p)) { s.sendMessage("Tylko w grze."); return true; }
         check(p);
-        open(p);
+        open(p, 0);
         return true;
     }
 }

@@ -26,6 +26,8 @@ import java.util.regex.Pattern;
 final class Web {
     private static final Pattern NICK = Pattern.compile("[A-Za-z0-9_]{1,16}");
     private static final Pattern DURATION = Pattern.compile("(\\d{1,4})(s|m|h|d|w|mo)|perm");
+    private static final Pattern UUID_RE = Pattern.compile("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}");
+    private static final Pattern ICON = Pattern.compile("/ikony/(item|block)/[a-z0-9_]{1,64}\\.png");
     private static final Pattern LOGIN = Pattern.compile("[A-Za-z0-9_.-]{3,24}");
     private static final long SESSION_MS = 12L * 3600 * 1000;
 
@@ -60,6 +62,7 @@ final class Web {
             String path = ex.getRequestURI().getPath();
             String method = ex.getRequestMethod();
             if (path.equals("/") || path.equals("/index.html")) { send(ex, 200, "text/html; charset=utf-8", indexHtml); return; }
+            if (path.startsWith("/ikony/")) { icon(ex, path); return; }
             if (!path.startsWith("/api/")) { json(ex, 404, err("Nie ma takiej strony.")); return; }
 
             if (path.equals("/api/ingest") && method.equals("POST")) { ingest(ex); return; }
@@ -161,6 +164,62 @@ final class Web {
                 json(ex, 200, Map.of("items", out));
             }
             case "POST /api/accounts" -> accounts(ex, a, lvl);
+            case "GET /api/backups" -> {
+                if (lvl < 2) { json(ex, 403, err("Kopie ekwipunku widzi moderator i wyżej.")); return; }
+                List<Map<String, Object>> out = new ArrayList<>();
+                for (var srv : st.backups.entrySet()) for (var p : srv.getValue().values()) {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("server", srv.getKey());
+                    m.put("uuid", p.get("uuid").getAsString());
+                    m.put("nick", p.get("nick").getAsString());
+                    int count = 0, open = 0; long last = 0;
+                    for (var b : p.getAsJsonArray("backups")) {
+                        JsonObject o = b.getAsJsonObject();
+                        count++;
+                        if (!o.has("restoredBy")) open++;
+                        last = Math.max(last, o.get("time").getAsLong());
+                    }
+                    m.put("count", count); m.put("open", open); m.put("last", last);
+                    m.put("pending", p.has("pending") ? p.get("pending").getAsInt() : 0);
+                    out.add(m);
+                }
+                out.sort((x, y) -> Long.compare((Long) y.get("last"), (Long) x.get("last")));
+                json(ex, 200, Map.of("items", out, "canRestore", lvl >= 3));
+            }
+            case "GET /api/backup" -> {
+                if (lvl < 2) { json(ex, 403, err("Kopie ekwipunku widzi moderator i wyżej.")); return; }
+                var m = st.backups.get(strParam(ex, "server"));
+                JsonObject p = m == null ? null : m.get(strParam(ex, "uuid"));
+                if (p == null) { json(ex, 404, err("Nie ma kopii tego gracza.")); return; }
+                send(ex, 200, "application/json; charset=utf-8", p.toString().getBytes(StandardCharsets.UTF_8));
+            }
+            case "POST /api/backup" -> {
+                if (lvl < 3) { json(ex, 403, err("Kopie zwraca administrator.")); return; }
+                JsonObject b = body(ex);
+                String server = str(b, "server").toLowerCase(Locale.ROOT), uuid = str(b, "uuid");
+                int nr = b.has("nr") ? b.get("nr").getAsInt() : 0;
+                if (!UUID_RE.matcher(uuid).matches() || nr <= 0) { json(ex, 400, err("Złe dane kopii.")); return; }
+                var m = st.backups.get(server);
+                JsonObject p = m == null ? null : m.get(uuid);
+                JsonObject target = null;
+                if (p != null) for (var x : p.getAsJsonArray("backups")) if (x.getAsJsonObject().get("nr").getAsInt() == nr) target = x.getAsJsonObject();
+                if (target == null) { json(ex, 404, err("Nie ma takiej kopii.")); return; }
+                if (target.has("restoredBy")) { json(ex, 400, err("Ta kopia została już zwrócona (" + target.get("restoredBy").getAsString() + ").")); return; }
+                if (!st.servers.containsKey(server)) { json(ex, 400, err("Serwer " + server + " nie jest połączony z panelem.")); return; }
+                st.queueCommand(server, "backup oddaj " + uuid + " " + nr + " " + a.login);
+                target.addProperty("restoredBy", a.login + " (panel)");
+                target.addProperty("restoredAt", System.currentTimeMillis());
+                String nick = p.get("nick").getAsString();
+                st.log(server, "panel", a.login + " zwrócił kopię #" + nr + " graczowi " + nick);
+                pl.discord("kary", false, "📦 Zwrot ekwipunku: " + Discord.safe(nick), "Kopia #" + nr + " (" + Discord.safe(target.get("cause").getAsString()) + ")", 0x3ad08b,
+                    new String[][]{{"Zwrócił", Discord.safe(a.login)}, {"Serwer", server}});
+                json(ex, 200, Map.of("ok", true));
+            }
+            case "GET /api/achievements" -> {
+                Map<String, Object> out = new LinkedHashMap<>();
+                for (var e : st.achievements.entrySet()) out.put(e.getKey(), e.getValue());
+                send(ex, 200, "application/json; charset=utf-8", gson.toJson(Map.of("servers", out)).getBytes(StandardCharsets.UTF_8));
+            }
             default -> json(ex, 404, err("Nieznana akcja."));
         }
     }
@@ -398,7 +457,7 @@ final class Web {
         if (key == null || !java.security.MessageDigest.isEqual(key.getBytes(StandardCharsets.UTF_8), pl.ingestKey().getBytes(StandardCharsets.UTF_8))) {
             json(ex, 403, err("Zły klucz serwera.")); return;
         }
-        JsonObject b = body(ex);
+        JsonObject b = body(ex, 4 * 1024 * 1024);
         String name = str(b, "server").toLowerCase(Locale.ROOT);
         if (!name.matches("[a-z0-9_-]{1,24}")) { json(ex, 400, err("Zła nazwa serwera.")); return; }
         Store.ServerState s = st.servers.computeIfAbsent(name, k -> { Store.ServerState n = new Store.ServerState(); n.name = k; return n; });
@@ -462,14 +521,29 @@ final class Web {
                 st.log(name, type, clean(str(ev, "text"), 400));
             }
         }
+        if (b.has("kopie")) {
+            var m = st.backups.computeIfAbsent(name, k -> new ConcurrentHashMap<>());
+            for (var e : b.getAsJsonArray("kopie")) {
+                JsonObject p = e.getAsJsonObject();
+                String uuid = str(p, "uuid");
+                if (!UUID_RE.matcher(uuid).matches()) continue;
+                if (p.getAsJsonArray("backups").isEmpty()) m.remove(uuid); else m.put(uuid, p);
+            }
+        }
+        if (b.has("osiagi")) st.achievements.put(name, b.getAsJsonObject("osiagi"));
         if (acDirty && System.currentTimeMillis() - acSaved > 10000) { acDirty = false; acSaved = System.currentTimeMillis(); st.saveAc(); }
-        json(ex, 200, Map.of("commands", st.drainCommands(name)));
+        List<String> need = new ArrayList<>();
+        if (!st.backups.containsKey(name)) need.add("kopie");
+        if (!st.achievements.containsKey(name)) need.add("osiagi");
+        json(ex, 200, Map.of("commands", st.drainCommands(name), "need", need));
     }
 
     // ------------------------------------------------------------ pomocnicze
 
-    private JsonObject body(HttpExchange ex) throws IOException {
-        byte[] raw = ex.getRequestBody().readNBytes(256 * 1024);
+    private JsonObject body(HttpExchange ex) throws IOException { return body(ex, 256 * 1024); }
+
+    private JsonObject body(HttpExchange ex, int max) throws IOException {
+        byte[] raw = ex.getRequestBody().readNBytes(max);
         String s = new String(raw, StandardCharsets.UTF_8);
         return s.isBlank() ? new JsonObject() : JsonParser.parseString(s).getAsJsonObject();
     }
@@ -489,6 +563,26 @@ final class Web {
         if (q == null) return 0;
         for (String p : q.split("&")) if (p.startsWith(name + "=")) try { return Long.parseLong(p.substring(name.length() + 1)); } catch (NumberFormatException ignored) { }
         return 0;
+    }
+
+    private static String strParam(HttpExchange ex, String name) {
+        String q = ex.getRequestURI().getRawQuery();
+        if (q == null) return "";
+        for (String p : q.split("&")) if (p.startsWith(name + "=")) return java.net.URLDecoder.decode(p.substring(name.length() + 1), StandardCharsets.UTF_8);
+        return "";
+    }
+
+    /** Ikony przedmiotow do podgladu kopii (tekstury z gry spakowane w plugin przy budowaniu). */
+    private void icon(HttpExchange ex, String path) throws IOException {
+        if (!ICON.matcher(path).matches()) { send(ex, 404, "text/plain", new byte[0]); return; }
+        try (InputStream in = Web.class.getResourceAsStream("/web" + path)) {
+            if (in == null) { send(ex, 404, "text/plain", new byte[0]); return; }
+            byte[] data = in.readAllBytes();
+            ex.getResponseHeaders().set("Cache-Control", "public, max-age=604800");
+            ex.getResponseHeaders().set("Content-Type", "image/png");
+            ex.sendResponseHeaders(200, data.length);
+            try (OutputStream os = ex.getResponseBody()) { os.write(data); }
+        }
     }
 
     private static String enc(String s) { return URLEncoder.encode(s, StandardCharsets.UTF_8).replace("+", "%20"); }

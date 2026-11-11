@@ -7,3 +7,5 @@ dni: 14
 pomijaj-puste: true
 # dzwiek i wiadomosc dla gracza po zwroceniu
 wiadomosc-dla-gracza: "&a&lWestMC &8» &7Administracja zwróciła Ci ekwipunek z kopii &f#{NR}&7."
+# ladne menu z tekstur paczki WestMC (v0.10.14+). Na serwerze bez paczki ustaw false.
+tekstury: true

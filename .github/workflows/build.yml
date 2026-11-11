@@ -78,6 +78,18 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.12"
+      - name: Ikony przedmiotow z gry (do podgladu kopii w panelu)
+        run: |
+          set -e
+          URL=$(curl -sSf https://piston-meta.mojang.com/mc/game/version_manifest_v2.json | jq -r '.versions[] | select(.id=="1.21.4") | .url')
+          CLIENT=$(curl -sSf "$URL" | jq -r '.downloads.client.url')
+          curl -sSfL "$CLIENT" -o client.jar
+          mkdir -p ik && cd ik && unzip -q ../client.jar 'assets/minecraft/textures/item/*' 'assets/minecraft/textures/block/*' && cd ..
+          D=westpanel/velocity/src/main/resources/web/ikony
+          mkdir -p $D/item $D/block
+          find ik/assets/minecraft/textures/item -maxdepth 1 -name '*.png' -exec cp {} $D/item/ \;
+          find ik/assets/minecraft/textures/block -maxdepth 1 -name '*.png' -exec cp {} $D/block/ \;
+          ls $D/item | wc -l; ls $D/block | wc -l
       - name: Build WestPanel
         working-directory: westpanel
         run: gradle build --no-daemon --stacktrace

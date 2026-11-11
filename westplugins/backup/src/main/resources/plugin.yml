@@ -6,7 +6,7 @@ description: Kopie ekwipunku po smierci, zwracane przez administracje
 commands:
   backup:
     description: Kopie ekwipunku gracza
-    usage: /backup <nick>
+    usage: /backup <nick>  albo  /backup oddaj <nick> <nr>
     aliases: [kopia, przywroc]
 permissions:
   westbackup.uzyj:

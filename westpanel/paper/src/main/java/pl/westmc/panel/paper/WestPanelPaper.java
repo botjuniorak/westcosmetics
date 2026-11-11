@@ -44,6 +44,8 @@ public final class WestPanelPaper extends JavaPlugin implements Listener {
     private String url, key, server;
     private boolean chatLogs;
     Guard guard;
+    private DataSync sync;
+    private int syncTick;
 
     /** Alert anticheatu: do panelu i do ekipy online (uprawnienie westguard.alerty). */
     void acAlert(String player, String check, int vl, String info, String source) {
@@ -72,6 +74,7 @@ public final class WestPanelPaper extends JavaPlugin implements Listener {
         chatLogs = getConfig().getBoolean("logi-czatu", true);
         int every = Math.max(2, Math.min(10, getConfig().getInt("co-ile-sekund", 2)));
         getServer().getPluginManager().registerEvents(this, this);
+        sync = new DataSync(getDataFolder().getParentFile());
         guard = new Guard(this);
         getServer().getPluginManager().registerEvents(guard, this);
         Bukkit.getScheduler().runTask(this, () -> {
@@ -136,6 +139,14 @@ public final class WestPanelPaper extends JavaPlugin implements Listener {
         JsonObject e;
         while ((e = events.poll()) != null && taken.size() < 300) { ev.add(e); taken.add(e); }
         body.add("events", ev);
+        if (++syncTick % 2 == 0) {
+            try {
+                JsonArray kopie = sync.backups();
+                if (!kopie.isEmpty()) body.add("kopie", kopie);
+                JsonObject osiagi = sync.achievements();
+                if (osiagi != null) body.add("osiagi", osiagi);
+            } catch (Exception ex) { getLogger().warning("Kopie/osiągnięcia do panelu: " + ex.getMessage()); }
+        }
 
         HttpRequest req = HttpRequest.newBuilder(URI.create(url))
             .timeout(Duration.ofSeconds(5))
@@ -146,6 +157,7 @@ public final class WestPanelPaper extends JavaPlugin implements Listener {
         http.sendAsync(req, HttpResponse.BodyHandlers.ofString()).whenComplete((res, err) -> {
             sending.set(false);
             if (err != null || res.statusCode() != 200) {
+                Bukkit.getScheduler().runTask(this, sync::failed);
                 events.addAll(taken);   // sprobuj wyslac zdarzenia nastepnym razem
                 if (!warned) {
                     warned = true;
@@ -160,10 +172,16 @@ public final class WestPanelPaper extends JavaPlugin implements Listener {
                 return;
             }
             if (warned) { warned = false; getLogger().info("Połączono z panelem."); }
+            Bukkit.getScheduler().runTask(this, sync::ok);
             try {
                 JsonObject r = JsonParser.parseString(res.body()).getAsJsonObject();
                 List<String> cmds = new ArrayList<>();
                 for (var c : r.getAsJsonArray("commands")) cmds.add(c.getAsString());
+                if (r.has("need")) {
+                    List<String> need = new ArrayList<>();
+                    for (var n : r.getAsJsonArray("need")) need.add(n.getAsString());
+                    Bukkit.getScheduler().runTask(this, () -> need.forEach(sync::reset));
+                }
                 if (!cmds.isEmpty()) Bukkit.getScheduler().runTask(this, () -> {
                     for (String c : cmds) {
                         getLogger().info("Komenda z panelu: /" + c);

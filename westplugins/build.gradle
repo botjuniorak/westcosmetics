@@ -10,5 +10,5 @@ subprojects {
     tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8'; options.release = 21 }
     processResources { filesMatching('plugin.yml') { expand 'version': project.version } }
 }
-project(':backup') { version = '1.0.0'; jar { archiveFileName = 'WestBackup-' + project.version + '.jar' } }
-project(':osiagniecia') { version = '1.0.0'; jar { archiveFileName = 'WestOsiagniecia-' + project.version + '.jar' } }
+project(':backup') { version = '1.1.0'; jar { archiveFileName = 'WestBackup-' + project.version + '.jar' } }
+project(':osiagniecia') { version = '1.1.0'; jar { archiveFileName = 'WestOsiagniecia-' + project.version + '.jar' } }

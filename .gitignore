@@ -11,3 +11,4 @@ westpanel/**/build/
 westpanel/.gradle/
 westplugins/**/build/
 westplugins/.gradle/
+westpanel/velocity/src/main/resources/web/ikony/

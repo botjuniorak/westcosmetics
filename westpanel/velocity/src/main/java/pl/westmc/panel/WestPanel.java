@@ -32,7 +32,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-@Plugin(id = "westpanel", name = "WestPanel", version = "1.3.0", description = "Panel administracji WestMC", authors = {"WestMC"})
+@Plugin(id = "westpanel", name = "WestPanel", version = "1.4.0", description = "Panel administracji WestMC", authors = {"WestMC"})
 public final class WestPanel {
     private final ProxyServer proxy;
     private final Logger logger;

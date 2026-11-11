@@ -120,3 +120,6 @@ osiagniecia:
       - ["westy daj {GRACZ} 200"]
       - ["westy daj {GRACZ} 450"]
     opis-nagrod: ["10 Westów", "30 Westów", "90 Westów", "200 Westów", "450 Westów"]
+
+# ladne menu z tekstur paczki WestMC (v0.10.14+). Na serwerze bez paczki ustaw false.
+tekstury: true

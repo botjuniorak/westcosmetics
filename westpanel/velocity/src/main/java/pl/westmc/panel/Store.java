@@ -86,6 +86,10 @@ final class Store {
     /** Teren mapy: swiat -> "cx:cz" -> [czas, base64 RGB 16x16]. */
     final Map<String, Map<String, Object[]>> tiles = new ConcurrentHashMap<>();
     final Map<String, int[]> spawns = new ConcurrentHashMap<>();   // [minuta od epoki, gracze online], co 5 min, 24 h
+    /** Kopie ekwipunku z WestBackup: serwer -> uuid gracza -> dane (jak przyslal plugin). */
+    final Map<String, Map<String, com.google.gson.JsonObject>> backups = new ConcurrentHashMap<>();
+    /** Osiagniecia z WestOsiagniecia: serwer -> {defs, players}. */
+    final Map<String, com.google.gson.JsonObject> achievements = new ConcurrentHashMap<>();
     private final AtomicLong logSeq = new AtomicLong();
     private long nextId = 1;
 
