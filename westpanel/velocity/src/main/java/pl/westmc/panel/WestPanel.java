@@ -32,7 +32,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-@Plugin(id = "westpanel", name = "WestPanel", version = "1.2.0", description = "Panel administracji WestMC", authors = {"WestMC"})
+@Plugin(id = "westpanel", name = "WestPanel", version = "1.3.0", description = "Panel administracji WestMC", authors = {"WestMC"})
 public final class WestPanel {
     private final ProxyServer proxy;
     private final Logger logger;
@@ -41,6 +41,93 @@ public final class WestPanel {
     private Web web;
     private Properties cfg;
     private final Map<UUID, Long> joinedAt = new ConcurrentHashMap<>();
+    private Discord discord;
+    private final Map<String, java.util.Deque<Long>> acTimes = new ConcurrentHashMap<>();
+    private final Map<String, Long> autoBanned = new ConcurrentHashMap<>();
+    private final Map<String, long[]> acDiscord = new ConcurrentHashMap<>();   // gracz -> [ostatnia wysylka, zebrane od tego czasu]
+
+    String cfg(String key) { return cfg.getProperty(key, "").trim(); }
+
+    void discord(String channel, boolean ping, String title, String desc, int color, String[][] fields) {
+        if (discord == null) return;
+        discord.send(cfg("discord-" + channel), ping ? cfg("discord-ping") : "", title, desc, color, fields);
+    }
+
+    /** Kazdy alert anticheatu: Discord (bez spamu) + automatyczny ban po utrzymujacych sie wykryciach. */
+    void onAcAlert(Store.AcAlert a) {
+        String key = a.player.toLowerCase(Locale.ROOT);
+        long now = System.currentTimeMillis();
+
+        // Discord: pierwszy alert od razu, potem zbiorczo najwyzej co 60 s na gracza
+        long[] d = acDiscord.computeIfAbsent(key, k -> new long[]{0, 0});
+        synchronized (d) {
+            d[1]++;
+            if (now - d[0] >= 60000) {
+                String more = d[1] > 1 ? " (+" + (d[1] - 1) + " kolejnych w ostatniej minucie)" : "";
+                d[0] = now; d[1] = 0;
+                discord("anticheat", false, "⚠️ Podejrzany gracz: " + Discord.safe(a.player),
+                    "**" + Discord.safe(a.check) + "** · VL " + a.vl + more + (a.info.isBlank() ? "" : "\n" + Discord.safe(a.info)),
+                    0xffb02e, new String[][]{{"Serwer", a.server}, {"Źródło", a.src}});
+            }
+        }
+
+        if (!Boolean.parseBoolean(cfg("auto-ban"))) return;
+        for (String skip : cfg("auto-ban-pomijaj").toLowerCase(Locale.ROOT).split("[,; ]+")) {
+            if (!skip.isBlank() && a.check.toLowerCase(Locale.ROOT).startsWith(skip)) return;
+        }
+        Long banned = autoBanned.get(key);
+        if (banned != null && now - banned < 10 * 60000) return;
+
+        java.util.Deque<Long> q = acTimes.computeIfAbsent(key, k -> new java.util.ArrayDeque<>());
+        boolean ban;
+        String why;
+        synchronized (q) {
+            q.addLast(now);
+            long window = Math.max(30, parse(cfg("auto-ban-okno-sekund"), 120)) * 1000L;
+            while (!q.isEmpty() && now - q.peekFirst() > window) q.pollFirst();
+            int minAlerts = (int) parse(cfg("auto-ban-min-alertow"), 6);
+            long spamWin = parse(cfg("auto-ban-spam-sekund"), 40) * 1000L;
+            int spam = 0;
+            for (long t : q) if (now - t <= spamWin) spam++;
+            long span = q.isEmpty() ? 0 : now - q.peekFirst();
+            // utrzymuje sie: min. N alertow, rozlozonych na co najmniej 60 s (nie jeden lag-spike)
+            boolean sustained = q.size() >= minAlerts && span >= 60000;
+            boolean spamming = spam >= parse(cfg("auto-ban-spam-alertow"), 12);
+            ban = sustained || spamming;
+            why = spamming ? spam + " alertów w " + (spamWin / 1000) + " s" : q.size() + " alertów w " + (span / 1000) + " s";
+            if (ban) q.clear();
+        }
+        if (!ban) return;
+        autoBanned.put(key, now);
+        String cmd = cfg("auto-ban-komenda").replace("%player%", a.player);
+        if (cmd.startsWith("/")) cmd = cmd.substring(1);
+        java.util.List<String> targets = new java.util.ArrayList<>(store.servers.keySet());
+        for (String t : targets) store.queueCommand(t, cmd);
+        Store.Punishment p = new Store.Punishment();
+        p.id = store.nextId();
+        p.time = now;
+        p.nick = a.player;
+        p.type = cmd.startsWith("ban ") || cmd.startsWith("tempban ") ? "ban" : cmd.split(" ")[0];
+        p.duration = cmd.startsWith("tempban ") ? cmd.split(" ")[2] : cmd.startsWith("ban ") ? "perm" : "—";
+        p.reason = "Anticheat: " + a.check + " (" + why + ")";
+        p.by = "Anticheat";
+        p.server = String.join(", ", targets);
+        p.command = "/" + cmd;
+        synchronized (store) { store.punishments.add(p); }
+        store.savePunishments();
+        store.log("panel", "kara", "Anticheat → " + a.player + ": /" + cmd + " (" + why + ")");
+        notifyStaff("§c[Anticheat] §fAutomatyczny ban: §c" + a.player + " §7(" + a.check + ", " + why + ")");
+        discord("kary", true, "🔨 Automatyczny ban: " + Discord.safe(a.player),
+            "Wykrycie **" + Discord.safe(a.check) + "** utrzymywało się: " + why + ".\nKomenda: `/" + Discord.safe(cmd) + "`",
+            0xff5b6b, new String[][]{{"Serwer", a.server}, {"Źródło", a.src}, {"Ostatnie VL", String.valueOf(a.vl)}});
+        if (!cfg("discord-anticheat").equals(cfg("discord-kary"))) {
+            discord("anticheat", true, "🔨 Zbanowano: " + Discord.safe(a.player), "Automatycznie po: " + why, 0xff5b6b, null);
+        }
+    }
+
+    private static long parse(String s, long def) {
+        try { return Long.parseLong(s.trim()); } catch (Exception e) { return def; }
+    }
 
     @Inject
     public WestPanel(ProxyServer proxy, Logger logger, @DataDirectory Path dir) {
@@ -61,6 +148,7 @@ public final class WestPanel {
             store = new Store(dir);
             store.load();
             store.loadTiles();
+            discord = new Discord(this);
             web = new Web(this, store);
             int port = Integer.parseInt(cfg.getProperty("port", "8123").trim());
             web.start(cfg.getProperty("adres", "0.0.0.0").trim(), port);
@@ -92,6 +180,13 @@ public final class WestPanel {
         if (!cfg.containsKey("klucz-serwerow")) { cfg.setProperty("klucz-serwerow", Crypto.token(24)); changed = true; }
         if (!cfg.containsKey("https")) { cfg.setProperty("https", "false"); changed = true; }
         if (!cfg.containsKey("bluemap")) { cfg.setProperty("bluemap", ""); changed = true; }
+        String[][] defaults = {
+            {"discord-anticheat", ""}, {"discord-zgloszenia", ""}, {"discord-kary", ""}, {"discord-ping", ""},
+            {"auto-ban", "false"}, {"auto-ban-okno-sekund", "120"}, {"auto-ban-min-alertow", "6"},
+            {"auto-ban-spam-alertow", "12"}, {"auto-ban-spam-sekund", "40"},
+            {"auto-ban-komenda", "tempban %player% 30d Cheaty (Anticheat)"}, {"auto-ban-pomijaj", "xray"}
+        };
+        for (String[] d : defaults) if (!cfg.containsKey(d[0])) { cfg.setProperty(d[0], d[1]); changed = true; }
         if (changed) try (Writer w = Files.newBufferedWriter(f, StandardCharsets.UTF_8)) {
             cfg.store(w, "WestPanel. port = port panelu WWW; klucz-serwerow wpisz w config pluginu WestPanel na serwerach; https=true gdy panel stoi za domena z HTTPS");
         }

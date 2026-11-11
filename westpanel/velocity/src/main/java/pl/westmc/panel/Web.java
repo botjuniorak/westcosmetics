@@ -298,6 +298,8 @@ final class Web {
         synchronized (st) { st.punishments.add(p); }
         st.savePunishments();
         st.log("panel", "kara", a.login + " → " + type + " " + (timed ? dur + " " : "") + nick + ": " + reason);
+        pl.discord("kary", false, "🔨 " + type.toUpperCase(Locale.ROOT) + (timed ? " " + dur : "") + ": " + Discord.safe(nick), Discord.safe(reason),
+            type.equals("ban") ? 0xff5b6b : type.equals("mute") ? 0xffb02e : 0x8a9bba, new String[][]{{"Nadał", Discord.safe(a.login)}, {"Serwery", String.join(", ", targets)}});
 
         long reportId = b.has("reportId") && !b.get("reportId").isJsonNull() ? b.get("reportId").getAsLong() : 0;
         if (reportId > 0) closeReport(reportId, a.login, "kara: " + type + (timed ? " " + dur : ""));
@@ -440,6 +442,8 @@ final class Web {
                 synchronized (st) { st.reports.add(r); }
                 st.saveReports();
                 st.log(name, "report", r.from + " zgłosił " + r.target + ": " + r.reason);
+                pl.discord("zgloszenia", true, "🚩 Zgłoszenie: " + Discord.safe(r.target), Discord.safe(r.reason), 0x2f8cff,
+                    new String[][]{{"Zgłosił", Discord.safe(r.from)}, {"Serwer", name}});
                 pl.notifyStaff("§c[Zgłoszenie] §f" + r.from + " §7zgłosił §f" + r.target + "§7: " + r.reason);
             } else if (type.equals("ac")) {
                 Store.AcAlert a = new Store.AcAlert();
@@ -451,6 +455,7 @@ final class Web {
                 a.info = clean(str(ev, "info"), 200);
                 a.src = clean(str(ev, "src"), 16);
                 st.addAc(a);
+                pl.onAcAlert(a);
                 acDirty = true;
                 st.log(name, "ac", clean(str(ev, "text"), 400));
             } else if (List.of("chat", "cmd", "join", "death", "kara").contains(type)) {
