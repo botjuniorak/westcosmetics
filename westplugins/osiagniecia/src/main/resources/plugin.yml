@@ -1,0 +1,15 @@
+name: WestOsiagniecia
+version: '${version}'
+main: pl.westmc.osiagniecia.WestOsiagniecia
+api-version: '1.21'
+description: Osiagniecia z poziomami i nagrodami
+commands:
+  osiagniecia:
+    description: Twoje osiagniecia
+    aliases: [osiagi, achievements]
+  osiagnieciaadmin:
+    description: Przeladowanie osiagniec
+    permission: westosiagniecia.admin
+permissions:
+  westosiagniecia.admin:
+    default: op

@@ -1,0 +1,14 @@
+subprojects {
+    apply plugin: 'java'
+    group = 'pl.westmc'
+    repositories {
+        mavenCentral()
+        maven { url = 'https://repo.papermc.io/repository/maven-public/' }
+    }
+    dependencies { compileOnly 'io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT' }
+    java { toolchain.languageVersion = JavaLanguageVersion.of(21) }
+    tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8'; options.release = 21 }
+    processResources { filesMatching('plugin.yml') { expand 'version': project.version } }
+}
+project(':backup') { version = '1.0.0'; jar { archiveFileName = 'WestBackup-' + project.version + '.jar' } }
+project(':osiagniecia') { version = '1.0.0'; jar { archiveFileName = 'WestOsiagniecia-' + project.version + '.jar' } }

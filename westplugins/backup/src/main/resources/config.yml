@@ -1,0 +1,9 @@
+# WestBackup - kopie ekwipunku po smierci
+# ile ostatnich smierci trzymac na gracza
+max-kopii: 25
+# po ilu dniach kasowac stare kopie
+dni: 14
+# nie zapisuj pustego ekwipunku
+pomijaj-puste: true
+# dzwiek i wiadomosc dla gracza po zwroceniu
+wiadomosc-dla-gracza: "&a&lWestMC &8» &7Administracja zwróciła Ci ekwipunek z kopii &f#{NR}&7."

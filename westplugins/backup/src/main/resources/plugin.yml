@@ -1,0 +1,17 @@
+name: WestBackup
+version: '${version}'
+main: pl.westmc.backup.WestBackup
+api-version: '1.21'
+description: Kopie ekwipunku po smierci, zwracane przez administracje
+commands:
+  backup:
+    description: Kopie ekwipunku gracza
+    usage: /backup <nick>
+    aliases: [kopia, przywroc]
+permissions:
+  westbackup.uzyj:
+    description: Podglad i zwracanie kopii ekwipunku
+    default: op
+  westbackup.usun:
+    description: Usuwanie kopii
+    default: op

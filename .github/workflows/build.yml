@@ -90,3 +90,26 @@ jobs:
             westpanel/velocity/build/libs/WestPanel-Velocity-*.jar
             westpanel/paper/build/libs/WestPanel-Paper-*.jar
           make_latest: false
+
+  westplugins:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.12"
+      - name: Build
+        working-directory: westplugins
+        run: gradle build --no-daemon --stacktrace
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: westplugins
+          name: Pluginy WestMC
+          files: |
+            westplugins/backup/build/libs/WestBackup-*.jar
+            westplugins/osiagniecia/build/libs/WestOsiagniecia-*.jar
+          make_latest: false

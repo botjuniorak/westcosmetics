@@ -1,0 +1,122 @@
+# ==========================================================
+#  WestOsiagniecia - osiagniecia z poziomami
+# ==========================================================
+# statystyka: statystyki z gry (licza sie od poczatku grania na serwerze):
+#   PLAYER_KILLS, MOB_KILLS, DEATHS, PLAY_ONE_MINUTE (czas gry), WALK_ONE_CM, JUMP, FISH_CAUGHT,
+#   ANIMALS_BRED, ITEM_ENCHANTED, TRADED_WITH_VILLAGER, RAID_WIN ...
+#   MINE_BLOCK:STONE,DEEPSLATE (wykopane bloki, mozna kilka po przecinku)
+#   KILL_ENTITY:ZOMBIE,SKELETON (zabite moby danego typu)
+#   SERIA = najlepsza seria zabojstw bez smierci (liczona przez plugin)
+# dzielnik: np. czas gry w tickach / 72000 = godziny, WALK_ONE_CM / 100000 = km
+# nagrody: komendy z konsoli dla kazdego poziomu po kolei; {GRACZ} = nick
+# ogloszenie-od-poziomu: od ktorego poziomu ogloszenie na czacie dla wszystkich
+
+ogloszenie-od-poziomu: 3
+
+osiagniecia:
+  zabojca:
+    nazwa: "Zabójca"
+    ikona: DIAMOND_SWORD
+    opis: "Zabij innych graczy"
+    statystyka: PLAYER_KILLS
+    progi: [10, 50, 150, 400, 1000]
+    nagrody:
+      - ["westy daj {GRACZ} 50"]
+      - ["westy daj {GRACZ} 150"]
+      - ["westy daj {GRACZ} 400"]
+      - ["westy daj {GRACZ} 1000"]
+      - ["westy daj {GRACZ} 2500"]
+    opis-nagrod: ["50 Westów", "150 Westów", "400 Westów", "1000 Westów", "2500 Westów"]
+  seria:
+    nazwa: "Nie do zatrzymania"
+    ikona: NETHERITE_SWORD
+    opis: "Zabij graczy pod rząd bez śmierci"
+    statystyka: SERIA
+    progi: [3, 5, 10, 15, 25]
+    nagrody:
+      - ["westy daj {GRACZ} 75"]
+      - ["westy daj {GRACZ} 200"]
+      - ["westy daj {GRACZ} 500"]
+      - ["westy daj {GRACZ} 1200"]
+      - ["westy daj {GRACZ} 3000"]
+    opis-nagrod: ["75 Westów", "200 Westów", "500 Westów", "1200 Westów", "3000 Westów"]
+  gornik:
+    nazwa: "Górnik"
+    ikona: DIAMOND_PICKAXE
+    opis: "Wykop kamień"
+    statystyka: "MINE_BLOCK:STONE,COBBLESTONE,DEEPSLATE,COBBLED_DEEPSLATE"
+    progi: [1000, 10000, 50000, 150000, 500000]
+    nagrody:
+      - ["westy daj {GRACZ} 50"]
+      - ["westy daj {GRACZ} 200"]
+      - ["westy daj {GRACZ} 600"]
+      - ["westy daj {GRACZ} 1500"]
+      - ["westy daj {GRACZ} 4000"]
+    opis-nagrod: ["50 Westów", "200 Westów", "600 Westów", "1500 Westów", "4000 Westów"]
+  weteran:
+    nazwa: "Weteran"
+    ikona: CLOCK
+    opis: "Graj na serwerze (godziny)"
+    statystyka: PLAY_ONE_MINUTE
+    dzielnik: 72000
+    progi: [5, 24, 72, 200, 500]
+    nagrody:
+      - ["westy daj {GRACZ} 50"]
+      - ["westy daj {GRACZ} 200"]
+      - ["westy daj {GRACZ} 500"]
+      - ["westy daj {GRACZ} 1500"]
+      - ["westy daj {GRACZ} 4000"]
+    opis-nagrod: ["50 Westów", "200 Westów", "500 Westów", "1500 Westów", "4000 Westów"]
+  lowca:
+    nazwa: "Łowca potworów"
+    ikona: BOW
+    opis: "Zabij potwory"
+    statystyka: MOB_KILLS
+    progi: [100, 500, 2000, 5000, 15000]
+    nagrody:
+      - ["westy daj {GRACZ} 30"]
+      - ["westy daj {GRACZ} 120"]
+      - ["westy daj {GRACZ} 400"]
+      - ["westy daj {GRACZ} 1000"]
+      - ["westy daj {GRACZ} 2500"]
+    opis-nagrod: ["30 Westów", "120 Westów", "400 Westów", "1000 Westów", "2500 Westów"]
+  wedrowiec:
+    nazwa: "Wędrowiec"
+    ikona: LEATHER_BOOTS
+    opis: "Przejdź kilometry"
+    statystyka: WALK_ONE_CM
+    dzielnik: 100000
+    progi: [10, 50, 150, 400, 1000]
+    nagrody:
+      - ["westy daj {GRACZ} 30"]
+      - ["westy daj {GRACZ} 100"]
+      - ["westy daj {GRACZ} 300"]
+      - ["westy daj {GRACZ} 800"]
+      - ["westy daj {GRACZ} 2000"]
+    opis-nagrod: ["30 Westów", "100 Westów", "300 Westów", "800 Westów", "2000 Westów"]
+  rybak:
+    nazwa: "Rybak"
+    ikona: FISHING_ROD
+    opis: "Złów ryby"
+    statystyka: FISH_CAUGHT
+    progi: [25, 100, 300, 800, 2000]
+    nagrody:
+      - ["westy daj {GRACZ} 30"]
+      - ["westy daj {GRACZ} 100"]
+      - ["westy daj {GRACZ} 300"]
+      - ["westy daj {GRACZ} 700"]
+      - ["westy daj {GRACZ} 1500"]
+    opis-nagrod: ["30 Westów", "100 Westów", "300 Westów", "700 Westów", "1500 Westów"]
+  zaklinacz:
+    nazwa: "Zaklinacz"
+    ikona: ENCHANTING_TABLE
+    opis: "Zaklnij przedmioty"
+    statystyka: ITEM_ENCHANTED
+    progi: [10, 50, 150, 400, 1000]
+    nagrody:
+      - ["westy daj {GRACZ} 30"]
+      - ["westy daj {GRACZ} 100"]
+      - ["westy daj {GRACZ} 300"]
+      - ["westy daj {GRACZ} 700"]
+      - ["westy daj {GRACZ} 1500"]
+    opis-nagrod: ["30 Westów", "100 Westów", "300 Westów", "700 Westów", "1500 Westów"]

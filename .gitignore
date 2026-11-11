@@ -9,3 +9,5 @@ launcher/node_modules/
 launcher/dist/
 westpanel/**/build/
 westpanel/.gradle/
+westplugins/**/build/
+westplugins/.gradle/
