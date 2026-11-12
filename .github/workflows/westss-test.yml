@@ -24,6 +24,7 @@ jobs:
           Start-Process -Wait -FilePath out\WestSS.exe -ArgumentList '--test','raport.json'
           Get-Content raport.json
           Start-Process -Wait -FilePath out\WestSS.exe -ArgumentList '--shot','okno.png'
+          Write-Output ("OKNO64:" + [Convert]::ToBase64String([IO.File]::ReadAllBytes('okno.png')))
       - uses: actions/upload-artifact@v4
         with:
           name: westss-test
