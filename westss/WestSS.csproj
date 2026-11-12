@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <AssemblyName>WestSS</AssemblyName>
+    <RootNamespace>WestSS</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
+    <Version>1.0.0</Version>
+    <Product>WestMC Sprawdzanie</Product>
+    <Company>WestMC</Company>
+    <Description>Sprawdzanie na SS dla serwera WestMC</Description>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Net.Http" />
+  </ItemGroup>
+</Project>

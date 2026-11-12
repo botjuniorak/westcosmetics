@@ -90,6 +90,15 @@ jobs:
           find ik/assets/minecraft/textures/item -maxdepth 1 -name '*.png' -exec cp {} $D/item/ \;
           find ik/assets/minecraft/textures/block -maxdepth 1 -name '*.png' -exec cp {} $D/block/ \;
           ls $D/item | wc -l; ls $D/block | wc -l
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - name: Program WestSS (sprawdzanie)
+        run: |
+          dotnet build westss/WestSS.csproj -c Release -o westss-out
+          mkdir -p westpanel/velocity/src/main/resources/web/ss
+          cp westss-out/WestSS.exe westpanel/velocity/src/main/resources/web/ss/WestSS.exe
+          ls -la westss-out
       - name: Build WestPanel
         working-directory: westpanel
         run: gradle build --no-daemon --stacktrace
@@ -99,6 +108,7 @@ jobs:
           name: WestPanel - panel administracji
           body: "WestPanel-Velocity na proxy, WestPanel-Paper na gildie/duels/lobby."
           files: |
+            westss-out/WestSS.exe
             westpanel/velocity/build/libs/WestPanel-Velocity-*.jar
             westpanel/paper/build/libs/WestPanel-Paper-*.jar
           make_latest: false

@@ -49,6 +49,13 @@ final class Store {
         String server, player, check, info, src;
     }
 
+    /** Sprawdzanie na SS: kod dla gracza, potem raport z programu WestSS. */
+    static final class SsCheck {
+        String code, nick, by, status = "czeka", result, ip;
+        long created, expires, received;
+        com.google.gson.JsonObject report;
+    }
+
     static final class LogLine {
         long id, time;
         String server, type, text;
@@ -78,6 +85,7 @@ final class Store {
     final List<Punishment> punishments = new ArrayList<>();
     final List<Report> reports = new ArrayList<>();
     final List<AcAlert> acAlerts = new ArrayList<>();
+    final List<SsCheck> ss = new ArrayList<>();
     final Map<String, Session> sessions = new ConcurrentHashMap<>();
     final Map<String, ServerState> servers = new ConcurrentHashMap<>();
     final Map<String, Deque<String>> commandQueues = new ConcurrentHashMap<>();
@@ -106,6 +114,8 @@ final class Store {
         if (r != null) reports.addAll(r);
         List<AcAlert> ac = read("anticheat.json", new TypeToken<List<AcAlert>>() { });
         if (ac != null) acAlerts.addAll(ac);
+        List<SsCheck> sc = read("sprawdzania.json", new TypeToken<List<SsCheck>>() { });
+        if (sc != null) ss.addAll(sc);
         for (Punishment x : punishments) nextId = Math.max(nextId, x.id + 1);
         for (Report x : reports) nextId = Math.max(nextId, x.id + 1);
     }
@@ -120,6 +130,33 @@ final class Store {
     synchronized void savePunishments() { write("kary.json", punishments); }
     synchronized void saveReports() { write("zgloszenia.json", reports); }
     synchronized void saveAc() { write("anticheat.json", acAlerts); }
+    synchronized void saveSs() { write("sprawdzania.json", ss); }
+
+    private static final String SS_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+    /** Nowy kod (6 znakow, wazny 30 min). Stare sprawdzanie tego gracza bez wyniku wygasa. */
+    synchronized SsCheck newSs(String nick, String by) {
+        long now = System.currentTimeMillis();
+        for (SsCheck c : ss) if (c.nick.equalsIgnoreCase(nick) && c.status.equals("czeka")) c.expires = Math.min(c.expires, now);
+        java.security.SecureRandom r = new java.security.SecureRandom();
+        String code;
+        do {
+            StringBuilder b = new StringBuilder();
+            for (int i = 0; i < 6; i++) b.append(SS_CHARS.charAt(r.nextInt(SS_CHARS.length())));
+            code = b.toString();
+        } while (ssByCode(code) != null);
+        SsCheck c = new SsCheck();
+        c.code = code; c.nick = nick; c.by = by; c.created = now; c.expires = now + 30 * 60_000L;
+        ss.add(c);
+        while (ss.size() > 500) ss.remove(0);
+        saveSs();
+        return c;
+    }
+
+    synchronized SsCheck ssByCode(String code) {
+        for (SsCheck c : ss) if (c.code.equals(code)) return c;
+        return null;
+    }
 
     synchronized void addAc(AcAlert a) {
         acAlerts.add(a);

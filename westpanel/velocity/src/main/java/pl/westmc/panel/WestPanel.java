@@ -32,7 +32,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-@Plugin(id = "westpanel", name = "WestPanel", version = "1.4.0", description = "Panel administracji WestMC", authors = {"WestMC"})
+@Plugin(id = "westpanel", name = "WestPanel", version = "1.5.0", description = "Panel administracji WestMC", authors = {"WestMC"})
 public final class WestPanel {
     private final ProxyServer proxy;
     private final Logger logger;
@@ -159,6 +159,7 @@ public final class WestPanel {
             return;
         }
         proxy.getCommandManager().register(proxy.getCommandManager().metaBuilder("panel").plugin(this).build(), new PanelCommand());
+        proxy.getCommandManager().register(proxy.getCommandManager().metaBuilder("ss").aliases("sprawdz").plugin(this).build(), new SsCommand());
         proxy.getScheduler().buildTask(this, () -> store.recordHistory(proxy.getPlayerCount())).repeat(5, TimeUnit.MINUTES).schedule();
         store.recordHistory(proxy.getPlayerCount());
         proxy.getScheduler().buildTask(this, store::saveTiles).repeat(5, TimeUnit.MINUTES).schedule();
@@ -184,7 +185,8 @@ public final class WestPanel {
             {"discord-anticheat", ""}, {"discord-zgloszenia", ""}, {"discord-kary", ""}, {"discord-ping", ""},
             {"auto-ban", "false"}, {"auto-ban-okno-sekund", "120"}, {"auto-ban-min-alertow", "6"},
             {"auto-ban-spam-alertow", "12"}, {"auto-ban-spam-sekund", "40"},
-            {"auto-ban-komenda", "tempban %player% 30d Cheaty (Anticheat)"}, {"auto-ban-pomijaj", "xray"}
+            {"auto-ban-komenda", "tempban %player% 30d Cheaty (Anticheat)"}, {"auto-ban-pomijaj", "xray"},
+            {"link-panelu", "http://159.69.142.97:20001"}
         };
         for (String[] d : defaults) if (!cfg.containsKey(d[0])) { cfg.setProperty(d[0], d[1]); changed = true; }
         if (changed) try (Writer w = Files.newBufferedWriter(f, StandardCharsets.UTF_8)) {
@@ -216,6 +218,47 @@ public final class WestPanel {
     }
 
     /** Wiadomosc w grze dla ekipy (uprawnienie westpanel.powiadomienia). */
+    /** Adres panelu dla graczy (link do programu). Z configu, a jak pusty - z naglowka Host. */
+    String panelLink(String host) {
+        String l = cfg("link-panelu");
+        if (!l.isEmpty()) return l.replaceAll("/+$", "");
+        if (host != null && host.matches("[A-Za-z0-9.:\\-]+")) return (secureCookie() ? "https://" : "http://") + host;
+        return "http://localhost:" + cfg.getProperty("port", "8123").trim();
+    }
+
+    /** Wezwanie na sprawdzanie: wiadomosc i tytul dla gracza, info dla ekipy. */
+    void ssNotify(String nick, String code, String by) {
+        String link = panelLink(null) + "/ss";
+        proxy.getPlayer(nick).ifPresent(p -> {
+            p.showTitle(net.kyori.adventure.title.Title.title(
+                Component.text("SPRAWDZANIE", net.kyori.adventure.text.format.NamedTextColor.RED, net.kyori.adventure.text.format.TextDecoration.BOLD),
+                Component.text("Kod: " + code + " · nie wychodź z serwera", net.kyori.adventure.text.format.NamedTextColor.YELLOW),
+                net.kyori.adventure.title.Title.Times.times(java.time.Duration.ofMillis(300), java.time.Duration.ofSeconds(8), java.time.Duration.ofMillis(800))));
+            p.sendMessage(LegacyComponentSerializer.legacySection().deserialize(
+                "\n§c§l⚠ ZOSTAŁEŚ WEZWANY NA SPRAWDZANIE\n§7Administrator §f" + by + " §7chce sprawdzić, czy nie masz cheatów.\n"
+                + "§71. Pobierz program: §b§n" + link + "§r\n§72. Uruchom §fWestSS.exe §7i wpisz kod: §e§l" + code + "\n"
+                + "§8Wyjście z serwera lub odmowa = ban. Kod ważny 30 minut.\n")
+                .clickEvent(net.kyori.adventure.text.event.ClickEvent.openUrl(link)));
+        });
+        notifyStaff("§c[SS] §f" + by + " §7wezwał §f" + nick + " §7na sprawdzanie. Kod: §e" + code);
+    }
+
+    void ssResult(Store.SsCheck c, int cheats, int sus) {
+        String col = cheats > 0 ? "§c" : sus > 0 ? "§e" : "§a";
+        notifyStaff("§c[SS] §7Wynik sprawdzania §f" + c.nick + "§7: " + col + c.result.toUpperCase(Locale.ROOT) + " §8(cheaty: " + cheats + ", podejrzane: " + sus + ") §7- szczegóły w panelu");
+        List<String> top = new ArrayList<>();
+        if (c.report != null && c.report.has("findings")) for (var f : c.report.getAsJsonArray("findings")) {
+            var o = f.getAsJsonObject();
+            String lvl = o.get("level").getAsString();
+            if (lvl.equals("info") || top.size() >= 6) continue;
+            top.add((lvl.equals("cheat") ? "🔴 " : "🟡 ") + o.get("text").getAsString());
+        }
+        discord("anticheat", cheats > 0, "🔎 Sprawdzanie: " + Discord.safe(c.nick) + " — " + c.result.toUpperCase(Locale.ROOT),
+            top.isEmpty() ? "Nie znaleziono śladów cheatów." : Discord.safe(String.join("\n", top)),
+            cheats > 0 ? 0xff5b6b : sus > 0 ? 0xffc23d : 0x3ad08b,
+            new String[][]{{"Wezwał", Discord.safe(c.by)}, {"Cheaty", String.valueOf(cheats)}, {"Podejrzane", String.valueOf(sus)}});
+    }
+
     void notifyStaff(String legacy) {
         Component c = LegacyComponentSerializer.legacySection().deserialize(legacy);
         for (Player p : proxy.getAllPlayers()) if (p.hasPermission("westpanel.powiadomienia")) p.sendMessage(c);
@@ -294,6 +337,33 @@ public final class WestPanel {
         synchronized (store) { ac = store.acAlerts.stream().filter(x -> x.time > hourAgo).count(); }
         out.put("acHour", ac);
         return out;
+    }
+
+    // ------------------------------------------------------------ komenda /ss <nick> (ekipa w grze)
+
+    private final class SsCommand implements SimpleCommand {
+        @Override
+        public boolean hasPermission(Invocation inv) { return inv.source().hasPermission("westpanel.ss"); }
+
+        @Override
+        public void execute(Invocation inv) {
+            var src = inv.source();
+            String[] a = inv.arguments();
+            if (a.length < 1 || !a[0].matches("[A-Za-z0-9_]{3,16}")) { src.sendMessage(Component.text("Użycie: /ss <nick>  - wzywa gracza na sprawdzanie programem WestSS")); return; }
+            String by = src instanceof Player p ? p.getUsername() : "konsola";
+            Store.SsCheck c = store.newSs(a[0], by);
+            store.log("proxy", "panel", by + " wezwał " + a[0] + " na sprawdzanie (kod " + c.code + ")");
+            ssNotify(a[0], c.code, by);
+            if (proxy.getPlayer(a[0]).isEmpty()) src.sendMessage(LegacyComponentSerializer.legacySection().deserialize("§eGracz §f" + a[0] + " §ejest offline - podaj mu kod §f" + c.code + " §ena Discordzie."));
+        }
+
+        @Override
+        public List<String> suggest(Invocation inv) {
+            String pre = inv.arguments().length > 0 ? inv.arguments()[0].toLowerCase(Locale.ROOT) : "";
+            List<String> out = new ArrayList<>();
+            for (Player p : proxy.getAllPlayers()) if (p.getUsername().toLowerCase(Locale.ROOT).startsWith(pre)) out.add(p.getUsername());
+            return out;
+        }
     }
 
     // ------------------------------------------------------------ komenda /panel (konsola proxy)

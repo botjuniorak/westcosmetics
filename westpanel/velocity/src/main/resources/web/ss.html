@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WestMC · Sprawdzanie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #070d1c; --panel: #0d1b3c; --line: #234484; --blue: #399efc; --gold: #ffc440; --ink: #e6eefc; --muted: #8a9bba; --red: #ff5b6b; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; background: radial-gradient(1200px 600px at 50% -10%, #12306b 0%, var(--bg) 60%); color: var(--ink); font: 16px/1.6 "IBM Plex Sans", system-ui, sans-serif; display: grid; place-items: center; padding: 32px 16px; }
+  main { width: 100%; max-width: 640px; }
+  .logo { font: 800 40px/1 Sora, sans-serif; letter-spacing: -.02em; margin: 0 0 6px; }
+  .logo b { color: var(--blue); } .logo i { color: var(--gold); font-style: normal; }
+  .sub { color: var(--muted); margin: 0 0 28px; font-weight: 500; }
+  .card { background: rgba(13, 27, 60, .85); border: 1px solid var(--line); border-radius: 16px; padding: 28px; box-shadow: 0 20px 60px rgba(0, 0, 0, .4); }
+  .dl { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; padding: 18px; border-radius: 12px; background: var(--blue); color: #fff; font: 600 19px/1 Sora, sans-serif; text-decoration: none; box-shadow: 0 8px 30px rgba(57, 158, 252, .35); transition: transform .15s; }
+  .dl:hover { transform: translateY(-2px); }
+  .dl svg { width: 24px; height: 24px; }
+  ol { padding: 0; margin: 26px 0 0; list-style: none; counter-reset: k; display: grid; gap: 14px; }
+  li { counter-increment: k; display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: start; }
+  li::before { content: counter(k); width: 34px; height: 34px; border-radius: 10px; background: #12306b; border: 1px solid var(--line); display: grid; place-items: center; font: 700 15px/1 Sora, sans-serif; color: var(--blue); }
+  li b { color: var(--ink); } li span { color: var(--muted); }
+  kbd { font: 600 14px/1 ui-monospace, Consolas, monospace; background: #061026; border: 1px solid var(--line); border-radius: 6px; padding: 3px 7px; color: var(--gold); }
+  .warn { margin-top: 24px; padding: 14px 16px; border-radius: 10px; background: rgba(255, 91, 107, .1); border: 1px solid rgba(255, 91, 107, .35); color: #ffc3c9; font-size: 14.5px; }
+  .what { margin-top: 18px; color: var(--muted); font-size: 14px; }
+</style>
+</head>
+<body>
+<main>
+  <h1 class="logo"><b>West</b><i>MC</i></h1>
+  <p class="sub">Sprawdzanie na obecność cheatów</p>
+  <div class="card">
+    <a class="dl" href="/ss/WestSS.exe" download><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Pobierz WestSS.exe</a>
+    <ol>
+      <li><div><b>Pobierz i uruchom program.</b><br><span>Jeśli Windows pokaże „System Windows ochronił ten komputer”, kliknij <kbd>Więcej informacji</kbd> i <kbd>Uruchom mimo to</kbd>. Program jest nowy, dlatego Windows go jeszcze nie zna.</span></div></li>
+      <li><div><b>Wpisz kod od administratora</b> <span>(6 znaków, np.</span> <kbd>K7M2QX</kbd><span>) i kliknij „Rozpocznij sprawdzanie”.</span></div></li>
+      <li><div><b>Poczekaj chwilę i nie wychodź z serwera.</b><br><span>Wynik sam trafi do administracji. Dokładniej sprawdza się jako administrator (przycisk w programie).</span></div></li>
+    </ol>
+    <div class="warn">Wyjście z serwera, odmowa sprawdzania albo usuwanie plików w trakcie oznacza bana.</div>
+    <p class="what">Program sprawdza tylko ślady cheatów: mody i wersje Minecrafta, uruchamiane i działające programy, kosz, ostatnio otwierane pliki i Pobrane (same nazwy plików). Nie czyta dokumentów, zdjęć ani haseł i niczego nie zmienia na komputerze.</p>
+  </div>
+</main>
+</body>
+</html>

@@ -12,3 +12,7 @@ westpanel/.gradle/
 westplugins/**/build/
 westplugins/.gradle/
 westpanel/velocity/src/main/resources/web/ikony/
+westpanel/velocity/src/main/resources/web/ss/
+westss/bin/
+westss/obj/
+westss-out/

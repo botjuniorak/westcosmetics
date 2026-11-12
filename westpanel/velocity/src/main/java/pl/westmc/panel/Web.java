@@ -63,6 +63,7 @@ final class Web {
             String method = ex.getRequestMethod();
             if (path.equals("/") || path.equals("/index.html")) { send(ex, 200, "text/html; charset=utf-8", indexHtml); return; }
             if (path.startsWith("/ikony/")) { icon(ex, path); return; }
+            if (path.equals("/ss") || path.startsWith("/ss/")) { ssPublic(ex, path, method); return; }
             if (!path.startsWith("/api/")) { json(ex, 404, err("Nie ma takiej strony.")); return; }
 
             if (path.equals("/api/ingest") && method.equals("POST")) { ingest(ex); return; }
@@ -214,6 +215,30 @@ final class Web {
                 pl.discord("kary", false, "📦 Zwrot ekwipunku: " + Discord.safe(nick), "Kopia #" + nr + " (" + Discord.safe(target.get("cause").getAsString()) + ")", 0x3ad08b,
                     new String[][]{{"Zwrócił", Discord.safe(a.login)}, {"Serwer", server}});
                 json(ex, 200, Map.of("ok", true));
+            }
+            case "GET /api/ss" -> {
+                List<Store.SsCheck> out;
+                synchronized (st) { out = new ArrayList<>(st.ss); }
+                java.util.Collections.reverse(out);
+                long now = System.currentTimeMillis();
+                List<Map<String, Object>> items = new ArrayList<>();
+                for (Store.SsCheck c : out.subList(0, Math.min(150, out.size()))) {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("code", c.code); m.put("nick", c.nick); m.put("by", c.by); m.put("created", c.created);
+                    m.put("status", c.status.equals("czeka") && now > c.expires ? "wygaslo" : c.status);
+                    m.put("result", c.result); m.put("received", c.received);
+                    if (c.report != null) m.put("report", c.report);
+                    items.add(m);
+                }
+                send(ex, 200, "application/json; charset=utf-8", gson.toJson(Map.of("items", items, "link", pl.panelLink(ex.getRequestHeaders().getFirst("Host")) + "/ss")).getBytes(StandardCharsets.UTF_8));
+            }
+            case "POST /api/ss" -> {
+                String nick = str(body(ex), "nick");
+                if (!nick.matches("[A-Za-z0-9_]{3,16}")) { json(ex, 400, err("Podaj poprawny nick gracza.")); return; }
+                Store.SsCheck c = st.newSs(nick, a.login);
+                st.log("proxy", "panel", a.login + " wezwał " + nick + " na sprawdzanie (kod " + c.code + ")");
+                pl.ssNotify(nick, c.code, a.login);
+                json(ex, 200, Map.of("code", c.code, "link", pl.panelLink(ex.getRequestHeaders().getFirst("Host")) + "/ss"));
             }
             case "GET /api/achievements" -> {
                 Map<String, Object> out = new LinkedHashMap<>();
@@ -570,6 +595,70 @@ final class Web {
         if (q == null) return "";
         for (String p : q.split("&")) if (p.startsWith(name + "=")) return java.net.URLDecoder.decode(p.substring(name.length() + 1), StandardCharsets.UTF_8);
         return "";
+    }
+
+    // ------------------------------------------------------------ sprawdzanie (program WestSS), bez logowania
+
+    private final Map<String, int[]> ssHits = new ConcurrentHashMap<>();
+    private byte[] ssExe;
+
+    private boolean ssLimited(HttpExchange ex) {
+        String ip = ex.getRemoteAddress().getAddress().getHostAddress();
+        int minute = (int) (System.currentTimeMillis() / 60000);
+        int[] v = ssHits.merge(ip, new int[]{1, minute}, (o, n) -> minute - o[1] < 10 ? new int[]{o[0] + 1, o[1]} : n);
+        return v[0] > 40;
+    }
+
+    private void ssPublic(HttpExchange ex, String path, String method) throws IOException {
+        if (ssLimited(ex)) { json(ex, 429, err("Za dużo prób. Spróbuj za kilka minut.")); return; }
+        switch (method + " " + path) {
+            case "GET /ss", "GET /ss/" -> {
+                try (InputStream in = Web.class.getResourceAsStream("/web/ss.html")) {
+                    send(ex, 200, "text/html; charset=utf-8", in == null ? new byte[0] : in.readAllBytes());
+                }
+            }
+            case "GET /ss/WestSS.exe" -> {
+                if (ssExe == null) try (InputStream in = Web.class.getResourceAsStream("/web/ss/WestSS.exe")) { ssExe = in == null ? new byte[0] : in.readAllBytes(); }
+                if (ssExe.length == 0) { json(ex, 404, err("Brak programu w tej wersji panelu.")); return; }
+                // adres panelu dopisany na koncu pliku - program wie, gdzie wyslac wynik
+                byte[] tail = ("\n#WESTSS#" + pl.panelLink(ex.getRequestHeaders().getFirst("Host")) + "#").getBytes(StandardCharsets.US_ASCII);
+                byte[] out = java.util.Arrays.copyOf(ssExe, ssExe.length + tail.length);
+                System.arraycopy(tail, 0, out, ssExe.length, tail.length);
+                ex.getResponseHeaders().set("Content-Disposition", "attachment; filename=\"WestSS.exe\"");
+                ex.getResponseHeaders().set("Content-Type", "application/octet-stream");
+                ex.sendResponseHeaders(200, out.length);
+                try (OutputStream os = ex.getResponseBody()) { os.write(out); }
+            }
+            case "GET /ss/kod" -> {
+                Store.SsCheck c = st.ssByCode(strParam(ex, "k").toUpperCase(Locale.ROOT));
+                if (c == null || System.currentTimeMillis() > c.expires) { json(ex, 404, err("Zły albo wygasły kod. Poproś administratora o nowy.")); return; }
+                if (!c.status.equals("czeka")) { json(ex, 400, err("Ten kod został już użyty.")); return; }
+                json(ex, 200, Map.of("nick", c.nick));
+            }
+            case "POST /ss/raport" -> {
+                JsonObject b = body(ex, 1024 * 1024);
+                Store.SsCheck c = st.ssByCode(str(b, "code").toUpperCase(Locale.ROOT));
+                if (c == null || System.currentTimeMillis() > c.expires) { json(ex, 404, err("Zły albo wygasły kod.")); return; }
+                if (!c.status.equals("czeka")) { json(ex, 400, err("Ten kod został już użyty.")); return; }
+                int cheats = 0, sus = 0;
+                if (b.has("findings")) for (var f : b.getAsJsonArray("findings")) {
+                    String lvl = str(f.getAsJsonObject(), "level");
+                    if (lvl.equals("cheat")) cheats++; else if (lvl.equals("podejrzane")) sus++;
+                }
+                synchronized (st) {
+                    c.report = b;
+                    c.status = "wynik";
+                    c.result = cheats > 0 ? "cheaty" : sus > 0 ? "podejrzane" : "czysto";
+                    c.received = System.currentTimeMillis();
+                    c.ip = ex.getRemoteAddress().getAddress().getHostAddress();
+                    st.saveSs();
+                }
+                st.log("proxy", "anticheat", "Wynik sprawdzania " + c.nick + ": " + c.result + " (cheaty: " + cheats + ", podejrzane: " + sus + ")");
+                pl.ssResult(c, cheats, sus);
+                json(ex, 200, Map.of("ok", true));
+            }
+            default -> json(ex, 404, err("Nie ma takiej strony."));
+        }
     }
 
     /** Ikony przedmiotow do podgladu kopii (tekstury z gry spakowane w plugin przy budowaniu). */
