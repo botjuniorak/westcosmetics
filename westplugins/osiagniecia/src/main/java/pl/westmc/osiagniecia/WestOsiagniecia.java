@@ -23,7 +23,6 @@ import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -277,9 +276,9 @@ public final class WestOsiagniecia extends JavaPlugin implements Listener {
         }
         for (int i = 0; i < CARD_SLOTS.length && from + i < list.size(); i++) inv.setItem(CARD_SLOTS[i], card(p, list.get(from + i)));
 
-        ItemStack head = new ItemStack(Material.PLAYER_HEAD);
-        SkullMeta sm = (SkullMeta) head.getItemMeta();
-        sm.setOwningPlayer(p);
+        // bez glowy gracza: na serwerze offline-mode skin czesto sie nie laduje (czarno-fioletowa kostka)
+        ItemStack head = new ItemStack(Material.NETHER_STAR);
+        ItemMeta sm = head.getItemMeta();
         sm.setDisplayName(c("&6&l" + p.getName()));
         int pct = total == 0 ? 0 : done * 100 / total;
         sm.setLore(List.of(c("&7Zdobyte poziomy: &f" + done + " &8/ &f" + total), c(bar(total == 0 ? 0 : (double) done / total) + " &e" + pct + "%"),

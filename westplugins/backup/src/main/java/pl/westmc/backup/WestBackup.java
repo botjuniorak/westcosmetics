@@ -4,7 +4,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -26,7 +25,6 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -241,9 +239,8 @@ public final class WestBackup extends JavaPlugin implements Listener {
             inv.setItem(LIST_SLOTS[i], it);
             h.nums.put(LIST_SLOTS[i], n);
         }
-        ItemStack head = new ItemStack(Material.PLAYER_HEAD);
-        SkullMeta sm = (SkullMeta) head.getItemMeta();
-        sm.setOwningPlayer(Bukkit.getOfflinePlayer(target));
+        ItemStack head = new ItemStack(Material.BOOK);
+        ItemMeta sm = head.getItemMeta();
         sm.setDisplayName(c("&e&l" + nick));
         sm.setLore(List.of(c("&7Kopii: &f" + nums.size()), c("&7Do zwrotu: " + (open > 0 ? "&e" : "&a") + open),
             c("&8Kopie robią się same po każdej śmierci."), c("&8Najnowsza jest pierwsza i błyszczy.")));
