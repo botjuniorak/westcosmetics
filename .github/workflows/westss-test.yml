@@ -1,0 +1,32 @@
+name: WestSS test
+on: workflow_dispatch
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - run: dotnet build westss/WestSS.csproj -c Release -o out
+      - name: Podloz testowe "cheaty"
+        shell: pwsh
+        run: |
+          $m = "$env:APPDATA\.minecraft\mods"; New-Item -ItemType Directory -Force $m | Out-Null
+          Set-Content "$env:TEMP\fabric.mod.json" '{"id":"meteor-client","name":"Meteor Client"}'
+          Compress-Archive -Path "$env:TEMP\fabric.mod.json" -DestinationPath "$m\nic-takiego.zip"; Rename-Item "$m\nic-takiego.zip" "nic-takiego.jar"
+          Set-Content "$env:TEMP\fabric.mod.json" '{"id":"sodium","name":"Sodium"}'
+          Compress-Archive -Path "$env:TEMP\fabric.mod.json" -DestinationPath "$m\sodium.zip" -Force; Rename-Item "$m\sodium.zip" "sodium.jar"
+          New-Item -ItemType Directory -Force "$env:USERPROFILE\Downloads" | Out-Null
+          Set-Content "$env:USERPROFILE\Downloads\Vape-Lite.exe" 'x'
+      - shell: pwsh
+        run: |
+          Start-Process -Wait -FilePath out\WestSS.exe -ArgumentList '--test','raport.json'
+          Get-Content raport.json
+          Start-Process -Wait -FilePath out\WestSS.exe -ArgumentList '--shot','okno.png'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: westss-test
+          path: |
+            raport.json
+            okno.png

@@ -14,11 +14,29 @@ namespace WestSS
     static class Program
     {
         [STAThread]
-        static void Main()
+        static void Main(string[] args)
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainForm());
+            // tryb testowy (CI): skan bez okna -> plik JSON
+            if (args.Length == 2 && args[0] == "--test")
+            {
+                var sc = new Scanner();
+                sc.Run();
+                File.WriteAllText(args[1], sc.ToJson("TEST00"), Encoding.UTF8);
+                return;
+            }
+            var form = new MainForm();
+            if (args.Length == 2 && args[0] == "--shot")
+            {
+                form.Shown += (s, e) =>
+                {
+                    var t = new Timer { Interval = 800 };
+                    t.Tick += (a, b) => { t.Stop(); using (var bmp = new Bitmap(form.Width, form.Height)) { form.DrawToBitmap(bmp, new Rectangle(0, 0, form.Width, form.Height)); bmp.Save(args[1]); } form.Close(); };
+                    t.Start();
+                };
+            }
+            Application.Run(form);
         }
     }
 
