@@ -110,7 +110,9 @@ namespace WestSS
             list.BackColor = Panel; list.ForeColor = Ink; list.BorderStyle = BorderStyle.None;
             list.Columns.Add("Wynik", 110); list.Columns.Add("Gdzie", 150); list.Columns.Add("Opis", 320);
 
-            Controls.AddRange(new Control[] { head, head2, sub, info, codeLbl, code, start, admin, who, bar, status, list });
+            Controls.Add(head);
+            head2.Location = new Point(head.Right - 4, head.Top);
+            Controls.AddRange(new Control[] { head2, sub, info, codeLbl, code, start, admin, who, bar, status, list });
         }
 
         static void Style(Button b, string text, Color c)
