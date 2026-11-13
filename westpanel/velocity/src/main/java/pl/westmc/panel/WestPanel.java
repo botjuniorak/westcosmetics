@@ -33,7 +33,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-@Plugin(id = "westpanel", name = "WestPanel", version = "1.5.2", description = "Panel administracji WestMC", authors = {"WestMC"})
+@Plugin(id = "westpanel", name = "WestPanel", version = "1.5.3", description = "Panel administracji WestMC", authors = {"WestMC"})
 public final class WestPanel {
     private final ProxyServer proxy;
     private final Logger logger;
@@ -188,6 +188,7 @@ public final class WestPanel {
             {"auto-ban-spam-alertow", "12"}, {"auto-ban-spam-sekund", "40"},
             {"auto-ban-komenda", "tempban %player% 30d Cheaty (Anticheat)"}, {"auto-ban-pomijaj", "xray"},
             {"link-panelu", "http://159.69.142.97:20001"},
+            {"discord", "https://discord.gg/westmceu"}, {"strona", "https://westmc.eu"},
             {"przenos-na", "lobby"}, {"przenos-pomijaj", "lobby,limbo"}, {"przenos-nie-gdy-powod", "ban,zbanowan,blacklist"}
         };
         for (String[] d : defaults) if (!cfg.containsKey(d[0])) { cfg.setProperty(d[0], d[1]); changed = true; }
@@ -223,6 +224,19 @@ public final class WestPanel {
         proxy.getServer(target).ifPresent(srv -> e.setResult(KickedFromServerEvent.RedirectPlayer.create(srv,
             LegacyComponentSerializer.legacySection().deserialize("§eSerwer §f" + e.getServer().getServerInfo().getName() + " §ejest niedostępny"
                 + (reason.isBlank() ? "" : " §7(" + reason + ")") + "§e. Przeniesiono cię na lobby."))));
+    }
+
+    /** Linki w menu ESC ("Discord i linki") ustawiane z proxy - nadpisuja np. GitHuba od Velocity. */
+    @Subscribe
+    public void onPostConnect(com.velocitypowered.api.event.player.ServerPostConnectEvent e) {
+        try {
+            List<com.velocitypowered.api.util.ServerLink> links = new ArrayList<>();
+            if (!cfg("discord").isEmpty()) links.add(com.velocitypowered.api.util.ServerLink.serverLink(com.velocitypowered.api.util.ServerLink.Type.COMMUNITY, cfg("discord")));
+            if (!cfg("strona").isEmpty()) links.add(com.velocitypowered.api.util.ServerLink.serverLink(com.velocitypowered.api.util.ServerLink.Type.WEBSITE, cfg("strona")));
+            if (!links.isEmpty()) e.getPlayer().setServerLinks(links);
+        } catch (Throwable t) {
+            // starsza wersja Velocity albo klient < 1.21 - bez linkow
+        }
     }
 
     @Subscribe
