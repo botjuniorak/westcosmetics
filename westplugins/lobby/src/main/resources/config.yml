@@ -1,31 +1,236 @@
-# ==========================================================
-#  WestLobby - efekty na lobby
-# ==========================================================
-# Efekty stawiasz w grze komenda /lobbyfx (stajesz tam, gdzie ma byc):
-#   /lobbyfx kula [wielkosc]      - lewitujaca kula energii (domyslnie 3)
-#   /lobbyfx krysztal [wielkosc]  - krysztal lodu (domyslnie 4)
-#   /lobbyfx aura                 - swiecaca spirala pod NPC
-#   /lobbyfx usun                 - usuwa najblizszy efekt (do 6 kratek)
-#   /lobbyfx lista | /lobbyfx przeladuj
+wersja-configu: 4
+# ===========================================================
+#  WestLobby - lobby WestMc (serwer za proxy Velocity/BungeeCord)
+#  Po wgraniu:  /lobby ustawspawn  ->  /lobby logo  ->  portale (/lobby portal ...)
+# ===========================================================
 
-# swiat lobby (snieg, pora dnia i muzyka dzialaja tylko tutaj)
-swiat: world
+spawn:
+  swiat: world
+  x: 0.5
+  y: 100
+  z: 0.5
+  yaw: 0
+  pitch: 0
+pustka-y: 60                  # ponizej tej wysokosci gracz wraca na spawn (ustawia sie samo przy /lobby ustawspawn)
+podwojny-skok: true
+# Czat na lobby (pisac moga tylko osoby z uprawnieniem westlobby.czat, np. administracja)
+czat:
+  wylaczony: true
+  wiadomosc: "&cCzat na lobby jest wylaczony. &7Wejdz na tryb, aby pisac!"
+skok:
+  sila: 1.2
+  wysokosc: 0.9
+ukryj-wiadomosc-wejscia: true
+efekty-portali: true          # wir czasteczek w portalach
 
-snieg: true
-snieg-ilosc: 22          # platkow co 5 tickow wokol gracza
+swiat:
+  stala-pora-dnia: true
+  godzina: 6000               # 6000 = poludnie, 13000 = noc z gwiazdami
 
-# pora dnia na stale: 1000 rano, 6000 poludnie, 12500 zachod slonca, 18000 noc; -1 = nie ruszaj
-godzina: 12500
-bez-deszczu: true
+# Kinowe wejscie: kamera przelatuje wokol lobby, potem gracz laduje na spawnie (kucnij = pomin)
+intro:
+  wlaczone: true
+  tylko-pierwsze-wejscie: false
+  srodek: ""                  # "x,y,z" - wokol czego leci kamera (puste = spawn); ustaw: /lobby intro srodek
+  promien: 38
+  wysokosc: 26
+  kat-przelotu: 220           # ile stopni okrazenia
+  czas-tickow: 110            # 20 = 1 sekunda
 
-# blyskawice miedzy kulami (sekundy miedzy wyladowaniami: od-do) i maks. odleglosc kul
-blyskawice: true
-blyskawice-co: [3, 7]
-blyskawice-zasieg: 30
+# Gigantyczne logo 3D z blokow, obracajace sie nad spawnem (/lobby logo - ustawia srodek tam, gdzie stoisz)
+logo:
+  wlaczone: true
+  tekst: "WESTMC"             # litery: W E S T M C U . i spacja
+  wielkosc-piksela: 1.0       # 1.0 = kazdy "piksel" napisu to 1 blok
+  kolor-gora: WHITE_CONCRETE
+  kolor-srodek: LIGHT_BLUE_CONCRETE
+  kolor-boku: BLUE_CONCRETE
+  obrot-stopni-na-sekunde: 12  # 0 = nie obraca sie
 
-# muzyka w tle (dzwiek z gry, kategoria MUZYKA - gracz moze sciszyc w ustawieniach); pusto = wylaczona
-muzyka: "minecraft:music.overworld.frozen_peaks"
-muzyka-co-sekund: 240
-muzyka-glosnosc: 0.6
+# Kompas -> GUI wyboru trybu (5 rzedow, animowana ramka). "serwer" = nazwa serwera w velocity.toml
+wybor-trybu:
+  tytul: "&8» &#399EFC&lWYBIERZ TRYB &8«"
+  rzedy: 5
+tryby:
+  gildie:
+    serwer: gildie
+    nazwa: "&#399EFC&l⚔ WOJNY GILDII ⚔"
+    ikona: DIAMOND_SWORD
+    slot: 20
+    opis:
+    - "&7Zakladaj gildie, rajduj wrogow,"
+    - "&7zdobywaj miecze 3D i meteoryty."
+  duels:
+    serwer: duels
+    nazwa: "&#FF4D4D&l⚡ DUELS ⚡"
+    ikona: NETHERITE_SWORD
+    slot: 22
+    opis:
+    - "&7Walki 1v1 na rozne zestawy."
+    - "&7Rankingi i rewanze!"
+  wkrotce:
+    serwer: wkrotce
+    nazwa: "&#FFC23D&l✦ ??? ✦"
+    ikona: CLOCK
+    slot: 24
+    wkrotce: true
+    opis:
+    - "&7Nowy tryb w drodze..."
 
-efekty: []
+# Przedmioty w ekwipunku lobby (nie da sie ich wyrzucic ani przesunac)
+przedmioty:
+  kompas:
+    slot: 4
+    material: COMPASS
+    blysk: false
+    nazwa: "&#399EFC&l✦ WYBIERZ TRYB ✦ &8(PPM)"
+    opis:
+    - "&8&m                          "
+    - "&7Wojny Gildii, Duels i wiecej!"
+    - ""
+    - "&#FFC23D» Kliknij PPM, aby wybrac"
+  gracze:
+    slot: 8
+    material: LIME_DYE
+    nazwa: "&7Gracze: &awidoczni &8(PPM)"
+    material-ukryci: GRAY_DYE
+    model: "westmc:oko"                # ikonka z paczki (pusto = zwykly barwnik)
+    model-ukryci: "westmc:oko_zamkniete"
+    nazwa-ukryci: "&7Gracze: &cukryci &8(PPM)"
+    opis: ["&7Pokaz / ukryj innych graczy."]
+
+# Portale: wejscie w obszar = przeniesienie na serwer. Ustaw: /lobby portal <nazwa> poz1 | poz2 | serwer <nazwa>
+portale: {}
+
+powitanie:
+- ""
+- "  &#399EFC&lWESTMC.EU &8• &7Witaj, &f{GRACZ}&7!"
+- "  &7Uzyj &fkompasu&7 albo wejdz w &fportal&7, aby zagrac."
+- "  &7Discord: &#5865F2discord.gg/westmceu"
+- ""
+
+teksty:
+  tytul: "&#399EFC&lWESTMC.EU"
+  podtytul: "&7Witaj, &f{GRACZ}&7!"
+  intro-podtytul: "&7Wojny Gildii &8• &7kucnij, aby pominac"
+  laczenie: "&7Laczenie z &f{SERWER}&7..."
+  ukryto: "&7Gracze sa teraz &cukryci&7."
+  pokazano: "&7Gracze sa teraz &awidoczni&7."
+
+# ===========================================================
+#  TAB - naglowek i stopka listy graczy (dziala na lobby)
+#  {ONLINE} = wszyscy na sieci, {ONLINE_<serwer>} = gracze na danym serwerze
+# ===========================================================
+tab:
+  wlaczony: true
+  naglowek:
+  - ""
+  - "&#399EFC&l&nWESTMC.EU"
+  - ""
+  - "&7Graczy online: &#FFC23D&l{ONLINE}"
+  - ""
+  - "&#399EFC⚔ &fWojny Gildii &8» &#399EFC{ONLINE_gildie}   &#FF4D4D⚡ &fDuels &8» &#FF4D4D{ONLINE_duels}   &#FFC23D✦ &fWkrotce..."
+  - ""
+  stopka:
+  - ""
+  - "&7Strona: &fwestmc.eu &8| &7Discord: &#5865F2discord.gg/westmceu"
+  - ""
+
+# ===========================================================
+#  BANERY z map (stawiasz: /lobby baner <wzor>, patrzac na sciane z jednego koloru np. 4x3 welny)
+#  obraz:  plik PNG w plugins/WestLobby/banery/ (mozesz podmienic na wlasny, najlepiej 512x384)
+#  napis:  tekst w dolnej ramce; {ONLINE} = gracze na "serwer"
+#  klik-serwer: klikniecie banera przenosi na ten serwer | klik-wiadomosc: wiadomosc (MiniMessage)
+# ===========================================================
+banery:
+  gildie:
+    obraz: gildie.png
+    serwer: gildie
+    napis: "ONLINE: {ONLINE}"
+    kolor-napisu: "#FFFFFF"
+    klik-serwer: gildie
+  duels:
+    obraz: duels.png
+    serwer: duels
+    napis: "ONLINE: {ONLINE}"
+    kolor-napisu: "#FFFFFF"
+    klik-serwer: duels
+  wkrotce:
+    obraz: wkrotce.png
+    napis: "NOWY TRYB"
+    kolor-napisu: "#FFC23D"
+  sklep:
+    obraz: sklep.png
+    napis: "WESTMC.EU"
+    kolor-napisu: "#6EE678"
+    klik-wiadomosc:
+    - "<green><bold>SKLEP WESTMC</bold></green> <gray>»</gray> <click:open_url:'https://westmc.eu'><hover:show_text:'<green>Otworz sklep'><white><u>westmc.eu</u></white></hover></click> <gray>(kliknij)</gray>"
+  discord:
+    obraz: discord.png
+    napis: "DISCORD.GG/WESTMCEU"
+    kolor-napisu: "#FFFFFF"
+    klik-wiadomosc:
+    - "<#5865F2><bold>DISCORD</bold></#5865F2> <gray>»</gray> <click:open_url:'https://discord.gg/westmceu'><hover:show_text:'<#5865F2>Dolacz do nas'><white><u>discord.gg/westmceu</u></white></hover></click> <gray>(kliknij)</gray>"
+
+# ===========================================================
+#  POSTACIE (stawiasz: /lobby postac <typ> - stoisz tam, gdzie ma stac, patrzysz tam, gdzie ma patrzec)
+#  serwer: klik PPM przenosi na ten serwer | wiadomosc: klikalny link w czacie (MiniMessage)
+#  {ONLINE} w nazwie = gracze na "serwer" (odswieza sie samo) | wielkosc: 1.0 = ok. 4 bloki
+# ===========================================================
+maskotki:
+  gildie:
+    nazwa: "&#399EFC&l⚔ WOJNY GILDII ⚔\n&7Online: &f{ONLINE}\n&#FFC23D» Kliknij, aby grac «"
+    serwer: gildie
+    wielkosc: 1.4
+    bujanie: false
+    dzwiek: "minecraft:item.trident.return"
+  duels:
+    nazwa: "&#FF4D4D&l⚡ DUELS ⚡\n&7Online: &f{ONLINE}\n&#FFC23D» Kliknij, aby grac «"
+    serwer: duels
+    wielkosc: 1.4
+    bujanie: false
+    dzwiek: "minecraft:item.trident.return"
+  wkrotce:
+    nazwa: "&#FFC23D&l✦ ??? ✦\n&7Nowy tryb juz niedlugo..."
+    wielkosc: 1.4
+    bujanie: true
+    dzwiek: "minecraft:block.amethyst_block.chime"
+    wiadomosc:
+    - "<gold><bold>???</bold></gold> <gray>» Nowy tryb juz w drodze! Sledz</gray> <click:open_url:'https://discord.gg/westmceu'><#5865F2><u>Discorda</u></#5865F2></click><gray>.</gray>"
+  discord:
+    nazwa: "&#5865F2&lWestuś &8• &fDiscord\n&7Kliknij mnie!"
+    dymek: "&0&l• • •"
+    wielkosc: 1.0
+    bujanie: true
+    dzwiek: "minecraft:entity.allay.ambient_with_item"
+    wiadomosc:
+    - ""
+    - "<#5865F2><bold>Westuś:</bold></#5865F2> <white>Hej! Wbijaj na naszego Discorda - konkursy, ogloszenia i ekipa do gildii!</white>"
+    - "<gray>» </gray><click:open_url:'https://discord.gg/westmceu'><hover:show_text:'<#5865F2>Kliknij, aby dolaczyc'><#5865F2><bold><u>DISCORD.GG/WESTMCEU</u></bold></#5865F2></hover></click> <gray>(kliknij)</gray>"
+    - ""
+  sklep:
+    nazwa: "&#FFC23D&lZłotek &8• &aSklep\n&7Kliknij mnie!"
+    dymek: "&6&l$ $ $"
+    wielkosc: 1.0
+    bujanie: true
+    dzwiek: "minecraft:entity.villager.yes"
+    wiadomosc:
+    - ""
+    - "<#FFC23D><bold>Złotek:</bold></#FFC23D> <white>Rangi i kosmetyki znajdziesz w naszym sklepie!</white>"
+    - "<gray>» </gray><click:open_url:'https://westmc.eu'><hover:show_text:'<green>Otworz sklep'><green><bold><u>WESTMC.EU</u></bold></green></hover></click> <gray>(kliknij)</gray>"
+    - ""
+
+# ===========================================================
+#  EFEKTY (wymagaja paczki WestMc na lobby)
+#  Stawiasz w grze: /lobbyfx kula [wielkosc] | krysztal [wielkosc] | aura | usun | lista | przeladuj
+# ===========================================================
+fx:
+  snieg: true
+  snieg-ilosc: 22
+  blyskawice: true
+  blyskawice-co: [3, 7]       # sekundy miedzy wyladowaniami (od-do)
+  blyskawice-zasieg: 30       # maks. odleglosc kul
+  muzyka: "minecraft:music.overworld.frozen_peaks"   # pusto = bez muzyki
+  muzyka-co-sekund: 240
+  muzyka-glosnosc: 0.6
+  efekty: []

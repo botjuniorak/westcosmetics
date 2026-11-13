@@ -2,11 +2,24 @@ name: WestLobby
 version: '${version}'
 main: pl.westmc.lobby.WestLobby
 api-version: '1.21'
-description: Efekty lobby WestMC (kule energii, krysztaly, snieg, aury)
+description: Lobby WestMc - wybor trybu, portale, logo 3D, kinowe wejscie
 commands:
   lobbyfx:
-    description: Stawianie efektow w lobby
+    description: Efekty lobby (kule, krysztaly, aury)
     permission: westlobby.admin
+  lobby:
+    description: Zarzadzanie lobby
+  spawn:
+    description: Powrot na spawn
+  tryby:
+    description: Wybor trybu gry
+    aliases: [serwery, menu]
 permissions:
   westlobby.admin:
+    default: op
+  westlobby.czat:
+    description: Pisanie na czacie lobby
+    default: op
+  westlobby.buduj:
+    description: Budowanie w lobby (tylko w trybie kreatywnym)
     default: op
