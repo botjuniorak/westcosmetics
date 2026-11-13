@@ -11,3 +11,7 @@ co-ile-sekund: 2
 logi-czatu: true
 # odstep miedzy zgloszeniami jednego gracza (sekundy)
 zglos-cooldown: 60
+
+# linki w menu ESC (przycisk "Discord i linki"); puste = brak
+discord: "https://discord.gg/westmceu"
+strona: "https://westmc.eu"

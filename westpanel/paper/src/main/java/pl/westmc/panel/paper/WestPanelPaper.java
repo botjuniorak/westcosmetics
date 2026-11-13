@@ -64,11 +64,26 @@ public final class WestPanelPaper extends JavaPlugin implements Listener {
         });
     }
 
+    /** Linki serwera (1.21+): w menu ESC pojawia sie przycisk z Discordem i strona. */
+    private void serverLinks() {
+        try {
+            var links = getServer().getServerLinks();
+            for (var l : new java.util.ArrayList<>(links.getLinks())) links.removeLink(l);
+            String dc = getConfig().getString("discord", "https://discord.gg/westmceu");
+            String www = getConfig().getString("strona", "https://westmc.eu");
+            if (dc != null && !dc.isBlank()) links.addLink(org.bukkit.ServerLinks.Type.COMMUNITY, java.net.URI.create(dc));
+            if (www != null && !www.isBlank()) links.addLink(org.bukkit.ServerLinks.Type.WEBSITE, java.net.URI.create(www));
+        } catch (Throwable t) {
+            getLogger().warning("Linki serwera niedostępne: " + t.getMessage());
+        }
+    }
+
     @Override
     public void onEnable() {
         saveDefaultConfig();
         reloadConfig();
         url = getConfig().getString("panel", "").replaceAll("/+$", "") + "/api/ingest";
+        serverLinks();
         key = getConfig().getString("klucz", "");
         server = getConfig().getString("serwer", "serwer");
         chatLogs = getConfig().getBoolean("logi-czatu", true);
