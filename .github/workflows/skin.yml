@@ -1,0 +1,21 @@
+name: Pobierz skin
+on:
+  workflow_dispatch:
+    inputs:
+      nick:
+        required: true
+jobs:
+  skin:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skin z Mojanga
+        env:
+          NICK: ${{ inputs.nick }}
+        run: |
+          set -e
+          ID=$(curl -sSf "https://api.mojang.com/users/profiles/minecraft/$NICK" | jq -r .id) || { echo "BRAK_KONTA"; exit 0; }
+          P=$(curl -sSf "https://sessionserver.mojang.com/session/minecraft/profile/$ID" | jq -r '.properties[0].value' | base64 -d)
+          echo "$P" | jq -c '.textures.SKIN'
+          URL=$(echo "$P" | jq -r .textures.SKIN.url)
+          curl -sSfL "$URL" -o skin.png
+          echo "SKIN64:$(base64 -w0 skin.png)"
