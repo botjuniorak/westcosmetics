@@ -134,4 +134,5 @@ jobs:
           files: |
             westplugins/backup/build/libs/WestBackup-*.jar
             westplugins/osiagniecia/build/libs/WestOsiagniecia-*.jar
+            westplugins/lobby/build/libs/WestLobby-*.jar
           make_latest: false

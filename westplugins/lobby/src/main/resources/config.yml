@@ -1,0 +1,31 @@
+# ==========================================================
+#  WestLobby - efekty na lobby
+# ==========================================================
+# Efekty stawiasz w grze komenda /lobbyfx (stajesz tam, gdzie ma byc):
+#   /lobbyfx kula [wielkosc]      - lewitujaca kula energii (domyslnie 3)
+#   /lobbyfx krysztal [wielkosc]  - krysztal lodu (domyslnie 4)
+#   /lobbyfx aura                 - swiecaca spirala pod NPC
+#   /lobbyfx usun                 - usuwa najblizszy efekt (do 6 kratek)
+#   /lobbyfx lista | /lobbyfx przeladuj
+
+# swiat lobby (snieg, pora dnia i muzyka dzialaja tylko tutaj)
+swiat: world
+
+snieg: true
+snieg-ilosc: 22          # platkow co 5 tickow wokol gracza
+
+# pora dnia na stale: 1000 rano, 6000 poludnie, 12500 zachod slonca, 18000 noc; -1 = nie ruszaj
+godzina: 12500
+bez-deszczu: true
+
+# blyskawice miedzy kulami (sekundy miedzy wyladowaniami: od-do) i maks. odleglosc kul
+blyskawice: true
+blyskawice-co: [3, 7]
+blyskawice-zasieg: 30
+
+# muzyka w tle (dzwiek z gry, kategoria MUZYKA - gracz moze sciszyc w ustawieniach); pusto = wylaczona
+muzyka: "minecraft:music.overworld.frozen_peaks"
+muzyka-co-sekund: 240
+muzyka-glosnosc: 0.6
+
+efekty: []

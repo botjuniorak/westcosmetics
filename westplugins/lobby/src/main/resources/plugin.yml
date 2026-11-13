@@ -1,0 +1,12 @@
+name: WestLobby
+version: '${version}'
+main: pl.westmc.lobby.WestLobby
+api-version: '1.21'
+description: Efekty lobby WestMC (kule energii, krysztaly, snieg, aury)
+commands:
+  lobbyfx:
+    description: Stawianie efektow w lobby
+    permission: westlobby.admin
+permissions:
+  westlobby.admin:
+    default: op
