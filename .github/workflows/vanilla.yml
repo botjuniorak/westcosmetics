@@ -11,7 +11,7 @@ jobs:
           unzip -q client.jar 'assets/minecraft/textures/gui/container/inventory.png' 'assets/minecraft/textures/gui/container/generic_54.png' \
             'assets/minecraft/textures/gui/container/crafting_table.png' 'assets/minecraft/textures/gui/sprites/widget/*' \
             'assets/minecraft/textures/gui/sprites/tooltip/*' 'assets/minecraft/textures/gui/title/mojangstudios.png' \
-            'assets/minecraft/textures/gui/sprites/container/slot*' 'assets/minecraft/textures/gui/sprites/recipe_book/button*' 'assets/minecraft/lang/*' 'assets/minecraft/textures/gui/sprites/hud/*' 'assets/minecraft/textures/misc/*' 'assets/minecraft/items/compass.json' 'assets/minecraft/items/slime_ball.json' 2>/dev/null || true
+            'assets/minecraft/textures/gui/sprites/container/slot*' 'assets/minecraft/textures/gui/sprites/recipe_book/button*' 'assets/minecraft/lang/*' 'assets/minecraft/textures/gui/sprites/hud/*' 'assets/minecraft/textures/misc/*' 'assets/minecraft/items/compass.json' 'assets/minecraft/items/slime_ball.json' 'assets/minecraft/textures/font/*' 'assets/minecraft/font/include/default.json' 2>/dev/null || true
           unzip -o -q client.jar 'assets/minecraft/lang/en_us.json' || true
           ls -R assets | head -80
           tar czf v.tgz assets
