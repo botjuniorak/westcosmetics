@@ -6,6 +6,7 @@ import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.connection.DisconnectEvent;
 import com.velocitypowered.api.event.connection.PostLoginEvent;
 import com.velocitypowered.api.event.player.ServerConnectedEvent;
+import com.velocitypowered.api.event.player.KickedFromServerEvent;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.Plugin;
@@ -32,7 +33,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-@Plugin(id = "westpanel", name = "WestPanel", version = "1.5.1", description = "Panel administracji WestMC", authors = {"WestMC"})
+@Plugin(id = "westpanel", name = "WestPanel", version = "1.5.2", description = "Panel administracji WestMC", authors = {"WestMC"})
 public final class WestPanel {
     private final ProxyServer proxy;
     private final Logger logger;
@@ -186,7 +187,8 @@ public final class WestPanel {
             {"auto-ban", "false"}, {"auto-ban-okno-sekund", "120"}, {"auto-ban-min-alertow", "6"},
             {"auto-ban-spam-alertow", "12"}, {"auto-ban-spam-sekund", "40"},
             {"auto-ban-komenda", "tempban %player% 30d Cheaty (Anticheat)"}, {"auto-ban-pomijaj", "xray"},
-            {"link-panelu", "http://159.69.142.97:20001"}
+            {"link-panelu", "http://159.69.142.97:20001"},
+            {"przenos-na", "lobby"}, {"przenos-pomijaj", "lobby,limbo"}, {"przenos-nie-gdy-powod", "ban,zbanowan,blacklist"}
         };
         for (String[] d : defaults) if (!cfg.containsKey(d[0])) { cfg.setProperty(d[0], d[1]); changed = true; }
         if (changed) try (Writer w = Files.newBufferedWriter(f, StandardCharsets.UTF_8)) {
@@ -206,6 +208,21 @@ public final class WestPanel {
     public void onQuit(DisconnectEvent e) {
         joinedAt.remove(e.getPlayer().getUniqueId());
         if (store != null) store.log("proxy", "join", e.getPlayer().getUsername() + " wyszedł z serwera");
+    }
+
+    /** Restart / kick z serwera gry -> gracz laduje na lobby zamiast wypadac (albo trafiac na limbo z logowaniem). */
+    @Subscribe
+    public void onKick(KickedFromServerEvent e) {
+        String target = cfg("przenos-na");
+        if (target.isEmpty() || e.kickedDuringServerConnect()) return;
+        String from = e.getServer().getServerInfo().getName().toLowerCase(Locale.ROOT);
+        for (String s : cfg("przenos-pomijaj").split(",")) if (from.equals(s.trim().toLowerCase(Locale.ROOT))) return;
+        String reason = e.getServerKickReason().map(r -> net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(r)).orElse("");
+        String low = reason.toLowerCase(Locale.ROOT);
+        for (String s : cfg("przenos-nie-gdy-powod").split(",")) if (!s.isBlank() && low.contains(s.trim().toLowerCase(Locale.ROOT))) return;
+        proxy.getServer(target).ifPresent(srv -> e.setResult(KickedFromServerEvent.RedirectPlayer.create(srv,
+            LegacyComponentSerializer.legacySection().deserialize("§eSerwer §f" + e.getServer().getServerInfo().getName() + " §ejest niedostępny"
+                + (reason.isBlank() ? "" : " §7(" + reason + ")") + "§e. Przeniesiono cię na lobby."))));
     }
 
     @Subscribe
