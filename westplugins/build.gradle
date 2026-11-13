@@ -12,4 +12,4 @@ subprojects {
 }
 project(':backup') { version = '1.1.1'; jar { archiveFileName = 'WestBackup-' + project.version + '.jar' } }
 project(':osiagniecia') { version = '1.1.1'; jar { archiveFileName = 'WestOsiagniecia-' + project.version + '.jar' } }
-project(':lobby') { version = '1.3.0'; jar { archiveFileName = 'WestLobby-' + project.version + '.jar' } }
+project(':lobby') { version = '2.0.0'; jar { archiveFileName = 'WestLobby-' + project.version + '.jar' } }

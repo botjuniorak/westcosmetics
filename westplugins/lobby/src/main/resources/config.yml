@@ -1,4 +1,4 @@
-wersja-configu: 4
+wersja-configu: 5
 # ===========================================================
 #  WestLobby - lobby WestMc (serwer za proxy Velocity/BungeeCord)
 #  Po wgraniu:  /lobby ustawspawn  ->  /lobby logo  ->  portale (/lobby portal ...)
@@ -29,7 +29,7 @@ swiat:
 
 # Kinowe wejscie: kamera przelatuje wokol lobby, potem gracz laduje na spawnie (kucnij = pomin)
 intro:
-  wlaczone: true
+  wlaczone: false
   tylko-pierwsze-wejscie: false
   srodek: ""                  # "x,y,z" - wokol czego leci kamera (puste = spawn); ustaw: /lobby intro srodek
   promien: 38
@@ -51,12 +51,13 @@ logo:
 wybor-trybu:
   tytul: "&8» &#399EFC&lWYBIERZ TRYB &8«"
   rzedy: 5
+  hd: true                    # menu HD z paczki (false = stare menu z szybkami)
 tryby:
   gildie:
     serwer: gildie
     nazwa: "&#399EFC&l⚔ WOJNY GILDII ⚔"
     ikona: DIAMOND_SWORD
-    slot: 20
+    slot: 19
     opis:
     - "&7Zakladaj gildie, rajduj wrogow,"
     - "&7zdobywaj miecze 3D i meteoryty."
@@ -72,7 +73,7 @@ tryby:
     serwer: wkrotce
     nazwa: "&#FFC23D&l✦ ??? ✦"
     ikona: CLOCK
-    slot: 24
+    slot: 25
     wkrotce: true
     opis:
     - "&7Nowy tryb w drodze..."
@@ -82,6 +83,7 @@ przedmioty:
   kompas:
     slot: 4
     material: COMPASS
+    model: "westmc:kompas"            # kompas HD z paczki
     blysk: false
     nazwa: "&#399EFC&l✦ WYBIERZ TRYB ✦ &8(PPM)"
     opis:
@@ -122,7 +124,7 @@ teksty:
 #  {ONLINE} = wszyscy na sieci, {ONLINE_<serwer>} = gracze na danym serwerze
 # ===========================================================
 tab:
-  wlaczony: true
+  wlaczony: false            # stary TAB tekstowy (nowy HD: sekcja hud)
   naglowek:
   - ""
   - "&#399EFC&l&nWESTMC.EU"
@@ -179,20 +181,29 @@ banery:
 # ===========================================================
 maskotki:
   gildie:
+    skin: rycerz
+    przedmiot: DIAMOND_SWORD
+    animacja: miecz
     nazwa: "&#399EFC&l⚔ WOJNY GILDII ⚔\n&7Online: &f{ONLINE}\n&#FFC23D» Kliknij, aby grac «"
     serwer: gildie
-    wielkosc: 1.4
+    wielkosc: 1.5
     bujanie: false
     dzwiek: "minecraft:item.trident.return"
   duels:
+    skin: wojownik
+    przedmiot: NETHERITE_SWORD
+    animacja: atak
     nazwa: "&#FF4D4D&l⚡ DUELS ⚡\n&7Online: &f{ONLINE}\n&#FFC23D» Kliknij, aby grac «"
     serwer: duels
-    wielkosc: 1.4
+    wielkosc: 1.5
     bujanie: false
     dzwiek: "minecraft:item.trident.return"
   wkrotce:
+    skin: mag
+    przedmiot: ""
+    animacja: magia
     nazwa: "&#FFC23D&l✦ ??? ✦\n&7Nowy tryb juz niedlugo..."
-    wielkosc: 1.4
+    wielkosc: 1.5
     bujanie: true
     dzwiek: "minecraft:block.amethyst_block.chime"
     wiadomosc:
@@ -227,10 +238,55 @@ maskotki:
 fx:
   snieg: true
   snieg-ilosc: 22
-  blyskawice: true
+  blyskawice: false
   blyskawice-co: [3, 7]       # sekundy miedzy wyladowaniami (od-do)
   blyskawice-zasieg: 30       # maks. odleglosc kul
   muzyka: "minecraft:music.overworld.frozen_peaks"   # pusto = bez muzyki
   muzyka-co-sekund: 240
   muzyka-glosnosc: 0.6
   efekty: []
+
+# ===========================================================
+#  LOBBY HD (paczka WestMc musi byc na lobby - ForcePack)
+# ===========================================================
+postacie-odwroc: true          # postac stoi tylem? ustaw false i /lobby przeladuj
+napisy-obracaj: true           # duze napisy obracaja sie do gracza (false = stoja prosto tam, gdzie je postawiles)
+hud:
+  scoreboard: true
+  tab: true
+  serwer-gildie: gildie
+  serwer-duels: duels
+  wkrotce: "&7???"
+  tab-linia: "&7Jestes na &#3AA0FF&lLOBBY &8• &7Graczy na sieci&8: &a&l{ONLINE}"
+  tab-podpowiedz: "&7Wybierz tryb gry &fkompasem &8(&fPPM&8)"
+# Rangi w scoreboardzie i TAB. Gracz dostaje range, gdy ma uprawnienie westlobby.ranga.<nazwa>
+# albo gdy jego nick jest na liscie "gracze". Kolejnosc = waznosc (pierwsza pasujaca wygrywa).
+rangi:
+  wlasciciel:
+    nazwa: "&#FF5A68&lWŁAŚCICIEL"
+    gracze: []
+  admin:
+    nazwa: "&#FF5A68&lADMIN"
+    gracze: []
+  mod:
+    nazwa: "&#3AA0FF&lMOD"
+    gracze: []
+  vip:
+    nazwa: "&#FFC23D&lVIP"
+    gracze: []
+ranga-domyslna: "&7Gracz"
+# Duze napisy HD: /lobby napis <typ> [skala]
+napisy:
+  gildie:
+    serwer: gildie
+    podpis: "&a● &f{ONLINE} &7graczy online"
+  duels:
+    serwer: duels
+    podpis: "&a● &f{ONLINE} &7graczy online"
+  wkrotce:
+    podpis: "&7Nowy tryb juz w drodze..."
+  discord:
+    podpis: "&7discord.gg/westmceu"
+  sklep:
+    podpis: "&7westmc.eu"
+postawione-napisy: {}

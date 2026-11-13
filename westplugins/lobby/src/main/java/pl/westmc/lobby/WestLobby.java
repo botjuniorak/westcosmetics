@@ -67,7 +67,9 @@ public final class WestLobby extends JavaPlugin implements Listener, PluginMessa
     private NamespacedKey keyItem;
     NamespacedKey keyObj;
     final Banery banery = new Banery(this);
-    final Maskotki maskotki = new Maskotki(this);
+    final Postacie maskotki = new Postacie(this);
+    final Napisy napisy = new Napisy(this);
+    final Hud hud = new Hud(this);
     final Efekty efekty = new Efekty(this);
     private final Map<String, Integer> counts = new HashMap<>();
     private final Set<UUID> hidden = new HashSet<>();
@@ -95,7 +97,12 @@ public final class WestLobby extends JavaPlugin implements Listener, PluginMessa
         Bukkit.getScheduler().runTaskTimer(this, banery::tick, 80L, 40L);
         Bukkit.getScheduler().runTaskLater(this, maskotki::respawnAll, 45L);
         Bukkit.getScheduler().runTaskTimer(this, maskotki::watchdog, 200L, 100L);
-        Bukkit.getScheduler().runTaskTimer(this, maskotki::bob, 60L, 20L);
+        Bukkit.getScheduler().runTaskTimer(this, maskotki::animate, 60L, 2L);
+        Bukkit.getScheduler().runTaskLater(this, napisy::respawnAll, 45L);
+        Bukkit.getScheduler().runTaskTimer(this, napisy::watchdog, 210L, 100L);
+        Bukkit.getScheduler().runTaskTimer(this, napisy::refresh, 75L, 40L);
+        Bukkit.getScheduler().runTaskTimer(this, hud::updateAll, 65L, 40L);
+        Bukkit.getScheduler().runTaskLater(this, () -> { for (Player p : Bukkit.getOnlinePlayers()) hud.join(p); }, 20L);
         Bukkit.getScheduler().runTaskTimer(this, maskotki::refreshNames, 70L, 40L);
         Bukkit.getScheduler().runTaskTimer(this, this::animateSelectors, 10L, 5L);
         Bukkit.getScheduler().runTaskTimer(this, this::updateTab, 60L, 40L);
@@ -106,6 +113,28 @@ public final class WestLobby extends JavaPlugin implements Listener, PluginMessa
     /** Dopisuje nowe opcje do starego config.yml (1.0 -> 1.1): Duele zamiast Lifesteal, banery, maskotki, TAB. */
     /** Aktualizacja starego config.yml: sekcje wygladu/trybow ustawiane od nowa (Duels, postacie, nowy kompas). Postawione rzeczy zostaja. */
     private void migrate() {
+        if (getConfig().getInt("wersja-configu", 1) == 4) {
+            // 4 -> 5: nowe lobby HD (postacie ze skinow, napisy HD, menu HD, scoreboard/TAB HD, bez kul i krysztalow)
+            getConfig().options().copyDefaults(true);
+            var c = getConfig();
+            c.set("tryby.gildie.slot", 19); c.set("tryby.duels.slot", 22); c.set("tryby.wkrotce.slot", 25);
+            c.set("wybor-trybu.rzedy", 5); c.set("wybor-trybu.hd", true);
+            c.set("przedmioty.kompas.model", "westmc:kompas");
+            for (String[] m : new String[][]{{"gildie", "rycerz", "DIAMOND_SWORD", "miecz"}, {"duels", "wojownik", "NETHERITE_SWORD", "atak"}, {"wkrotce", "mag", "", "magia"}}) {
+                c.set("maskotki." + m[0] + ".skin", m[1]); c.set("maskotki." + m[0] + ".przedmiot", m[2]);
+                c.set("maskotki." + m[0] + ".animacja", m[3]); c.set("maskotki." + m[0] + ".wielkosc", 1.5);
+            }
+            c.set("tab.wlaczony", false);
+            c.set("fx.efekty", new ArrayList<>());
+            c.set("fx.blyskawice", false);
+            c.set("intro.wlaczone", false);
+            c.set("wersja-configu", 5);
+            saveConfig();
+            reloadConfig();
+            getLogger().info("Zaktualizowano config.yml do wersji 5 (lobby HD).");
+            return;
+        }
+        if (getConfig().getInt("wersja-configu", 1) >= 5) return;
         if (getConfig().getInt("wersja-configu", 1) == 3) {
             // 3 -> 4: efekty (kule, krysztaly, snieg), ladne ikonki przedmiotow, kompas bez fioletowego blysku
             getConfig().options().copyDefaults(true);
@@ -116,12 +145,12 @@ public final class WestLobby extends JavaPlugin implements Listener, PluginMessa
             saveConfig();
             reloadConfig();
             getLogger().info("Zaktualizowano config.yml do wersji 4 (efekty lobby, nowe ikonki).");
+            migrate();
             return;
         }
-        if (getConfig().getInt("wersja-configu", 1) >= 4) return;
         for (String sec : new String[]{"tryby", "przedmioty", "tab", "banery", "maskotki", "wybor-trybu"}) getConfig().set(sec, null);
         getConfig().options().copyDefaults(true);
-        getConfig().set("wersja-configu", 4);
+        getConfig().set("wersja-configu", 5);
         saveConfig();
         reloadConfig();   // nowe klucze musza byc w pliku (getString(sciezka, domyslne) nie widzi wartosci domyslnych)
         getLogger().info("Zaktualizowano config.yml do wersji 3 (Duels, postacie trybow, nowy kompas).");
@@ -131,7 +160,7 @@ public final class WestLobby extends JavaPlugin implements Listener, PluginMessa
 
     // ============================================================ TAB (naglowek / stopka listy graczy)
     private void updateTab() {
-        if (!getConfig().getBoolean("tab.wlaczony", true)) return;
+        if (!getConfig().getBoolean("tab.wlaczony", true) || getConfig().getBoolean("hud.tab", true)) return;
         String h = tabLines("tab.naglowek"), f = tabLines("tab.stopka");
         for (Player p : Bukkit.getOnlinePlayers()) p.setPlayerListHeaderFooter(h.replace("{GRACZ}", p.getName()), f.replace("{GRACZ}", p.getName()));
     }
@@ -165,6 +194,7 @@ public final class WestLobby extends JavaPlugin implements Listener, PluginMessa
     public void onDisable() {
         efekty.stop();
         maskotki.despawnAll();
+        napisy.despawnAll();
         removeHolos();
         logo.remove();
     }
@@ -311,6 +341,8 @@ public final class WestLobby extends JavaPlugin implements Listener, PluginMessa
         Inventory inv;
         Player owner;
         int frame;
+        String stany = "";
+        boolean hd;
         final Map<Integer, String> servers = new HashMap<>();
         final Map<Integer, String> actions = new HashMap<>();
         public Inventory getInventory() { return inv; }
@@ -318,7 +350,46 @@ public final class WestLobby extends JavaPlugin implements Listener, PluginMessa
 
     private final Map<UUID, Selector> openSel = new HashMap<>();
 
+    private boolean hd() { return getConfig().getBoolean("wybor-trybu.hd", true); }
+
+    /** Stan kazdego trybu do paska pod karta: z = zielony (online), y = zolty (wkrotce), c = czerwony (brak polaczenia). */
+    private String stany() {
+        StringBuilder b = new StringBuilder();
+        ConfigurationSection s = getConfig().getConfigurationSection("tryby");
+        if (s != null) for (String id : s.getKeys(false)) {
+            boolean soon = s.getBoolean(id + ".wkrotce", false);
+            int on = online(s.getString(id + ".serwer", id));
+            b.append(id).append(':').append(soon ? 'y' : on < 0 ? 'c' : 'z').append(';');
+        }
+        return b.toString();
+    }
+
+    private net.kyori.adventure.text.Component tytulHd(String stany) {
+        Glify.Tytul t = Glify.siatka(new Glify.Tytul(), -8, Glify.WYBOR, Glify.WYBOR_KOL, 4, 3);
+        ConfigurationSection s = getConfig().getConfigurationSection("tryby");
+        if (s != null) for (String id : s.getKeys(false)) {
+            int slot = s.getInt(id + ".slot", 22), col = slot % 9;
+            int cx = 16 + 18 * col;
+            char st = stany.contains(id + ":y") ? Glify.STATUS_ZOLTY : stany.contains(id + ":c") ? Glify.STATUS_CZERWONY : Glify.STATUS_ZIELONY;
+            t.obraz(cx - 17 - 8, st, 35);
+        }
+        t.idz(0);
+        return Glify.lobby(t.tekst());
+    }
+
     void openSelector(Player p) {
+        if (hd()) {
+            Selector h = new Selector();
+            h.owner = p;
+            h.stany = stany();
+            h.hd = true;
+            h.inv = Bukkit.createInventory(h, 45, tytulHd(h.stany));
+            fillSelector(h);
+            p.openInventory(h.inv);
+            openSel.put(p.getUniqueId(), h);
+            p.playSound(p.getLocation(), "minecraft:block.amethyst_block.chime", 0.8f, 1.2f);
+            return;
+        }
         int rows = Math.max(3, Math.min(6, getConfig().getInt("wybor-trybu.rzedy", 5)));
         Selector h = new Selector();
         h.owner = p;
@@ -352,7 +423,60 @@ public final class WestLobby extends JavaPlugin implements Listener, PluginMessa
         return it;
     }
 
+    private ItemStack modelItem(String model, String name, List<String> lore) {
+        ItemStack it = pane(Material.PAPER, name, lore);
+        ItemMeta m = it.getItemMeta();
+        m.setItemModel(NamespacedKey.fromString(model));
+        it.setItemMeta(m);
+        return it;
+    }
+
+    private void fillHd(Selector h) {
+        h.servers.clear(); h.actions.clear();
+        h.inv.clear();
+        int all = online("ALL");
+        h.inv.setItem(4, modelItem("westmc:logo", "&#399EFC&l✦ WESTMC.EU ✦", List.of("&8&m                          ",
+            "&7Graczy na serwerze: &#FFC23D&l" + (all < 0 ? Bukkit.getOnlinePlayers().size() : all),
+            "&7Wybierz tryb ponizej i wbijaj!", "&8&m                          ")));
+        ConfigurationSection s = getConfig().getConfigurationSection("tryby");
+        if (s != null) for (String id : s.getKeys(false)) {
+            ConfigurationSection m = s.getConfigurationSection(id);
+            if (m == null) continue;
+            Material mat = Material.matchMaterial(m.getString("ikona", "GRASS_BLOCK"));
+            if (mat == null) mat = Material.GRASS_BLOCK;
+            String server = m.getString("serwer", id);
+            boolean soon = m.getBoolean("wkrotce", false);
+            int on = online(server);
+            List<String> lore = new ArrayList<>();
+            lore.add("&8&m                          ");
+            lore.addAll(m.getStringList("opis"));
+            lore.add("");
+            if (soon) lore.add("&8» &e&lJUZ NIEDLUGO!");
+            else {
+                lore.add("&8» &7Graczy online: " + (on < 0 ? "&8?" : "&a&l" + on));
+                lore.add("&8&m                          ");
+                lore.add("&#FFC23D&l» KLIKNIJ, ABY GRAC «");
+            }
+            int slot = m.getInt("slot", 22);
+            if (slot < 0 || slot >= 45) continue;
+            h.inv.setItem(slot, hideAttr(tool("tryb", mat, m.getString("nazwa", id), lore), false));
+            if (!soon) h.servers.put(slot, server);
+            if (slot + 9 < 36) {
+                String st = soon ? "&e&l● WKROTCE" : on < 0 ? "&c&l● BRAK POLACZENIA" : "&a&l● ONLINE &8- &f" + on + " &7graczy";
+                h.inv.setItem(slot + 9, modelItem("westmc:pusty", st, soon || on >= 0 ? null : List.of("&7Serwer jest wylaczony", "&7albo nie ma go w proxy.")));
+                if (!soon && on >= 0) h.servers.put(slot + 9, server);
+            }
+        }
+        h.inv.setItem(39, modelItem("westmc:przycisk_discord", "&#5865F2&lDISCORD", List.of("&7Konkursy, ogloszenia, ekipa.", "", "&#5865F2» Kliknij po link")));
+        h.inv.setItem(40, modelItem("westmc:przycisk_zamknij", "&c&lZamknij", null));
+        h.inv.setItem(41, modelItem("westmc:przycisk_sklep", "&#FFC23D&lSKLEP", List.of("&7Rangi i kosmetyki.", "", "&#FFC23D» Kliknij po link")));
+        h.actions.put(39, "discord");
+        h.actions.put(40, "zamknij");
+        h.actions.put(41, "sklep");
+    }
+
     void fillSelector(Selector h) {
+        if (h.hd) { fillHd(h); return; }
         int size = h.inv.getSize(), rows = size / 9;
         h.servers.clear(); h.actions.clear();
         ItemStack bg = pane(Material.BLACK_STAINED_GLASS_PANE, " ", null);
@@ -418,6 +542,13 @@ public final class WestLobby extends JavaPlugin implements Listener, PluginMessa
         for (Selector h : new ArrayList<>(openSel.values())) {
             if (!h.owner.isOnline()) { openSel.remove(h.owner.getUniqueId()); continue; }
             h.frame++;
+            if (h.hd) {
+                if (h.frame % 8 != 0) continue;
+                String st = stany();
+                if (!st.equals(h.stany)) { openSelector(h.owner); continue; }   // zmienil sie kolor paska - nowy tytul
+                fillHd(h);
+                continue;
+            }
             fillSelector(h);
         }
     }
@@ -642,6 +773,8 @@ public final class WestLobby extends JavaPlugin implements Listener, PluginMessa
         Player p = e.getPlayer();
         if (getConfig().getBoolean("ukryj-wiadomosc-wejscia", true)) e.setJoinMessage(null);
         if (intro.wants(p)) intro.play(p); else prepare(p);
+        hud.join(p);
+        Bukkit.getScheduler().runTaskLater(this, () -> { if (p.isOnline()) hud.updateAll(); }, 10L);
         for (UUID id : hidden) {
             Player h = Bukkit.getPlayer(id);
             if (h != null) h.hidePlayer(this, p);
@@ -658,6 +791,7 @@ public final class WestLobby extends JavaPlugin implements Listener, PluginMessa
     public void onQuit(PlayerQuitEvent e) {
         if (getConfig().getBoolean("ukryj-wiadomosc-wejscia", true)) e.setQuitMessage(null);
         hidden.remove(e.getPlayer().getUniqueId());
+        hud.quit(e.getPlayer());
         intro.stop(e.getPlayer());
         portalCd.remove(e.getPlayer().getUniqueId());
     }
@@ -839,11 +973,21 @@ public final class WestLobby extends JavaPlugin implements Listener, PluginMessa
             }
             case "maskotka", "postac", "npc" -> {
                 if (!(s instanceof Player p)) return true;
-                if (a.length < 2) { s.sendMessage(c("&f/lobby postac <gildie|duels|wkrotce|discord|sklep> &7| &f/lobby postac usun")); return true; }
+                if (a.length < 2) { s.sendMessage(c("&f/lobby postac <gildie|duels|wkrotce> &7| &f/lobby postac usun")); return true; }
                 s.sendMessage(c(a[1].equalsIgnoreCase("usun") ? maskotki.remove(p) : maskotki.place(p, a[1].toLowerCase())));
+            }
+            case "napis" -> {
+                if (!(s instanceof Player p)) return true;
+                if (a.length < 2) { s.sendMessage(c("&f/lobby napis <gildie|duels|wkrotce|discord|sklep> [skala] &7| &f/lobby napis usun")); return true; }
+                if (a[1].equalsIgnoreCase("usun")) { s.sendMessage(c(napisy.remove(p))); return true; }
+                double sk = 1.5;
+                if (a.length > 2) try { sk = Math.max(0.3, Math.min(8, Double.parseDouble(a[2].replace(',', '.')))); } catch (NumberFormatException ex) { s.sendMessage(c("&cSkala to liczba, np. 1.5")); return true; }
+                s.sendMessage(c(napisy.place(p, a[1].toLowerCase(), sk)));
             }
             case "przeladuj" -> {
                 reloadConfig();
+                napisy.respawnAll();
+                hud.updateAll();
                 banery.load();
                 maskotki.respawnAll();
                 spawnHolos();
@@ -867,7 +1011,8 @@ public final class WestLobby extends JavaPlugin implements Listener, PluginMessa
         s.sendMessage(c("&f/lobby intro srodek &7- srodek przelotu kamery | &f/lobby intro &7- podglad"));
         s.sendMessage(c("&f/lobby baner <gildie|duels|wkrotce|sklep|discord> &7- patrzysz na sciane z jednego koloru (np. 4x3 welny)"));
         s.sendMessage(c("&f/lobby baner <wzor> <szer> <wys> &7- recznie, patrzysz na LEWY DOLNY blok | &f/lobby baner usun"));
-        s.sendMessage(c("&f/lobby postac <gildie|duels|wkrotce|discord|sklep> &7- stoisz tam, gdzie ma stac | &f/lobby postac usun"));
+        s.sendMessage(c("&f/lobby postac <gildie|duels|wkrotce> &7- postac stanie tam, gdzie stoisz, patrzac tam, gdzie patrzysz | &f/lobby postac usun"));
+        s.sendMessage(c("&f/lobby napis <gildie|duels|wkrotce|discord|sklep> [skala] &7- duzy napis 2 kratki przed toba | &f/lobby napis usun"));
         s.sendMessage(c("&f/lobby przeladuj"));
     }
 }
