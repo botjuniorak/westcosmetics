@@ -57,6 +57,7 @@ commands:
   minievent: {description: Mini eventy (admin), aliases: [mini]}
   rynek: {description: Rynek graczy, aliases: [ah, market]}
 permissions:
+  westsmp.spawn.buduj: {default: op}
   westsmp.vanish: {default: op}
   westsmp.adminchat: {default: op}
   westsmp.helpop.widzi: {default: op}

@@ -132,11 +132,17 @@ czyszczenie:
   co-ile-minut: 10
   nie-usuwaj: [NETHER_STAR, DRAGON_EGG, ELYTRA]
 # ANTYLOGOUT: wyjscie w walce = smierc; w walce nie wejdziesz na spawn (czerwone szklo)
-# Strefa spawnu: /strefa spawn od  i  /strefa spawn do  (dwa przeciwne rogi)
+# Strefa spawnu: okragla -> /strefa spawn kolo <promien> (stoisz na srodku) ; prostokatna -> /strefa spawn od  i  /strefa spawn do
 antylogout:
   sekundy: 30
   zablokowane-komendy: [spawn, home, warp, tpa, tpaccept, rtp, end, nether, afk, teleporty, ec, enderchest]
   strefa-spawnu: {}
+# OCHRONA SPAWNU (w strefie spawnu): bez niszczenia/stawiania (admin w creative z westsmp.spawn.buduj moze), bez PvP, bez obrazen, bez potworow
+ochrona-spawnu:
+  wlaczona: true
+  pvp: false
+  bez-obrazen: true
+  bez-potworow: true
 # STREFA AFK: /strefa afk od  i  /strefa afk do ; nagroda co X minut stania w strefie
 strefa-afk:
   nagroda-co-minut: 10

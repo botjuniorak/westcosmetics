@@ -156,6 +156,20 @@ final class Narzedzia implements Listener, CommandExecutor {
         return cfg().getStringList("czyszczenie.nie-usuwaj").contains(it.getType().name());
     }
 
+    /** Czy miejsce jest w strefie spawnu: kolo (srodek + promien, cala wysokosc) albo prostopadloscian (od/do). */
+    boolean naSpawnie(Location l) {
+        String k = "antylogout.strefa-spawnu";
+        if (l == null || !l.getWorld().getName().equals(cfg().getString(k + ".swiat", "world"))) return false;
+        if (cfg().isSet(k + ".promien")) {
+            double dx = l.getX() - cfg().getDouble(k + ".x"), dz = l.getZ() - cfg().getDouble(k + ".z"), r = cfg().getDouble(k + ".promien");
+            return dx * dx + dz * dz <= r * r;
+        }
+        BoundingBox b = box(k);
+        return b != null && b.contains(l.toVector());
+    }
+
+    private boolean strefaUstawiona() { return cfg().isSet("antylogout.strefa-spawnu.promien") || box("antylogout.strefa-spawnu") != null; }
+
     private BoundingBox box(String s) {
         ConfigurationSection c = cfg().getConfigurationSection(s);
         if (c == null || !c.isSet("od") || !c.isSet("do")) return null;
@@ -197,7 +211,10 @@ final class Narzedzia implements Listener, CommandExecutor {
             if (t <= now) { walka.remove(p.getUniqueId()); czyscSzklo(p); p.sendActionBar(WestSMP.c("&a✔ Koniec walki - mozesz sie wylogowac.")); continue; }
             long s = (t - now + 999) / 1000;
             p.sendActionBar(WestSMP.c("&#FF5A68&lWALKA &8» &f" + s + "s &8| &7nie wychodz z serwera"));
-            if (spawn != null && p.getWorld().getName().equals(cfg().getString("antylogout.strefa-spawnu.swiat", "world"))) pokazSzklo(p, spawn);
+            if (p.getWorld().getName().equals(cfg().getString("antylogout.strefa-spawnu.swiat", "world"))) {
+                if (cfg().isSet("antylogout.strefa-spawnu.promien")) pokazSzkloKolo(p);
+                else if (spawn != null) pokazSzklo(p, spawn);
+            }
         }
     }
 
@@ -221,6 +238,28 @@ final class Narzedzia implements Listener, CommandExecutor {
         szklo.put(p.getUniqueId(), nowe);
     }
 
+    /** Szklo na obwodzie okraglej strefy spawnu (tylko w poblizu gracza w walce). */
+    private void pokazSzkloKolo(Player p) {
+        String k = "antylogout.strefa-spawnu";
+        double cx = cfg().getDouble(k + ".x"), cz = cfg().getDouble(k + ".z"), r = cfg().getDouble(k + ".promien");
+        Set<Location> nowe = new HashSet<>();
+        Location l = p.getLocation();
+        int rr = 5;
+        for (int dx = -rr; dx <= rr; dx++) for (int dz = -rr; dz <= rr; dz++) {
+            int x = l.getBlockX() + dx, z = l.getBlockZ() + dz;
+            double d = Math.sqrt((x + 0.5 - cx) * (x + 0.5 - cx) + (z + 0.5 - cz) * (z + 0.5 - cz));
+            if (d < r + 0.5 || d >= r + 1.6) continue;
+            for (int dy = -2; dy <= 3; dy++) {
+                Location bl = new Location(l.getWorld(), x, l.getBlockY() + dy, z);
+                if (bl.getBlock().getType().isAir()) nowe.add(bl);
+            }
+        }
+        Set<Location> stare = szklo.getOrDefault(p.getUniqueId(), Set.of());
+        for (Location o : stare) if (!nowe.contains(o)) p.sendBlockChange(o, o.getBlock().getBlockData());
+        for (Location n : nowe) if (!stare.contains(n)) p.sendBlockChange(n, Material.RED_STAINED_GLASS.createBlockData());
+        szklo.put(p.getUniqueId(), nowe);
+    }
+
     private void czyscSzklo(Player p) {
         Set<Location> s = szklo.remove(p.getUniqueId());
         if (s != null) for (Location o : s) p.sendBlockChange(o, o.getBlock().getBlockData());
@@ -229,8 +268,7 @@ final class Narzedzia implements Listener, CommandExecutor {
     @EventHandler(ignoreCancelled = true)
     public void onMoveWalka(PlayerMoveEvent e) {
         if (!wWalce(e.getPlayer()) || e.getTo() == null || !e.hasChangedBlock()) return;
-        BoundingBox spawn = box("antylogout.strefa-spawnu");
-        if (spawn != null && spawn.contains(e.getTo().toVector()) && !spawn.contains(e.getFrom().toVector())) {
+        if (naSpawnie(e.getTo()) && !naSpawnie(e.getFrom())) {
             e.setCancelled(true);
             e.getPlayer().sendActionBar(WestSMP.c("&c✖ Nie mozesz wejsc na spawn w trakcie walki!"));
         }
@@ -292,6 +330,71 @@ final class Narzedzia implements Listener, CommandExecutor {
 
     @EventHandler
     public void onGod(EntityDamageEvent e) { if (e.getEntity() instanceof Player p && god.contains(p.getUniqueId())) e.setCancelled(true); }
+
+    // ===================================================================== OCHRONA SPAWNU
+    private boolean chroniony(Player p, Location l) {
+        if (!cfg().getBoolean("ochrona-spawnu.wlaczona", true) || !strefaUstawiona()) return false;
+        if (p != null && p.hasPermission("westsmp.spawn.buduj") && p.getGameMode() == GameMode.CREATIVE) return false;
+        return naSpawnie(l);
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onBreakSpawn(org.bukkit.event.block.BlockBreakEvent e) {
+        if (chroniony(e.getPlayer(), e.getBlock().getLocation())) { e.setCancelled(true); e.getPlayer().sendActionBar(WestSMP.c("&c✖ Spawn jest chroniony.")); }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onPlaceSpawn(BlockPlaceEvent e) {
+        if (chroniony(e.getPlayer(), e.getBlock().getLocation())) { e.setCancelled(true); e.getPlayer().sendActionBar(WestSMP.c("&c✖ Spawn jest chroniony.")); }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onBucketSpawn(org.bukkit.event.player.PlayerBucketEmptyEvent e) {
+        if (chroniony(e.getPlayer(), e.getBlock().getLocation())) e.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onPvpSpawn(EntityDamageByEntityEvent e) {
+        if (cfg().getBoolean("ochrona-spawnu.pvp", false) || !strefaUstawiona()) return;
+        if (!(e.getEntity() instanceof Player ofiara)) return;
+        Player atak = e.getDamager() instanceof Player p ? p : e.getDamager() instanceof org.bukkit.entity.Projectile pr && pr.getShooter() instanceof Player p2 ? p2 : null;
+        if (atak == null || atak == ofiara) return;
+        if (naSpawnie(ofiara.getLocation()) || naSpawnie(atak.getLocation())) { e.setCancelled(true); atak.sendActionBar(WestSMP.c("&c✖ Na spawnie nie ma PvP.")); }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onDmgSpawn(org.bukkit.event.entity.EntityDamageEvent e) {
+        if (!cfg().getBoolean("ochrona-spawnu.bez-obrazen", true) || !strefaUstawiona()) return;
+        if (e.getEntity() instanceof Player p && naSpawnie(p.getLocation()) && e.getCause() != org.bukkit.event.entity.EntityDamageEvent.DamageCause.VOID
+            && !(e instanceof EntityDamageByEntityEvent)) e.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onBoomSpawn(org.bukkit.event.entity.EntityExplodeEvent e) {
+        if (strefaUstawiona()) e.blockList().removeIf(b -> naSpawnie(b.getLocation()));
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onMobSpawn(org.bukkit.event.entity.CreatureSpawnEvent e) {
+        if (!cfg().getBoolean("ochrona-spawnu.bez-potworow", true) || !strefaUstawiona()) return;
+        if (e.getEntity() instanceof org.bukkit.entity.Monster && e.getSpawnReason() == org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.NATURAL && naSpawnie(e.getLocation())) e.setCancelled(true);
+    }
+
+    /** Po ustawieniu: czasteczki na obwodzie, zeby admin zobaczyl granice. */
+    private void pokazObrys(Player p) {
+        String k = "antylogout.strefa-spawnu";
+        double cx = cfg().getDouble(k + ".x"), cz = cfg().getDouble(k + ".z"), r = cfg().getDouble(k + ".promien");
+        final int[] t = {0};
+        Bukkit.getScheduler().runTaskTimer(pl, task -> {
+            if (++t[0] > 20 || !p.isOnline()) { task.cancel(); return; }
+            int n = (int) Math.max(48, r * 4);
+            for (int i = 0; i < n; i++) {
+                double a = i * 2 * Math.PI / n;
+                Location l = new Location(p.getWorld(), cx + Math.cos(a) * r, p.getLocation().getY() + 1, cz + Math.sin(a) * r);
+                p.spawnParticle(org.bukkit.Particle.HAPPY_VILLAGER, l, 1, 0, 0.3, 0, 0);
+            }
+        }, 0L, 10L);
+    }
 
     // ===================================================================== End: zapis postawionych blokow
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -438,9 +541,29 @@ final class Narzedzia implements Listener, CommandExecutor {
             }
             case "czyszczenie" -> { clearAt = System.currentTimeMillis() + 11_000; s.sendMessage(WestSMP.c("&7Czyszczenie za 10s.")); }
             case "strefa" -> {
-                if (p == null || a.length < 2) { s.sendMessage(WestSMP.c("&7/strefa <spawn|afk> <od|do> &8- ustawia rog strefy tam, gdzie stoisz")); return true; }
-                String sek = a[0].equalsIgnoreCase("afk") ? "strefa-afk" : "antylogout.strefa-spawnu";
+                if (p == null || a.length < 2) {
+                    s.sendMessage(WestSMP.c("&7/strefa spawn kolo <promien> &8- okragly spawn: srodek tam, gdzie stoisz"));
+                    s.sendMessage(WestSMP.c("&7/strefa <spawn|afk> <od|do> &8- prostokat: dwa przeciwne rogi"));
+                    s.sendMessage(WestSMP.c("&7/strefa spawn usun &8- wylacza strefe spawnu"));
+                    return true;
+                }
+                boolean afkS = a[0].equalsIgnoreCase("afk");
+                String sek = afkS ? "strefa-afk" : "antylogout.strefa-spawnu";
                 Location l = p.getLocation();
+                if (!afkS && a[1].equalsIgnoreCase("usun")) { cfg().set(sek, null); pl.saveConfig(); s.sendMessage(WestSMP.c("&aUsunieto strefe spawnu.")); return true; }
+                if (!afkS && a[1].equalsIgnoreCase("kolo")) {
+                    int r;
+                    try { r = Integer.parseInt(a[2]); } catch (Exception ex) { s.sendMessage(WestSMP.c("&7/strefa spawn kolo <promien>  &8(np. 40)")); return true; }
+                    cfg().set(sek, null);
+                    cfg().set(sek + ".swiat", l.getWorld().getName());
+                    cfg().set(sek + ".x", l.getBlockX() + 0.5); cfg().set(sek + ".z", l.getBlockZ() + 0.5);
+                    cfg().set(sek + ".promien", r);
+                    pl.saveConfig();
+                    s.sendMessage(WestSMP.c("&aUstawiono okragla strefe spawnu: srodek &f" + l.getBlockX() + " " + l.getBlockZ() + "&a, promien &f" + r + "&a kratek."));
+                    pokazObrys(p);
+                    return true;
+                }
+                if (!afkS) { cfg().set(sek + ".promien", null); cfg().set(sek + ".x", null); cfg().set(sek + ".z", null); }
                 cfg().set(sek + "." + (a[1].equalsIgnoreCase("od") ? "od" : "do"), List.of((double) l.getBlockX(), (double) l.getBlockY() - (a[1].equalsIgnoreCase("od") ? 5 : -10), (double) l.getBlockZ()));
                 cfg().set(sek + ".swiat", l.getWorld().getName());
                 pl.saveConfig();
