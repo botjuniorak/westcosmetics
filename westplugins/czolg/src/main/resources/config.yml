@@ -1,0 +1,17 @@
+# Czolg administracji WestMC (wymaga paczki WestMc v0.12+)
+# /czolg - postaw czolg i wsiadz | /czolg usun - usun najblizszy | /czolg usunwszystkie
+# Wsiadanie: PPM na czolg (tylko z uprawnieniem westczolg.admin). Wysiadanie: SHIFT.
+# Jazda: W/S - przod/tyl, A/D - skret. Wieza celuje tam, gdzie patrzysz.
+# Strzal: LPM albo SPACJA.
+wielkosc: 2.0              # 2.0 = ok. 5 kratek dlugosci
+predkosc: 0.32             # kratki na tick do przodu (0.32 = ok. 6 kratek/s)
+predkosc-tyl: 0.14
+skret: 3.0                 # stopnie na tick
+strzal:
+  co-ile-ms: 1800
+  zasieg: 80
+  promien: 5.0             # promien odrzutu graczy wokol wybuchu
+  sila: 1.8                # jak mocno odrzuca
+  w-gore: 0.7
+  obrazenia: 0.0           # 0 = bez obrazen
+  odrzuca-admina: false

@@ -1,0 +1,12 @@
+name: WestCzolg
+version: '${version}'
+main: pl.westmc.czolg.WestCzolg
+api-version: '1.21'
+description: Czolg dla administracji WestMC (jazda, strzal z odrzutem)
+commands:
+  czolg:
+    description: Czolg administracji
+    permission: westczolg.admin
+permissions:
+  westczolg.admin:
+    default: op

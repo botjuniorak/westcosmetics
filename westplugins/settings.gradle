@@ -1,2 +1,2 @@
 rootProject.name = 'westplugins'
-include 'backup', 'osiagniecia', 'lobby'
+include 'backup', 'osiagniecia', 'lobby', 'czolg'
