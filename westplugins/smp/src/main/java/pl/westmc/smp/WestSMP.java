@@ -7,13 +7,19 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public final class WestSMP extends JavaPlugin {
     Szafa szafa;
+    Eventowki eventowki;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        getConfig().options().copyDefaults(true);
+        saveConfig();
         szafa = new Szafa(this);
         getServer().getPluginManager().registerEvents(szafa, this);
         szafa.start();
+        eventowki = new Eventowki(this);
+        getServer().getPluginManager().registerEvents(eventowki, this);
+        getCommand("eventowka").setExecutor(eventowki);
     }
 
     @Override

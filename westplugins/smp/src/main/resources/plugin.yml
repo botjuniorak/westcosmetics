@@ -7,7 +7,12 @@ commands:
   szafa:
     description: Szafa - pety, kostiumy, papugi
     aliases: [pety, kostiumy, papugi]
+  eventowka:
+    description: Eventowki - daj / lista
+    aliases: [eventowki]
 permissions:
+  westsmp.eventowki.admin:
+    default: op
   westsmp.szafa.wszystko:
     description: Odblokowane wszystko w szafie
     default: op
