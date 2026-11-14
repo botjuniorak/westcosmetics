@@ -55,6 +55,7 @@ commands:
   topki: {description: Topki serwera, aliases: [top, ranking]}
   smok: {description: Event Smok w Endzie}
   minievent: {description: Mini eventy (admin), aliases: [mini]}
+  rynek: {description: Rynek graczy, aliases: [ah, market]}
 permissions:
   westsmp.vanish: {default: op}
   westsmp.adminchat: {default: op}

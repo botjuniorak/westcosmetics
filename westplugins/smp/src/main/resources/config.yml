@@ -294,3 +294,14 @@ mini-eventy:
     promien: 12
     na-pol-sekundy: 2
     przedmioty: ["DIAMOND 1", "GOLDEN_APPLE 1", "EMERALD 3", "EXPERIENCE_BOTTLE 4", "klucz:zwykla 1"]
+
+# RYNEK GRACZY: /rynek ; wystawianie: /rynek wystaw <cena> (przedmiot z reki)
+# wiecej ofert: uprawnienie westsmp.rynek.limit.<liczba> (np. westsmp.rynek.limit.10 dla VIP)
+rynek:
+  limit-ofert: 5
+  wazna-godzin: 48
+  podatek-procent: 5
+  min-cena: 1
+  max-cena: 1000000000
+  ogloszenia: true
+  zakazane: [BEDROCK, BARRIER, COMMAND_BLOCK]
