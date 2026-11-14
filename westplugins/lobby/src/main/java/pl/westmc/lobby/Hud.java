@@ -97,7 +97,7 @@ final class Hud {
             Glify.Tytul g = Glify.siatka(new Glify.Tytul(), 0, Glify.TAB_GORA, Glify.TAB_KOL, 2, 4);
             g.idz(240);
             int all = pl.online("ALL");
-            Component head = Glify.lobby(g.tekst());
+            Component head = Component.text("").append(Glify.lobby(g.tekst()));   // korzen bez czcionki lobby, inaczej tekst nizej to kwadraty
             for (int i = 0; i < 7; i++) head = head.append(Component.newline());
             head = head.append(Component.newline()).append(Glify.kolor(pl.getConfig().getString("hud.tab-linia",
                 "&7Jestes na &#3AA0FF&lLOBBY &8• &7Graczy na sieci&8: &a&l{ONLINE}").replace("{ONLINE}", String.valueOf(all < 0 ? Bukkit.getOnlinePlayers().size() : all))))

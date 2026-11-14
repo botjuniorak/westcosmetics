@@ -132,9 +132,22 @@ public final class WestLobby extends JavaPlugin implements Listener, PluginMessa
             saveConfig();
             reloadConfig();
             getLogger().info("Zaktualizowano config.yml do wersji 5 (lobby HD).");
+            migrate();
             return;
         }
-        if (getConfig().getInt("wersja-configu", 1) >= 5) return;
+        if (getConfig().getInt("wersja-configu", 1) == 5) {
+            // 5 -> 6: Westus i Zlotek jako roboty HD
+            var c = getConfig();
+            c.set("maskotki.discord.skin", "westus"); c.set("maskotki.discord.animacja", "macha"); c.set("maskotki.discord.przedmiot", "");
+            c.set("maskotki.sklep.skin", "zlotek"); c.set("maskotki.sklep.animacja", "moneta"); c.set("maskotki.sklep.przedmiot", "");
+            c.set("maskotki.discord.wielkosc", 1.5); c.set("maskotki.sklep.wielkosc", 1.5);
+            c.set("wersja-configu", 6);
+            saveConfig();
+            reloadConfig();
+            getLogger().info("Zaktualizowano config.yml do wersji 6 (Westus i Zlotek HD).");
+            return;
+        }
+        if (getConfig().getInt("wersja-configu", 1) >= 6) return;
         if (getConfig().getInt("wersja-configu", 1) == 3) {
             // 3 -> 4: efekty (kule, krysztaly, snieg), ladne ikonki przedmiotow, kompas bez fioletowego blysku
             getConfig().options().copyDefaults(true);
@@ -150,7 +163,7 @@ public final class WestLobby extends JavaPlugin implements Listener, PluginMessa
         }
         for (String sec : new String[]{"tryby", "przedmioty", "tab", "banery", "maskotki", "wybor-trybu"}) getConfig().set(sec, null);
         getConfig().options().copyDefaults(true);
-        getConfig().set("wersja-configu", 5);
+        getConfig().set("wersja-configu", 6);
         saveConfig();
         reloadConfig();   // nowe klucze musza byc w pliku (getString(sciezka, domyslne) nie widzi wartosci domyslnych)
         getLogger().info("Zaktualizowano config.yml do wersji 3 (Duels, postacie trybow, nowy kompas).");
@@ -973,7 +986,7 @@ public final class WestLobby extends JavaPlugin implements Listener, PluginMessa
             }
             case "maskotka", "postac", "npc" -> {
                 if (!(s instanceof Player p)) return true;
-                if (a.length < 2) { s.sendMessage(c("&f/lobby postac <gildie|duels|wkrotce> &7| &f/lobby postac usun")); return true; }
+                if (a.length < 2) { s.sendMessage(c("&f/lobby postac <gildie|duels|wkrotce|discord|sklep> &7| &f/lobby postac usun")); return true; }
                 s.sendMessage(c(a[1].equalsIgnoreCase("usun") ? maskotki.remove(p) : maskotki.place(p, a[1].toLowerCase())));
             }
             case "napis" -> {
@@ -1011,7 +1024,7 @@ public final class WestLobby extends JavaPlugin implements Listener, PluginMessa
         s.sendMessage(c("&f/lobby intro srodek &7- srodek przelotu kamery | &f/lobby intro &7- podglad"));
         s.sendMessage(c("&f/lobby baner <gildie|duels|wkrotce|sklep|discord> &7- patrzysz na sciane z jednego koloru (np. 4x3 welny)"));
         s.sendMessage(c("&f/lobby baner <wzor> <szer> <wys> &7- recznie, patrzysz na LEWY DOLNY blok | &f/lobby baner usun"));
-        s.sendMessage(c("&f/lobby postac <gildie|duels|wkrotce> &7- postac stanie tam, gdzie stoisz, patrzac tam, gdzie patrzysz | &f/lobby postac usun"));
+        s.sendMessage(c("&f/lobby postac <gildie|duels|wkrotce|discord|sklep> &7- postac stanie tam, gdzie stoisz, patrzac tam, gdzie patrzysz | &f/lobby postac usun"));
         s.sendMessage(c("&f/lobby napis <gildie|duels|wkrotce|discord|sklep> [skala] &7- duzy napis 2 kratki przed toba | &f/lobby napis usun"));
         s.sendMessage(c("&f/lobby przeladuj"));
     }

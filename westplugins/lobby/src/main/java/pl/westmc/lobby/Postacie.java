@@ -42,14 +42,19 @@ final class Postacie {
 
     Postacie(WestLobby pl) { this.pl = pl; }
 
-    private static final String[] CZESCI = {"nogi", "tulow", "glowa", "reka_p", "reka_l"};
-    private static final float[][] PIVOT = {{0, 12, 0}, {0, 24, 0}, {0, 24, 0}, {5, 22, 0}, {-5, 22, 0}};
+    private static final String[] CZESCI = {"nogi", "tulow", "glowa", "reka_p", "reka_l", "antena"};
+    /** Punkty obrotu czesci (piksele od stop): czlowiek ze skina i robot (Westus, Zlotek). */
+    private static final float[][] PIVOT_CZLOWIEK = {{0, 12, 0}, {0, 24, 0}, {0, 24, 0}, {5, 22, 0}, {-5, 22, 0}};
+    private static final float[][] PIVOT_ROBOT = {{0, 5, 0}, {0, 13, 0}, {0, 13, 0}, {6, 13, 0}, {-6, 13, 0}, {0, 13.5f, 0}};
+
+    private static boolean robot(String skin) { return skin.equals("westus") || skin.equals("zlotek"); }
 
     static final class Postac {
         String id, typ, skin, anim;
         Location base;
         float s;                 // wielkosc (1 = jak gracz)
-        final ItemDisplay[] czesci = new ItemDisplay[5];
+        final ItemDisplay[] czesci = new ItemDisplay[6];
+        boolean robot;
         ItemDisplay miecz;
         TextDisplay nazwa;
         Interaction klik;
@@ -130,7 +135,8 @@ final class Postacie {
         p.offset = Math.floorMod(id.hashCode(), 120);
         String tag = "maskotka:" + id;
         World w = base.getWorld();
-        for (int i = 0; i < 5; i++) {
+        p.robot = robot(p.skin);
+        for (int i = 0; i < (p.robot ? 6 : 5); i++) {
             ItemStack it = model("westmc:postac/" + p.skin + "_" + CZESCI[i]);
             p.czesci[i] = w.spawn(base, ItemDisplay.class, d -> setup(d, it, tag));
             p.all.add(p.czesci[i]);
@@ -196,7 +202,7 @@ final class Postacie {
         // ---------------- glowa: patrzy na najblizszego gracza
         float tyaw, tpitch;
         Player near = null; double best = 12 * 12;
-        Location head = p.base.clone().add(0, 24 * k + 4 * k, 0);
+        Location head = p.base.clone().add(0, (p.robot ? 18 : 28) * k, 0);
         for (Player o : p.base.getWorld().getPlayers()) {
             double d = o.getEyeLocation().distanceSquared(head);
             if (d < best) { best = d; near = o; }
@@ -247,12 +253,28 @@ final class Postacie {
                 rZ = lerp(rZ, -12, up); lZ = lerp(lZ, 12, up);
                 handFx = up > 0.5f;
             }
+            case "macha" -> {         // Westus: macha prawa reka
+                float up = phase < 12 ? smooth(phase / 12f) : phase < 64 ? 1 : smooth(1 - (phase - 64) / 12f);
+                if (phase >= 76) up = 0;
+                rX = lerp(rX, 0, up);
+                rZ = lerp(rZ, (float) (145 + 22 * Math.sin(t * 0.45)), up);
+            }
             default -> { }
         }
+        if (p.robot) { rZ = Math.max(rZ, 2); lZ = Math.min(lZ, -2); }
 
-        Matrix4f[] mats = new Matrix4f[5];
-        for (int i = 0; i < 5; i++) {
+        float[][] PIVOT = p.robot ? PIVOT_ROBOT : PIVOT_CZLOWIEK;
+        int n = p.robot ? 6 : 5;
+        Matrix4f[] mats = new Matrix4f[n];
+        for (int i = 0; i < n; i++) {
             float[] pv = PIVOT[i];
+            if (i == 5) {   // antena jedzie razem z glowa
+                Matrix4f m = new Matrix4f(mats[2]).scale(1f / p.s).translate(0, pv[1] * k + (float) (0.4 * Math.sin(t * 0.15)) * k, 0);
+                if (p.anim.equals("moneta")) m.rotateY((float) (t * 0.12));
+                else m.rotateZ(rad(6 * Math.sin(t * 0.2)));
+                mats[i] = m.scale(p.s);
+                continue;
+            }
             Matrix4f m = new Matrix4f().translate(pv[0] * k, pv[1] * k + (i == 0 ? 0 : bodyBob * k), pv[2] * k);
             switch (i) {
                 case 2 -> m.rotateY(rad(p.headYaw)).rotateX(rad(-p.headPitch));
@@ -263,9 +285,9 @@ final class Postacie {
             m.scale(p.s);
             mats[i] = m;
         }
-        for (int i = 0; i < 5; i++) apply(p.czesci[i], mats[i], first);
+        for (int i = 0; i < n; i++) apply(p.czesci[i], mats[i], first);
         // ---------------- miecz w prawej rece
-        Matrix4f arm = new Matrix4f().translate(5 * k, 22 * k + bodyBob * k, 0).rotateX(rad(rX)).rotateZ(rad(rZ));
+        Matrix4f arm = new Matrix4f().translate(PIVOT[3][0] * k, PIVOT[3][1] * k + bodyBob * k, 0).rotateX(rad(rX)).rotateZ(rad(rZ));
         if (p.miecz != null && p.miecz.isValid()) {
             Matrix4f sw = new Matrix4f(arm).translate(1 * k, -9 * k, 0).rotateX(rad(wrist)).rotateX(rad(-135)).rotateY(rad(90))
                 .scale(p.s * 0.95f).translate(0.28f, 0.34f, 0);
@@ -350,7 +372,7 @@ final class Postacie {
     // ============================================================ komendy
     String place(Player p, String typ) {
         ConfigurationSection t = cfg(typ);
-        if (t == null || t.getString("skin", "").isEmpty()) return "&cTypy postaci: &fgildie&c, &fduels&c, &fwkrotce";
+        if (t == null || t.getString("skin", "").isEmpty()) return "&cTypy postaci: &fgildie&c, &fduels&c, &fwkrotce&c, &fdiscord&c, &fsklep";
         Location l = p.getLocation();
         String id = typ + (System.currentTimeMillis() % 100000);
         String b = "postawione-maskotki." + id + ".";

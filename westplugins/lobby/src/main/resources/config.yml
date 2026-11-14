@@ -1,4 +1,4 @@
-wersja-configu: 5
+wersja-configu: 6
 # ===========================================================
 #  WestLobby - lobby WestMc (serwer za proxy Velocity/BungeeCord)
 #  Po wgraniu:  /lobby ustawspawn  ->  /lobby logo  ->  portale (/lobby portal ...)
@@ -177,7 +177,7 @@ banery:
 # ===========================================================
 #  POSTACIE (stawiasz: /lobby postac <typ> - stoisz tam, gdzie ma stac, patrzysz tam, gdzie ma patrzec)
 #  serwer: klik PPM przenosi na ten serwer | wiadomosc: klikalny link w czacie (MiniMessage)
-#  {ONLINE} w nazwie = gracze na "serwer" (odswieza sie samo) | wielkosc: 1.0 = ok. 4 bloki
+#  {ONLINE} w nazwie = gracze na "serwer" (odswieza sie samo) | wielkosc: 1.0 = 2 bloki wzrostu, 1.5 = 3 bloki
 # ===========================================================
 maskotki:
   gildie:
@@ -209,9 +209,12 @@ maskotki:
     wiadomosc:
     - "<gold><bold>???</bold></gold> <gray>» Nowy tryb juz w drodze! Sledz</gray> <click:open_url:'https://discord.gg/westmceu'><#5865F2><u>Discorda</u></#5865F2></click><gray>.</gray>"
   discord:
+    skin: westus
+    przedmiot: ""
+    animacja: macha
     nazwa: "&#5865F2&lWestuś &8• &fDiscord\n&7Kliknij mnie!"
     dymek: "&0&l• • •"
-    wielkosc: 1.0
+    wielkosc: 1.5
     bujanie: true
     dzwiek: "minecraft:entity.allay.ambient_with_item"
     wiadomosc:
@@ -220,9 +223,12 @@ maskotki:
     - "<gray>» </gray><click:open_url:'https://discord.gg/westmceu'><hover:show_text:'<#5865F2>Kliknij, aby dolaczyc'><#5865F2><bold><u>DISCORD.GG/WESTMCEU</u></bold></#5865F2></hover></click> <gray>(kliknij)</gray>"
     - ""
   sklep:
+    skin: zlotek
+    przedmiot: ""
+    animacja: moneta
     nazwa: "&#FFC23D&lZłotek &8• &aSklep\n&7Kliknij mnie!"
     dymek: "&6&l$ $ $"
-    wielkosc: 1.0
+    wielkosc: 1.5
     bujanie: true
     dzwiek: "minecraft:entity.villager.yes"
     wiadomosc:
