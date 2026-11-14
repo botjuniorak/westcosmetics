@@ -269,9 +269,7 @@ final class Narzedzia implements Listener, CommandExecutor {
             return;
         }
         if (!cfg().getBoolean("czat.wlaczony", true)) return;
-        String ranga = "";
-        ConfigurationSection r = cfg().getConfigurationSection("czat.rangi");
-        if (r != null) for (String k : r.getKeys(false)) if (p.hasPermission("westsmp.ranga." + k)) { ranga = r.getString(k); break; }
+        String ranga = pl.hud != null ? pl.hud.ranga(p) : "";
         String f = WestSMP.c(cfg().getString("czat.format", "{KLAN}{RANGA}&f{GRACZ} &8» &7").replace("{KLAN}", pl.klany == null ? "" : pl.klany.tag(p)).replace("{RANGA}", ranga).replace("{GRACZ}", p.getName()));
         String tresc = p.hasPermission("westsmp.czat.kolory") ? WestSMP.c(msg) : msg;
         e.renderer((source, name, message, viewer) -> Component.text(f + tresc));

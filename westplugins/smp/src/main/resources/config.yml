@@ -92,11 +92,21 @@ czas:
 czat:
   wlaczony: true
   format: "{KLAN}{RANGA}&f{GRACZ} &8» &7"
+  # rangi HD z paczki (znaki \uE410-\uE41B). Uprawnienie westsmp.ranga.<nazwa> musi byc nadane WPROST (np. w LuckPerms) - OP nie dostaje rangi automatycznie.
+  # Te same znaki mozesz wkleic jako prefix w LuckPerms.
   rangi:
-    wlasciciel: "&#FF5A68&lWLASCICIEL &r"
-    admin: "&#FF5A68&lADMIN &r"
-    mod: "&#3AA0FF&lMOD &r"
-    vip: "&#FFC93D&lVIP &r"
+    wlasciciel: "\uE41B "
+    hadmin: "\uE41A "
+    admin: "\uE419 "
+    mod: "\uE418 "
+    chatmod: "\uE417 "
+    helper: "\uE416 "
+    media: "\uE415 "
+    legenda: "\uE414 "
+    mvp: "\uE413 "
+    svip: "\uE412 "
+    vip: "\uE411 "
+  ranga-domyslna: "\uE410 "
   wejscie: "&8[&a+&8] &7{GRACZ}"
   wyjscie: "&8[&c-&8] &7{GRACZ}"
 # BOSSBAR u gory ekranu (zmienia sie co X sekund)

@@ -46,8 +46,8 @@ final class Hud implements Listener {
 
     String ranga(Player p) {
         ConfigurationSection r = cfg().getConfigurationSection("czat.rangi");
-        if (r != null) for (String k : r.getKeys(false)) if (p.hasPermission("westsmp.ranga." + k)) return r.getString(k, "");
-        return "";
+        if (r != null) for (String k : r.getKeys(false)) { String perm = "westsmp.ranga." + k; if (p.isPermissionSet(perm) && p.hasPermission(perm)) return r.getString(k, ""); }
+        return cfg().getString("czat.ranga-domyslna", "");
     }
 
     private Component tytul() {
@@ -112,7 +112,7 @@ final class Hud implements Listener {
                 .append(kolor(cfg().getString("hud.tab-podpowiedz", "&7Szafa: &f/szafa &8• &7Klany: &f/klan &8• &7Sklep: &f/sklep")));
             p.sendPlayerListHeaderAndFooter(head, foot);
             String r = ranga(p);
-            String nick = r.isEmpty() ? "&7" + p.getName() : r + "&f" + p.getName();
+            String nick = r.isEmpty() ? "&7" + p.getName() : r + "&f" + p.getName();   // r zawiera juz spacje po znaku rangi
             String klanTab = pl.klany == null ? "" : pl.klany.tag(p);
             p.playerListName(kolor(cfg().getString("hud.tab-format", "{KLAN}{NICK}").replace("{KLAN}", klanTab).replace("{NICK}", nick)));
         }

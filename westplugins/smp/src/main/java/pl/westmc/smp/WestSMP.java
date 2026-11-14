@@ -26,6 +26,11 @@ public final class WestSMP extends JavaPlugin {
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        // migracja: stare rangi tekstowe (0.x) -> rangi HD z paczki
+        if (getConfig().getString("czat.rangi.admin", "").contains("ADMIN")) {
+            getConfig().set("czat.rangi", null);
+            getConfig().set("czat.format", "{KLAN}{RANGA}&f{GRACZ} &8» &7");
+        }
         getConfig().options().copyDefaults(true);
         saveConfig();
         kasa = new Kasa(this);
