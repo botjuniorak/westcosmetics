@@ -41,7 +41,7 @@ final class Hud {
 
     // ============================================================ scoreboard
     /** true = ramka w 1. linii (liczby rysuja sie NA ramce, z ciemnym tlem); false = ramka w tytule (stary sposob). */
-    private boolean ramkaWLinii() { return pl.getConfig().getBoolean("hud.ramka-w-linii", true); }
+    private boolean ramkaWLinii() { return pl.getConfig().getBoolean("hud.ramka-w-linii", false); }
 
     private Component ramka(int base) {
         Glify.Tytul t = Glify.siatka(new Glify.Tytul(), 0, base, Glify.TABLICA_KOL, 3, 3);
@@ -56,9 +56,19 @@ final class Hud {
         return Glify.lobby(t.tekst());
     }
 
+    /**
+     * Linia z ciemnym tlem pod tekstem. Tlo to znak ze ZWYKLEJ czcionki (ta sama tekstura co litery),
+     * wiec gra rysuje je po kolei: najpierw tlo, potem tekst. Grafiki z czcionki lobby zawsze lezaly NAD tekstem.
+     */
     private Component linia(int at, String tekst) {
         if (tekst == null) return Component.empty();
-        return Component.text(Glify.spacja(at)).append(Glify.kolor(tekst));
+        boolean szeroka = at < 60;
+        int x0 = szeroka ? 38 : 96, w = szeroka ? 90 : 32;
+        String tlo = pl.getConfig().getString("hud.tlo-liczb", "#0A1530");
+        return Component.text(Glify.spacja(x0))
+            .append(Component.text(szeroka ? "\uE4E0" : "\uE4E1").color(net.kyori.adventure.text.format.TextColor.fromHexString(tlo)))
+            .append(Component.text(Glify.spacja(at - x0 - w - 1)))
+            .append(Glify.kolor(tekst));
     }
 
     private String liczba(String srv) {
