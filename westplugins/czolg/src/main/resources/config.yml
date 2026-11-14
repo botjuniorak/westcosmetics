@@ -15,3 +15,11 @@ strzal:
   w-gore: 0.7
   obrazenia: 0.0           # 0 = bez obrazen
   odrzuca-admina: false
+
+# Hulajnoga: /hulajnoga (uprawnienie westczolg.hulajnoga - domyslnie OP)
+# W/S jazda, A/D skret, SPACJA skok, SHIFT zejscie. Jedna na gracza, znika gdy nikt nie jedzie.
+hulajnoga:
+  wielkosc: 0.4
+  wysokosc-siedzenia: 0.45
+  predkosc: 0.45            # 0.45 = ok. 9 kratek/s
+  znika-po-sekundach: 120

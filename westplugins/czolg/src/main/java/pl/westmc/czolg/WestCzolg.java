@@ -45,23 +45,37 @@ import java.util.UUID;
 public final class WestCzolg extends JavaPlugin implements Listener {
     NamespacedKey key;
     final List<Czolg> czolgi = new ArrayList<>();
+    final List<Hulajnoga> hulajnogi = new ArrayList<>();
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
         key = new NamespacedKey(this, "czolg");
         getServer().getPluginManager().registerEvents(this, this);
-        Bukkit.getScheduler().runTaskTimer(this, () -> { for (Czolg c : new ArrayList<>(czolgi)) c.tick(); }, 1L, 1L);
+        Bukkit.getScheduler().runTaskTimer(this, () -> { for (Czolg c : new ArrayList<>(czolgi)) c.tick(); for (Hulajnoga h : new ArrayList<>(hulajnogi)) h.tick(); }, 1L, 1L);
     }
 
     @Override
-    public void onDisable() { for (Czolg c : new ArrayList<>(czolgi)) c.usun(); }
+    public void onDisable() { for (Czolg c : new ArrayList<>(czolgi)) c.usun(); for (Hulajnoga h : new ArrayList<>(hulajnogi)) h.usun(); }
 
     static String c(String s) { return s.replace('&', '§'); }
 
     @Override
     public boolean onCommand(CommandSender s, Command cmd, String label, String[] a) {
         if (!(s instanceof Player p)) { s.sendMessage("Tylko w grze."); return true; }
+        if (cmd.getName().equalsIgnoreCase("hulajnoga")) {
+            if (a.length > 0 && a[0].equalsIgnoreCase("usunwszystkie") && p.hasPermission("westczolg.admin")) {
+                int n = hulajnogi.size(); for (Hulajnoga h : new ArrayList<>(hulajnogi)) h.usun();
+                p.sendMessage(c("&aUsunieto hulajnogi: " + n)); return true;
+            }
+            if (p.getVehicle() != null) { p.sendMessage(c("&cNajpierw wysiadz (SHIFT).")); return true; }
+            for (Hulajnoga h : new ArrayList<>(hulajnogi)) if (p.getUniqueId().equals(h.wlasciciel)) h.usun();   // jedna na gracza
+            Hulajnoga h = new Hulajnoga(this, p.getLocation(), p.getUniqueId());
+            hulajnogi.add(h);
+            h.wsiadz(p);
+            p.sendMessage(c("&6&lHULAJNOGA &8» &fW/S &7jazda, &fA/D &7skret, &fSPACJA &7skok, &fSHIFT &7zejscie."));
+            return true;
+        }
         if (a.length > 0 && a[0].equalsIgnoreCase("usun")) {
             Czolg best = null; double bd = 15 * 15;
             for (Czolg c : czolgi) {
@@ -99,6 +113,24 @@ public final class WestCzolg extends JavaPlugin implements Listener {
         return null;
     }
 
+    Hulajnoga hulajnogaOf(Entity e) {
+        String v = e.getPersistentDataContainer().get(key, PersistentDataType.STRING);
+        if (v == null) return null;
+        for (Hulajnoga h : hulajnogi) if (h.id.toString().equals(v)) return h;
+        return null;
+    }
+
+    @EventHandler
+    public void onClickH(PlayerInteractEntityEvent e) {
+        Hulajnoga h = hulajnogaOf(e.getRightClicked());
+        if (h == null) return;
+        e.setCancelled(true);
+        Player p = e.getPlayer();
+        if (!p.hasPermission("westczolg.hulajnoga")) { p.sendMessage(c("&cNie mozesz jezdzic hulajnoga.")); return; }
+        if (h.kierowca != null || p.getVehicle() != null) return;
+        h.wsiadz(p);
+    }
+
     @EventHandler
     public void onClick(PlayerInteractEntityEvent e) {
         Czolg c = czolgOf(e.getRightClicked());
@@ -121,11 +153,12 @@ public final class WestCzolg extends JavaPlugin implements Listener {
     public void onQuit(PlayerQuitEvent e) {
         Czolg c = czolgKierowcy(e.getPlayer());
         if (c != null) c.wysiadl();
+        for (Hulajnoga h : new ArrayList<>(hulajnogi)) if (e.getPlayer().getUniqueId().equals(h.wlasciciel)) h.usun();
     }
 
     @EventHandler
     public void onDamage(EntityDamageEvent e) {
-        if (czolgOf(e.getEntity()) != null) e.setCancelled(true);
+        if (czolgOf(e.getEntity()) != null || hulajnogaOf(e.getEntity()) != null) e.setCancelled(true);
     }
 
     // =====================================================================================

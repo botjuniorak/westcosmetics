@@ -2,11 +2,17 @@ name: WestCzolg
 version: '${version}'
 main: pl.westmc.czolg.WestCzolg
 api-version: '1.21'
-description: Czolg dla administracji WestMC (jazda, strzal z odrzutem)
+description: Pojazdy WestMC - czolg administracji i hulajnoga
 commands:
   czolg:
     description: Czolg administracji
     permission: westczolg.admin
+  hulajnoga:
+    description: Hulajnoga WestMC
+    permission: westczolg.hulajnoga
 permissions:
+  westczolg.hulajnoga:
+    description: Jazda hulajnoga (domyslnie OP - mozesz dac np. randze)
+    default: op
   westczolg.admin:
     default: op
