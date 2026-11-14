@@ -48,6 +48,10 @@ commands:
   nagrody: {description: Dzienne nagrody, aliases: [daily, dzienne]}
   kowal: {description: Kowal - naprawa i ulepszanie, aliases: [napraw, repair]}
   wymiana: {description: Wymiana z graczem, aliases: [trade, handel]}
+  kowadlo: {description: Magiczne kowadlo, aliases: [magicznekowadlo]}
+  ksiega: {description: Daj ksiege, permission: westsmp.admin, aliases: [ksiegi]}
+  klan: {description: Klany, aliases: [klany, clan]}
+  ustawka: {description: Ustawka 1v1 o stawke, aliases: [duel, wyzwij]}
 permissions:
   westsmp.vanish: {default: op}
   westsmp.adminchat: {default: op}

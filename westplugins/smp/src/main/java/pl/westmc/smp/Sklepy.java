@@ -90,6 +90,7 @@ final class Sklepy implements Listener, CommandExecutor {
         String[] x = spec.trim().split("\\s+");
         int n = x.length > 1 ? Integer.parseInt(x[1]) : 1;
         if (x[0].startsWith("eventowka:")) return pl.eventowki.item(x[0].substring(10), n);
+        if (x[0].startsWith("ksiega:")) { ItemStack k = pl.ksiegi.ksiega(x[0].substring(7)); if (k != null) { k.setAmount(n); return k; } }
         if (x[0].startsWith("klucz:")) { ItemStack k = klucz(x[0].substring(6)); k.setAmount(n); return k; }
         Material m = Material.matchMaterial(x[0]);
         return new ItemStack(m == null ? Material.STONE : m, n);

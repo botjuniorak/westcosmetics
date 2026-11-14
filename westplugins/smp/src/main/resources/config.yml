@@ -91,7 +91,7 @@ czas:
 # CZAT: rangi wg uprawnienia westsmp.ranga.<nazwa> (kolejnosc = waznosc)
 czat:
   wlaczony: true
-  format: "{RANGA}&f{GRACZ} &8» &7"
+  format: "{KLAN}{RANGA}&f{GRACZ} &8» &7"
   rangi:
     wlasciciel: "&#FF5A68&lWLASCICIEL &r"
     admin: "&#FF5A68&lADMIN &r"
@@ -230,3 +230,18 @@ kowal:
 wymiana:
   tylko-blisko: false
   odleglosc: 10
+
+# KSIEGI (wlasne zaczarowania): /ksiega daj <gracz> <przetapianie|telekineza|kopacz|noc|lekkosc|odbicie|madrosc|zycie>
+# Nakladanie: Magiczne Kowadlo (/kowadlo). W sklepie/skrzyniach: przedmiot "ksiega:telekineza 1"
+ksiegi:
+  cena: 2500
+  poziomy: 10
+# KLANY: /klan
+klany:
+  cena: 10000
+  max-czlonkow: 10
+  friendly-fire: false
+# USTAWKA: /ustawka <gracz> ; admin: /ustawka arena <nazwa> 1  i  /ustawka arena <nazwa> 2
+ustawka:
+  domyslna-stawka: 1000
+  areny: {}
