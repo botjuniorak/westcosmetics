@@ -50,6 +50,10 @@ public final class WestCzolg extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        // wieksza hulajnoga (stary domyslny rozmiar 0.4 -> 0.6) + nowe opcje
+        if (getConfig().getDouble("hulajnoga.wielkosc", 0.6) == 0.4) { getConfig().set("hulajnoga.wielkosc", 0.6); getConfig().set("hulajnoga.wysokosc-siedzenia", 0.75); }
+        getConfig().options().copyDefaults(true);
+        saveConfig();
         key = new NamespacedKey(this, "czolg");
         getServer().getPluginManager().registerEvents(this, this);
         Bukkit.getScheduler().runTaskTimer(this, () -> { for (Czolg c : new ArrayList<>(czolgi)) c.tick(); for (Hulajnoga h : new ArrayList<>(hulajnogi)) h.tick(); }, 1L, 1L);
@@ -73,7 +77,7 @@ public final class WestCzolg extends JavaPlugin implements Listener {
             Hulajnoga h = new Hulajnoga(this, p.getLocation(), p.getUniqueId());
             hulajnogi.add(h);
             h.wsiadz(p);
-            p.sendMessage(c("&6&lHULAJNOGA &8» &fW/S &7jazda, &fA/D &7skret, &fSPACJA &7skok, &fSHIFT &7zejscie."));
+            p.sendMessage(c("&6&lHULAJNOGA &8» &fW/S &7jazda, &fA/D &7skret, &fSPACJA &7skok, &fCTRL &7wheelie, &fSHIFT &7zejscie."));
             return true;
         }
         if (a.length > 0 && a[0].equalsIgnoreCase("usun")) {

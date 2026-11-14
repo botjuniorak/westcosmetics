@@ -30,7 +30,8 @@ final class Hulajnoga {
     final UUID id = UUID.randomUUID();
     final UUID wlasciciel;
     Location pos;
-    float yaw, steer, lean;
+    float yaw, steer, lean, wheelie;
+    int wheelieT;
     double v, vy;
     float kolo;
     UUID kierowca;
@@ -43,8 +44,8 @@ final class Hulajnoga {
     Hulajnoga(WestCzolg pl, Location at, UUID wlasciciel) {
         this.pl = pl;
         this.wlasciciel = wlasciciel;
-        s = (float) pl.getConfig().getDouble("hulajnoga.wielkosc", 0.4);
-        yOff = (float) pl.getConfig().getDouble("hulajnoga.wysokosc-siedzenia", 0.45);
+        s = (float) pl.getConfig().getDouble("hulajnoga.wielkosc", 0.6);
+        yOff = (float) pl.getConfig().getDouble("hulajnoga.wysokosc-siedzenia", 0.75);
         pos = at.clone(); pos.setPitch(0); yaw = at.getYaw();
         World w = at.getWorld();
         root = w.spawn(seat(), ItemDisplay.class, d -> { prep(d); d.setTeleportDuration(2); });
@@ -119,10 +120,10 @@ final class Hulajnoga {
         var cfg = pl.getConfig();
         if (p == null && System.currentTimeMillis() - pusta > cfg.getLong("hulajnoga.znika-po-sekundach", 120) * 1000L) { usun(); return; }
         double max = cfg.getDouble("hulajnoga.predkosc", 0.45);
-        boolean fwd = false, back = false, left = false, right = false, jump = false;
+        boolean fwd = false, back = false, left = false, right = false, jump = false, sprint = false;
         if (p != null) {
             var in = p.getCurrentInput();
-            fwd = in.isForward(); back = in.isBackward(); left = in.isLeft(); right = in.isRight(); jump = in.isJump();
+            fwd = in.isForward(); back = in.isBackward(); left = in.isLeft(); right = in.isRight(); jump = in.isJump(); sprint = in.isSprint();
         }
         if (fwd) v = Math.min(max, v + 0.02);
         else if (back) v = Math.max(-0.12, v - 0.04);
@@ -154,6 +155,32 @@ final class Hulajnoga {
         } else pos.setY(pos.getY() + (g - pos.getY()) * 0.6);
         if (pos.getY() < w.getMinHeight() - 10) { usun(); return; }
 
+        // ---------------- wheelie (CTRL)
+        boolean wh = sprint && v > 0.08 && naZiemi;
+        if (wh) {
+            wheelieT++;
+            float target = (float) Math.min(38, 12 + wheelieT * 1.2) + (float) (3 * Math.sin(wheelieT * 0.35));
+            wheelie += (target - wheelie) * 0.3f;
+            if (wheelieT % 3 == 0) w.spawnParticle(Particle.ELECTRIC_SPARK, pos.clone().subtract(dir.clone().multiply(0.5 * s / 0.4)).add(0, 0.1, 0), 2, 0.05, 0.02, 0.05, 0.05);
+            int limit = cfg.getInt("hulajnoga.wheelie-max-tickow", 70);
+            if (cfg.getBoolean("hulajnoga.wywrotka", true) && wheelieT > limit && p != null) {
+                // przesadziles - wywrotka
+                p.leaveVehicle();
+                p.setVelocity(dir.clone().multiply(-0.6).setY(0.55));
+                w.playSound(pos, Sound.ENTITY_PLAYER_ATTACK_KNOCKBACK, 1f, 0.8f);
+                w.playSound(pos, Sound.BLOCK_ANVIL_LAND, 0.5f, 1.6f);
+                w.spawnParticle(Particle.CLOUD, pos.clone().add(0, 0.3, 0), 10, 0.3, 0.1, 0.3, 0.02);
+                p.sendActionBar(c("&c&lWYWROTKA! &7Za dlugie wheelie."));
+                v = 0; wheelieT = 0; wysiadl(); p = null;
+            }
+            if (p != null && wheelieT % 10 == 0) p.sendActionBar(c("&6&lWHEELIE &f" + String.format("%.1f", wheelieT / 20.0) + "s"));
+        } else {
+            if (wheelie > 6 && wheelie * 0.55f <= 6) w.playSound(pos, Sound.BLOCK_METAL_HIT, 0.8f, 0.7f);
+            wheelie *= 0.55f;
+            if (wheelie < 0.3f) wheelie = 0;
+            wheelieT = 0;
+        }
+
         root.teleport(seat(), TeleportFlag.EntityState.RETAIN_PASSENGERS);
         hitbox.teleport(pos.clone());
 
@@ -170,7 +197,13 @@ final class Hulajnoga {
 
     private static float rad(double d) { return (float) Math.toRadians(d); }
 
-    private Matrix4f baza() { return new Matrix4f().translate(0, -yOff, 0).rotateY(rad(-yaw)).rotateY((float) Math.PI).rotateZ(rad(lean)); }
+    private static String c(String t) { return t.replace('&', '§'); }
+
+    private Matrix4f baza() {
+        float k = s / 16f;
+        return new Matrix4f().translate(0, -yOff, 0).rotateY(rad(-yaw)).rotateY((float) Math.PI).rotateZ(rad(lean))
+            .translate(0, 5.5f * k, 22 * k).rotateX(rad(wheelie)).translate(0, -5.5f * k, -22 * k);   // wheelie wokol tylnej osi
+    }
 
     private void pose(boolean first) {
         float k = s / 16f;

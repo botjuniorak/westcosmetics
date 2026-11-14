@@ -17,9 +17,11 @@ strzal:
   odrzuca-admina: false
 
 # Hulajnoga: /hulajnoga (uprawnienie westczolg.hulajnoga - domyslnie OP)
-# W/S jazda, A/D skret, SPACJA skok, SHIFT zejscie. Jedna na gracza, znika gdy nikt nie jedzie.
+# W/S jazda, A/D skret, SPACJA skok, CTRL wheelie, SHIFT zejscie. Jedna na gracza, znika gdy nikt nie jedzie.
 hulajnoga:
-  wielkosc: 0.4
-  wysokosc-siedzenia: 0.45
+  wielkosc: 0.6
+  wysokosc-siedzenia: 0.75
   predkosc: 0.45            # 0.45 = ok. 9 kratek/s
   znika-po-sekundach: 120
+  wywrotka: true            # za dlugie wheelie = upadek
+  wheelie-max-tickow: 70     # 70 tickow = 3.5 s

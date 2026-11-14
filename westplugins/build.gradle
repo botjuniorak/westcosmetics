@@ -13,4 +13,4 @@ subprojects {
 project(':backup') { version = '1.1.1'; jar { archiveFileName = 'WestBackup-' + project.version + '.jar' } }
 project(':osiagniecia') { version = '1.1.1'; jar { archiveFileName = 'WestOsiagniecia-' + project.version + '.jar' } }
 project(':lobby') { version = '2.1.4'; jar { archiveFileName = 'WestLobby-' + project.version + '.jar' } }
-project(':czolg') { version = '1.1.0'; jar { archiveFileName = 'WestCzolg-' + project.version + '.jar' } }
+project(':czolg') { version = '1.2.0'; jar { archiveFileName = 'WestCzolg-' + project.version + '.jar' } }
