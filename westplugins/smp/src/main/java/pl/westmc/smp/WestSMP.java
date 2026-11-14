@@ -12,6 +12,7 @@ public final class WestSMP extends JavaPlugin {
     Npc npc;
     Kasa kasa;
     Bank bank;
+    Narzedzia narzedzia;
 
     @Override
     public void onEnable() {
@@ -38,10 +39,14 @@ public final class WestSMP extends JavaPlugin {
         getServer().getPluginManager().registerEvents(npc, this);
         getCommand("npc").setExecutor(npc);
         npc.start();
+        narzedzia = new Narzedzia(this);
+        getServer().getPluginManager().registerEvents(narzedzia, this);
+        for (String c : new String[]{"vanish", "adminchat", "helpop", "gm", "god", "fly", "heal", "feed", "rtp", "kod", "keyall", "czyszczenie", "strefa"}) getCommand(c).setExecutor(narzedzia);
+        narzedzia.start();
     }
 
     @Override
-    public void onDisable() { if (szafa != null) szafa.stop(); if (npc != null) npc.stop(); if (bank != null) bank.stop(); if (kasa != null) kasa.zapisz(); }
+    public void onDisable() { if (szafa != null) szafa.stop(); if (npc != null) npc.stop(); if (bank != null) bank.stop(); if (kasa != null) kasa.zapisz(); if (narzedzia != null) narzedzia.stop(); }
 
     static String c(String s) {
         if (s == null) return "";

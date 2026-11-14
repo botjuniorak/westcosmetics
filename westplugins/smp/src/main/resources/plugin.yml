@@ -28,7 +28,25 @@ commands:
   czek: {description: Wypisz czek}
   coinflip: {description: Coinflip, aliases: [cf]}
   czas: {description: Czas gry, aliases: [playtime]}
+  vanish: {description: Vanish, aliases: [v], permission: westsmp.vanish}
+  adminchat: {description: Czat administracji, aliases: [ac], permission: westsmp.adminchat}
+  helpop: {description: Wiadomosc do administracji}
+  gm: {description: Tryb gry, permission: westsmp.admin}
+  god: {description: Niesmiertelnosc, permission: westsmp.admin}
+  fly: {description: Latanie, permission: westsmp.fly}
+  heal: {description: Leczenie, permission: westsmp.admin}
+  feed: {description: Najedzenie, permission: westsmp.admin}
+  rtp: {description: Losowy teleport, aliases: [wild, losowytp]}
+  kod: {description: Kody promocyjne, aliases: [kody]}
+  keyall: {description: Klucz dla wszystkich, permission: westsmp.admin}
+  czyszczenie: {description: Czyszczenie itemow teraz, permission: westsmp.admin}
+  strefa: {description: Strefy spawn/afk, permission: westsmp.admin}
 permissions:
+  westsmp.vanish: {default: op}
+  westsmp.adminchat: {default: op}
+  westsmp.helpop.widzi: {default: op}
+  westsmp.fly: {default: op}
+  westsmp.antylogout.omin: {default: false}
   westsmp.admin:
     default: op
   westsmp.teleport.natychmiast:

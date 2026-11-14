@@ -87,3 +87,74 @@ czas:
   punkty-za-minute: 1
   afk-nie-liczy: true
   komenda-sklepu: "sklep czas"
+
+# CZAT: rangi wg uprawnienia westsmp.ranga.<nazwa> (kolejnosc = waznosc)
+czat:
+  wlaczony: true
+  format: "{RANGA}&f{GRACZ} &8» &7"
+  rangi:
+    wlasciciel: "&#FF5A68&lWLASCICIEL &r"
+    admin: "&#FF5A68&lADMIN &r"
+    mod: "&#3AA0FF&lMOD &r"
+    vip: "&#FFC93D&lVIP &r"
+  wejscie: "&8[&a+&8] &7{GRACZ}"
+  wyjscie: "&8[&c-&8] &7{GRACZ}"
+# BOSSBAR u gory ekranu (zmienia sie co X sekund)
+bossbar:
+  wlaczony: true
+  co-ile-sekund: 10
+  teksty:
+    - "&#3AA0FF&lWESTMC.EU &8• &fTryb SMP &8• &7Graczy: &a{ONLINE}"
+    - "&#FFC93D&lDISCORD &8» &fdiscord.gg/westmceu"
+    - "&#C08BFF&lSZAFA &8» &fpety, kostiumy i papugi pod &#C08BFF/szafa"
+    - "&#4EE08F&lCOINFLIP &8» &fzagraj o kase pod &#4EE08F/cf"
+# AUTOMATYCZNE WIADOMOSCI (| = nowa linia)
+wiadomosci:
+  co-ile-sekund: 180
+  lista:
+    - "&8&m                              |&#3AA0FF&l WESTMC &8» &7Dolacz na Discorda: &fdiscord.gg/westmceu|&8&m                              "
+    - "&#FFC93D&lPORADA &8» &7Nie masz gdzie mieszkac? Wpisz &f/rtp"
+    - "&#4EE08F&lPORADA &8» &7Stoj w strefie AFK (&f/afk&7), a dostaniesz nagrody!"
+    - "&#C08BFF&lPORADA &8» &7Czeki wypiszesz u Bankiera lub pod &f/czek"
+# USUWANIE ITEMOW Z ZIEMI (eventowki nigdy nie sa usuwane)
+czyszczenie:
+  wlaczone: true
+  co-ile-minut: 10
+  nie-usuwaj: [NETHER_STAR, DRAGON_EGG, ELYTRA]
+# ANTYLOGOUT: wyjscie w walce = smierc; w walce nie wejdziesz na spawn (czerwone szklo)
+# Strefa spawnu: /strefa spawn od  i  /strefa spawn do  (dwa przeciwne rogi)
+antylogout:
+  sekundy: 30
+  zablokowane-komendy: [spawn, home, warp, tpa, tpaccept, rtp, end, nether, afk, teleporty, ec, enderchest]
+  strefa-spawnu: {}
+# STREFA AFK: /strefa afk od  i  /strefa afk do ; nagroda co X minut stania w strefie
+strefa-afk:
+  nagroda-co-minut: 10
+  komendy: ["eco daj {GRACZ} 250"]
+# LOSOWY TELEPORT
+rtp:
+  swiat: world
+  min: 500
+  max: 5000
+  cooldown-sekund: 60
+# KEYALL o konkretnych godzinach (komendy dla kazdego gracza online)
+keyall:
+  godziny: ["18:00", "21:00"]
+  komendy: ["eco daj {GRACZ} 1000"]
+  wiadomosc: "&#FFC93D&lKEYALL &8» &7Kazdy gracz online dostal nagrode!"
+# KODY: /kod <nazwa>  (np. /kod WAKACJE)
+kody:
+  start:
+    komendy: ["eco daj {GRACZ} 1000"]
+    opis: "&7+1000$ na start!"
+    limit: 0           # 0 = bez limitu
+  wakacje:
+    komendy: ["eco daj {GRACZ} 5000"]
+    opis: "&7+5000$ na wakacje!"
+    wazny-do: "2027-08-31"
+    limit: 100
+# END: bloki postawione przez graczy znikaja po czasie
+end-bloki:
+  wlaczone: true
+  znikaja-po-minutach: 60
+# ENDERCHEST: uprawnienia westsmp.enderchest.4 / .5 / .6 = wiecej rzedow
