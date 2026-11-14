@@ -158,3 +158,75 @@ end-bloki:
   wlaczone: true
   znikaja-po-minutach: 60
 # ENDERCHEST: uprawnienia westsmp.enderchest.4 / .5 / .6 = wiecej rzedow
+
+# SKLEP: /sklep (za $) i /sklep czas (za punkty czasu). przedmiot: "MATERIAL ilosc" | "eventowka:kilof" | "klucz:epicka"
+sklep:
+  dolary:
+    diament:  {przedmiot: "DIAMOND 1", cena: 250, nazwa: "&bDiament"}
+    zloto:    {przedmiot: "GOLDEN_APPLE 1", cena: 150, nazwa: "&6Zlote jablko"}
+    perla:    {przedmiot: "ENDER_PEARL 4", cena: 200, nazwa: "&3Perly x4"}
+    exp:      {przedmiot: "EXPERIENCE_BOTTLE 16", cena: 400, nazwa: "&aButelki EXP x16"}
+    klucz:    {przedmiot: "klucz:zwykla 1", cena: 2500, nazwa: "&7Klucz zwykly"}
+    rzucak:   {przedmiot: "eventowka:rzucak 1", cena: 5000}
+  czas:
+    klucz-epicki:  {przedmiot: "klucz:epicka 1", cena: 300}
+    buty:          {przedmiot: "eventowka:buty 1", cena: 600}
+    klucz-legenda: {przedmiot: "klucz:legendarna 1", cena: 1200}
+# SKRZYNIE: /skrzynie ; postaw skrzynie na spawnie: patrz na blok i /skrzynie ustaw <zwykla|epicka|legendarna>
+# Klucze: /klucz daj <gracz|*> <typ> [ilosc]   (np. w keyall)
+skrzynie:
+  zwykla:
+    nazwa: "&f&lSkrzynia Zwykla"
+    nazwa-klucza: "&fKlucz do Skrzyni Zwyklej"
+    nagrody:
+      - {przedmiot: "IRON_INGOT 16", szansa: 30}
+      - {przedmiot: "GOLD_INGOT 8", szansa: 25}
+      - {przedmiot: "DIAMOND 2", szansa: 15}
+      - {przedmiot: "EXPERIENCE_BOTTLE 16", szansa: 15}
+      - {ikona: "GOLD_NUGGET", nazwa: "&6+1000$", komendy: ["eco daj {GRACZ} 1000"], szansa: 12}
+      - {przedmiot: "klucz:epicka 1", szansa: 3, ogloszenie: true}
+  epicka:
+    nazwa: "&#C08BFF&lSkrzynia Epicka"
+    nazwa-klucza: "&#C08BFFKlucz do Skrzyni Epickiej"
+    nagrody:
+      - {przedmiot: "DIAMOND 8", szansa: 25}
+      - {przedmiot: "ENCHANTED_GOLDEN_APPLE 1", szansa: 10}
+      - {przedmiot: "eventowka:rzucak 3", szansa: 20}
+      - {przedmiot: "eventowka:buty 1", szansa: 12}
+      - {przedmiot: "eventowka:perla 8", szansa: 15}
+      - {ikona: "GOLD_BLOCK", nazwa: "&6+10 000$", komendy: ["eco daj {GRACZ} 10000"], szansa: 15}
+      - {przedmiot: "klucz:legendarna 1", szansa: 3, ogloszenie: true}
+  legendarna:
+    nazwa: "&#FFC93D&lSkrzynia Legendarna"
+    nazwa-klucza: "&#FFC93DKlucz do Skrzyni Legendarnej"
+    nagrody:
+      - {przedmiot: "eventowka:kilof 1", szansa: 15, ogloszenie: true}
+      - {przedmiot: "eventowka:miecz 1", szansa: 15, ogloszenie: true}
+      - {przedmiot: "eventowka:totem 1", szansa: 15, ogloszenie: true}
+      - {przedmiot: "eventowka:siekiera 1", szansa: 15}
+      - {przedmiot: "eventowka:luk 1", szansa: 15}
+      - {przedmiot: "NETHERITE_INGOT 2", szansa: 15}
+      - {ikona: "NETHER_STAR", nazwa: "&6+50 000$", komendy: ["eco daj {GRACZ} 50000"], szansa: 10, ogloszenie: true}
+skrzynie-bloki: {}
+# ZESTAWY: /zestawy ; przedmioty z ekwipunku: /zestawy zapisz <nazwa> (zapisuje caly twoj ekwipunek)
+zestawy:
+  gracz: {slot: 10, nazwa: "&f&lZestaw Gracz", ikona: IRON_CHESTPLATE, co-ile-godzin: 24, opis: ["&7Podstawowe narzedzia i jedzenie"], przedmioty: ["STONE_SWORD 1", "STONE_PICKAXE 1", "BREAD 16"]}
+  vip: {slot: 12, nazwa: "&#FFC93D&lZestaw VIP", ikona: GOLDEN_CHESTPLATE, ranga: "VIP", uprawnienie: "westsmp.zestaw.vip", co-ile-godzin: 24, przedmioty: ["IRON_SWORD 1", "IRON_PICKAXE 1", "GOLDEN_APPLE 4"]}
+  svip: {slot: 14, nazwa: "&#C08BFF&lZestaw SVIP", ikona: DIAMOND_CHESTPLATE, ranga: "SVIP", uprawnienie: "westsmp.zestaw.svip", co-ile-godzin: 48, przedmioty: ["DIAMOND_SWORD 1", "DIAMOND_PICKAXE 1", "GOLDEN_APPLE 8"]}
+  elita: {slot: 16, nazwa: "&#FF5A68&lZestaw Elita", ikona: NETHERITE_CHESTPLATE, ranga: "ELITA", uprawnienie: "westsmp.zestaw.elita", co-ile-godzin: 72, przedmioty: ["DIAMOND_SWORD 1", "ENCHANTED_GOLDEN_APPLE 1", "klucz:epicka 1"]}
+# DZIENNE NAGRODY: /nagrody - seria 7 dni (przerwa = od nowa)
+dzienne-nagrody:
+  dzien-1: {ikona: GOLD_NUGGET, opis: ["&7+500$"], komendy: ["eco daj {GRACZ} 500"]}
+  dzien-2: {ikona: GOLD_INGOT, opis: ["&7+1000$"], komendy: ["eco daj {GRACZ} 1000"]}
+  dzien-3: {ikona: DIAMOND, opis: ["&7Diamenty x3"], przedmioty: ["DIAMOND 3"]}
+  dzien-4: {ikona: TRIPWIRE_HOOK, opis: ["&7Klucz zwykly"], przedmioty: ["klucz:zwykla 1"]}
+  dzien-5: {ikona: EXPERIENCE_BOTTLE, opis: ["&7+2500$ i EXP"], komendy: ["eco daj {GRACZ} 2500"], przedmioty: ["EXPERIENCE_BOTTLE 16"]}
+  dzien-6: {ikona: TRIPWIRE_HOOK, opis: ["&7Klucz epicki"], przedmioty: ["klucz:epicka 1"]}
+  dzien-7: {ikona: NETHER_STAR, opis: ["&7Klucz legendarny + 10 000$"], komendy: ["eco daj {GRACZ} 10000"], przedmioty: ["klucz:legendarna 1"]}
+kowal:
+  cena-za-punkt: 2
+  cena-ulepszenia: 5000
+  szansa-ulepszenia: 0.6
+wymiana:
+  tylko-blisko: false
+  odleglosc: 10

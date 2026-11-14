@@ -13,6 +13,8 @@ public final class WestSMP extends JavaPlugin {
     Kasa kasa;
     Bank bank;
     Narzedzia narzedzia;
+    Sklepy sklepy;
+    Wymiana wymiana;
 
     @Override
     public void onEnable() {
@@ -43,6 +45,12 @@ public final class WestSMP extends JavaPlugin {
         getServer().getPluginManager().registerEvents(narzedzia, this);
         for (String c : new String[]{"vanish", "adminchat", "helpop", "gm", "god", "fly", "heal", "feed", "rtp", "kod", "keyall", "czyszczenie", "strefa"}) getCommand(c).setExecutor(narzedzia);
         narzedzia.start();
+        sklepy = new Sklepy(this);
+        getServer().getPluginManager().registerEvents(sklepy, this);
+        for (String c : new String[]{"sklep", "skrzynie", "klucz", "zestawy", "nagrody", "kowal"}) getCommand(c).setExecutor(sklepy);
+        wymiana = new Wymiana(this);
+        getServer().getPluginManager().registerEvents(wymiana, this);
+        getCommand("wymiana").setExecutor(wymiana);
     }
 
     @Override

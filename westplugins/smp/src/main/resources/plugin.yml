@@ -41,6 +41,13 @@ commands:
   keyall: {description: Klucz dla wszystkich, permission: westsmp.admin}
   czyszczenie: {description: Czyszczenie itemow teraz, permission: westsmp.admin}
   strefa: {description: Strefy spawn/afk, permission: westsmp.admin}
+  sklep: {description: Sklep za $ i za czas}
+  skrzynie: {description: Skrzynie, aliases: [skrzynia, crate]}
+  klucz: {description: Daj klucze, permission: westsmp.admin, aliases: [klucze]}
+  zestawy: {description: Zestawy, aliases: [zestaw, kit, kits]}
+  nagrody: {description: Dzienne nagrody, aliases: [daily, dzienne]}
+  kowal: {description: Kowal - naprawa i ulepszanie, aliases: [napraw, repair]}
+  wymiana: {description: Wymiana z graczem, aliases: [trade, handel]}
 permissions:
   westsmp.vanish: {default: op}
   westsmp.adminchat: {default: op}

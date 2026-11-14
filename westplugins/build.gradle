@@ -14,4 +14,4 @@ project(':backup') { version = '1.1.1'; jar { archiveFileName = 'WestBackup-' + 
 project(':osiagniecia') { version = '1.1.1'; jar { archiveFileName = 'WestOsiagniecia-' + project.version + '.jar' } }
 project(':lobby') { version = '2.1.4'; jar { archiveFileName = 'WestLobby-' + project.version + '.jar' } }
 project(':czolg') { version = '1.2.0'; jar { archiveFileName = 'WestCzolg-' + project.version + '.jar' } }
-project(':smp') { version = '0.5.0'; repositories { maven { url = 'https://jitpack.io' } }; dependencies { compileOnly('com.github.MilkBowl:VaultAPI:1.7.1') { transitive = false } }; jar { archiveFileName = 'WestSMP-' + project.version + '.jar' } }
+project(':smp') { version = '0.6.0'; repositories { maven { url = 'https://jitpack.io' } }; dependencies { compileOnly('com.github.MilkBowl:VaultAPI:1.7.1') { transitive = false } }; jar { archiveFileName = 'WestSMP-' + project.version + '.jar' } }

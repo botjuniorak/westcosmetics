@@ -131,6 +131,8 @@ final class Bank implements Listener, CommandExecutor {
         p.playSound(p.getLocation(), Sound.BLOCK_CHAIN_PLACE, 0.8f, 1.2f);
     }
 
+    void pytanie(Player p, Consumer<String> odp) { pytanie.put(p.getUniqueId(), odp); }
+
     private void zapytaj(Player p, String tekst, Consumer<String> odp) {
         p.closeInventory();
         pytanie.put(p.getUniqueId(), odp);
