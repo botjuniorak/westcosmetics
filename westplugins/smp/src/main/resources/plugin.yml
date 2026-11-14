@@ -41,7 +41,7 @@ commands:
   keyall: {description: Klucz dla wszystkich, permission: westsmp.admin}
   czyszczenie: {description: Czyszczenie itemow teraz, permission: westsmp.admin}
   strefa: {description: Strefy spawn/afk, permission: westsmp.admin}
-  sklep: {description: Sklep za $ i za czas}
+  sklep: {description: Sklep za dolary i za czas}
   skrzynie: {description: Skrzynie, aliases: [skrzynia, crate]}
   klucz: {description: Daj klucze, permission: westsmp.admin, aliases: [klucze]}
   zestawy: {description: Zestawy, aliases: [zestaw, kit, kits]}
