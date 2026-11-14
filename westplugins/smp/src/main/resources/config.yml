@@ -1,0 +1,33 @@
+# ============================================================
+#  WestSMP - tryb SMP (wymaga paczki WestMc v0.13+)
+# ============================================================
+# SZAFA: /szafa
+#  Rzecz jest odblokowana, gdy gracz ma uprawnienie westsmp.szafa.<rodzaj>.<id>
+#  (np. westsmp.szafa.pet.smoczek) albo westsmp.szafa.wszystko, albo gdy "darmowe: true".
+szafa:
+  pety:
+    piesek:   {nazwa: "&#E8913APiesek", darmowe: true}
+    kotek:    {nazwa: "&#9AA0AAKotek", darmowe: true}
+    lisek:    {nazwa: "&#F06A22Lisek"}
+    smoczek:  {nazwa: "&#7A4DE0Smoczek", lata: true}
+    pingwin:  {nazwa: "&#3A8CF0Pingwin"}
+    panda:    {nazwa: "&fPanda"}
+    duszek:   {nazwa: "&#F2F4FFDuszek", lata: true}
+    westus:   {nazwa: "&#6EC3FFMini Westus"}
+  kostiumy:
+    korona:          {nazwa: "&#FFC93DKorona", miejsce: glowa}
+    aureola:         {nazwa: "&#FFF2A0Aureola", miejsce: glowa}
+    rogi:            {nazwa: "&#C4142ARogi diabla", miejsce: glowa}
+    czarodziej:      {nazwa: "&#7B5CFFKapelusz maga", miejsce: glowa}
+    mikolaj:         {nazwa: "&#D92030Czapka Mikolaja", miejsce: glowa}
+    skrzydla_aniola: {nazwa: "&fSkrzydla aniola", miejsce: plecy}
+    skrzydla_demona: {nazwa: "&#8A1A3ASkrzydla demona", miejsce: plecy}
+    plecak:          {nazwa: "&#3A8CF0Plecak WestMC", miejsce: plecy, darmowe: true}
+  papugi:
+    ara:       {nazwa: "&#E22A2AAra", darmowe: true}
+    niebieska: {nazwa: "&#2F7FE8Niebieska papuga"}
+    zielona:   {nazwa: "&#45C24AZielona papuga"}
+    teczowa:   {nazwa: "&#FF5AB4Teczowa papuga"}
+    zlota:     {nazwa: "&#FFC93DZlota Krolewska"}
+    piracka:   {nazwa: "&8Piracka papuga"}
+  sklep-tekst: "&7Odblokujesz w &#FFC93D/sklep &7lub na &#FFC93Dwestmc.eu"

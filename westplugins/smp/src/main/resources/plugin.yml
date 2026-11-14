@@ -1,0 +1,13 @@
+name: WestSMP
+version: '${version}'
+main: pl.westmc.smp.WestSMP
+api-version: '1.21'
+description: Tryb SMP WestMC
+commands:
+  szafa:
+    description: Szafa - pety, kostiumy, papugi
+    aliases: [pety, kostiumy, papugi]
+permissions:
+  westsmp.szafa.wszystko:
+    description: Odblokowane wszystko w szafie
+    default: op
