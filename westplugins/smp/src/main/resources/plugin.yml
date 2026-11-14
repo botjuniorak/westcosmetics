@@ -52,6 +52,7 @@ commands:
   ksiega: {description: Daj ksiege, permission: westsmp.admin, aliases: [ksiegi]}
   klan: {description: Klany, aliases: [klany, clan]}
   ustawka: {description: Ustawka 1v1 o stawke, aliases: [duel, wyzwij]}
+  topki: {description: Topki serwera, aliases: [top, ranking]}
 permissions:
   westsmp.vanish: {default: op}
   westsmp.adminchat: {default: op}

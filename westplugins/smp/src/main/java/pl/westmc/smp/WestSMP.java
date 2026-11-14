@@ -18,6 +18,8 @@ public final class WestSMP extends JavaPlugin {
     Ksiegi ksiegi;
     Klany klany;
     Ustawka ustawka;
+    Hud hud;
+    Topki topki;
 
     @Override
     public void onEnable() {
@@ -64,10 +66,18 @@ public final class WestSMP extends JavaPlugin {
         ustawka = new Ustawka(this);
         getServer().getPluginManager().registerEvents(ustawka, this);
         getCommand("ustawka").setExecutor(ustawka);
+        hud = new Hud(this);
+        getServer().getPluginManager().registerEvents(hud, this);
+        hud.start();
+        topki = new Topki(this);
+        getServer().getPluginManager().registerEvents(topki, this);
+        getCommand("topki").setExecutor(topki); getCommand("topki").setTabCompleter(topki);
+        topki.sprzatnij();
+        topki.start();
     }
 
     @Override
-    public void onDisable() { if (szafa != null) szafa.stop(); if (npc != null) npc.stop(); if (bank != null) bank.stop(); if (kasa != null) kasa.zapisz(); if (narzedzia != null) narzedzia.stop(); }
+    public void onDisable() { if (szafa != null) szafa.stop(); if (npc != null) npc.stop(); if (bank != null) bank.stop(); if (kasa != null) kasa.zapisz(); if (narzedzia != null) narzedzia.stop(); if (hud != null) hud.stop(); if (topki != null) topki.stop(); }
 
     static String c(String s) {
         if (s == null) return "";

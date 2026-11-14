@@ -245,3 +245,20 @@ klany:
 ustawka:
   domyslna-stawka: 1000
   areny: {}
+
+# SCOREBOARD + TAB (grafika HD z paczki WestMC)
+hud:
+  scoreboard: true
+  tab: true
+  odswiezanie-tickow: 40
+  tlo-liczb: "#140A2E"
+  tab-linia: "&7Jestes na &#C08BFF&lSMP &8• &7Graczy online&8: &a&l{ONLINE}"
+  tab-podpowiedz: "&7Szafa: &f/szafa &8• &7Klany: &f/klan &8• &7Sklep: &f/sklep"
+  tab-format: "{KLAN}{NICK}"
+# TOPKI: /topki ; tablice HD: /topki postaw <bogacze|czas|klany|zabojstwa> (stan tam, gdzie ma stac, patrz w strone graczy)
+topki:
+  odswiezanie-sekund: 300
+  skala: 0.8
+  wysokosc: 1.0
+  zasieg: 48
+  odwroc: false

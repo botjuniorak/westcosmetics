@@ -50,10 +50,13 @@ final class Klany implements Listener, CommandExecutor {
     private List<String> czlonkowie(String k) { return d.getStringList("klany." + k + ".czlonkowie"); }
     private boolean szef(Player p, String k) { return p.getUniqueId().toString().equals(d.getString("klany." + k + ".szef")); }
 
+    /** Kolor + tag klanu gracza (bez nawiasow), np. "&#FF5A68WEST"; null gdy brak klanu. */
+    String tagGoly(OfflinePlayer p) { String k = klan(p); return k == null ? null : d.getString("klany." + k + ".kolor", "&#FF5A68") + d.getString("klany." + k + ".tag", k); }
+
     List<String[]> ranking(int n) {
         List<String[]> l = new ArrayList<>();
         ConfigurationSection s = d.getConfigurationSection("klany");
-        if (s != null) for (String k : s.getKeys(false)) l.add(new String[]{d.getString("klany." + k + ".tag", k), String.valueOf(d.getInt("klany." + k + ".punkty"))});
+        if (s != null) for (String k : s.getKeys(false)) l.add(new String[]{d.getString("klany." + k + ".tag", k), String.valueOf(d.getInt("klany." + k + ".punkty")), d.getString("klany." + k + ".kolor", "&#FF5A68")});
         l.sort((a, b) -> Integer.parseInt(b[1]) - Integer.parseInt(a[1]));
         return l.subList(0, Math.min(n, l.size()));
     }

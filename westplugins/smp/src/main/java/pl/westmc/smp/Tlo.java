@@ -35,4 +35,17 @@ final class Tlo {
         b.append(spacja(-x));
         return Component.text(b.toString()).font(FONT).color(NamedTextColor.WHITE);
     }
+
+    /** Siatka kafelkow ustawiona od x=0 (kolumny o szerokosciach kol, rzedy wierszy, naWiersz znakow na wiersz); konczy na x=szer. */
+    static String siatka(int base, int[] kol, int rzedy, int naWiersz, int szer) {
+        StringBuilder b = new StringBuilder(); int x = 0, cx = 0;
+        for (int c = 0; c < kol.length; c++) {
+            for (int r = 0; r < rzedy; r++) { b.append(spacja(cx - x)).append((char) (base + r * naWiersz + c)); x = cx + kol[c] + 1; }
+            cx += kol[c];
+        }
+        b.append(spacja(szer - x));
+        return b.toString();
+    }
+
+    static Component glify(String s) { return Component.text(s).font(FONT).color(NamedTextColor.WHITE); }
 }
