@@ -320,6 +320,19 @@ final class Bank implements Listener, CommandExecutor {
     // ===================================================================== komendy
     @Override
     public boolean onCommand(CommandSender s, Command cmd, String label, String[] a) {
+        if (cmd.getName().equalsIgnoreCase("czas") && a.length >= 1 && s.hasPermission("westsmp.admin") && List.of("daj", "zabierz", "ustaw").contains(a[0].toLowerCase())) {
+            if (a.length < 3) { s.sendMessage(WestSMP.c("&7/czas <daj|zabierz|ustaw> <gracz> <ilosc>")); return true; }
+            org.bukkit.OfflinePlayer t = Bukkit.getOfflinePlayer(a[1]);
+            long n;
+            try { n = Long.parseLong(a[2]); } catch (NumberFormatException e) { s.sendMessage(WestSMP.c("&cZla liczba.")); return true; }
+            switch (a[0].toLowerCase()) {
+                case "daj" -> dodajPunkty(t, Math.max(0, n));
+                case "zabierz" -> zabierzPunkty(t, Math.min(Math.max(0, n), punkty(t)));
+                default -> czas.set(t.getUniqueId() + ".punkty", Math.max(0, n));
+            }
+            s.sendMessage(WestSMP.c("&aPunkty czasu &f" + a[1] + "&a: &#4EE08F&l" + punkty(t)));
+            return true;
+        }
         if (!(s instanceof Player p)) { s.sendMessage("Tylko w grze."); return true; }
         switch (cmd.getName().toLowerCase()) {
             case "portfel" -> otworzBank(p);

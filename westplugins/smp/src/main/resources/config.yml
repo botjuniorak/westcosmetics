@@ -321,3 +321,8 @@ rynek:
   max-cena: 1000000000
   ogloszenia: true
   zakazane: [BEDROCK, BARRIER, COMMAND_BLOCK]
+
+# SPRZEDAZ (/sell): ceny w pliku ceny.yml (generuje sie sam). Po zmianie: /sell przeladuj
+# cena w opisie itemow wymaga pluginu PacketEvents na serwerze
+sprzedaz:
+  cena-w-opisie: true
