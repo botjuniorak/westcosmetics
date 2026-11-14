@@ -259,6 +259,7 @@ postacie-odwroc: true          # postac stoi tylem? ustaw false i /lobby przelad
 napisy-obracaj: true           # duze napisy obracaja sie do gracza (false = stoja prosto tam, gdzie je postawiles)
 hud:
   scoreboard: true
+  ramka-w-linii: true         # liczby na ciemnym tle; jakby znow ich nie bylo widac - ustaw false
   tab: true
   serwer-gildie: gildie
   serwer-duels: duels

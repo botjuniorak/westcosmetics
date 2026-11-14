@@ -40,7 +40,17 @@ final class Hud {
     }
 
     // ============================================================ scoreboard
+    /** true = ramka w 1. linii (liczby rysuja sie NA ramce, z ciemnym tlem); false = ramka w tytule (stary sposob). */
+    private boolean ramkaWLinii() { return pl.getConfig().getBoolean("hud.ramka-w-linii", true); }
+
+    private Component ramka(int base) {
+        Glify.Tytul t = Glify.siatka(new Glify.Tytul(), 0, base, Glify.TABLICA_KOL, 3, 3);
+        t.idz(132);
+        return Glify.lobby(t.tekst());
+    }
+
     private Component tytul() {
+        if (ramkaWLinii()) return Component.text(" ");
         Glify.Tytul t = Glify.siatka(new Glify.Tytul(), 0, Glify.TABLICA, Glify.TABLICA_KOL, 3, 3);
         t.idz(132);
         return Glify.lobby(t.tekst());
@@ -90,7 +100,12 @@ final class Hud {
                 int[] at = new int[LINII];
                 at[5] = at[6] = 40;
                 at[9] = at[10] = at[11] = at[13] = 98;
-                for (int i = 0; i < LINII; i++) o.getScore("l" + i).customName(t[i] == null ? Component.empty() : linia(at[i], t[i]));
+                for (int i = 0; i < LINII; i++) {
+                    Component line = t[i] == null ? Component.empty() : linia(at[i], t[i]);
+                    if (i == 0 && ramkaWLinii()) line = Component.text("").append(ramka(0xE0A0));
+                    o.getScore("l" + i).customName(line);
+                }
+                o.displayName(tytul());
             }
         }
         if (tabOn()) {
