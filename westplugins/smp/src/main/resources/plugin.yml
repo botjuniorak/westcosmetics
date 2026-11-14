@@ -2,6 +2,8 @@ name: WestSMP
 version: '${version}'
 main: pl.westmc.smp.WestSMP
 api-version: '1.21'
+softdepend: [Vault]
+loadbefore: [Essentials]
 description: Tryb SMP WestMC
 commands:
   szafa:
@@ -19,6 +21,13 @@ commands:
   delwarp: {description: Usun warp, permission: westsmp.admin}
   teleporty: {description: Menu teleportow, aliases: [warpy, spawny]}
   npc: {description: NPC na spawnie, permission: westsmp.admin}
+  money: {description: Saldo, aliases: [bal, balance, kasa]}
+  pay: {description: Przelew, aliases: [przelew]}
+  eco: {description: Admin ekonomii, permission: westsmp.admin}
+  portfel: {description: Bankier, aliases: [bank, bankier]}
+  czek: {description: Wypisz czek}
+  coinflip: {description: Coinflip, aliases: [cf]}
+  czas: {description: Czas gry, aliases: [playtime]}
 permissions:
   westsmp.admin:
     default: op

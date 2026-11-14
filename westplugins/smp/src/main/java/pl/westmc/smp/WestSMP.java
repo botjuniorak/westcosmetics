@@ -10,12 +10,21 @@ public final class WestSMP extends JavaPlugin {
     Eventowki eventowki;
     Teleporty teleporty;
     Npc npc;
+    Kasa kasa;
+    Bank bank;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
         getConfig().options().copyDefaults(true);
         saveConfig();
+        kasa = new Kasa(this);
+        kasa.start();
+        for (String c : new String[]{"money", "pay", "eco"}) getCommand(c).setExecutor(kasa);
+        bank = new Bank(this);
+        getServer().getPluginManager().registerEvents(bank, this);
+        for (String c : new String[]{"portfel", "czek", "coinflip", "czas"}) getCommand(c).setExecutor(bank);
+        bank.start();
         szafa = new Szafa(this);
         getServer().getPluginManager().registerEvents(szafa, this);
         szafa.start();
@@ -32,7 +41,7 @@ public final class WestSMP extends JavaPlugin {
     }
 
     @Override
-    public void onDisable() { if (szafa != null) szafa.stop(); if (npc != null) npc.stop(); }
+    public void onDisable() { if (szafa != null) szafa.stop(); if (npc != null) npc.stop(); if (bank != null) bank.stop(); if (kasa != null) kasa.zapisz(); }
 
     static String c(String s) {
         if (s == null) return "";

@@ -71,3 +71,19 @@ npc:
   straznik_endu:    {skin: straznik_endu, nazwa: "&#B06AFF&lSTRAZNIK ENDU", podpis: "&7» Teleport do Endu «", akcja: "warp:end"}
   straznik_netheru: {skin: straznik_netheru, nazwa: "&#FF7A2A&lSTRAZNIK NETHERU", podpis: "&7» Teleport do Netheru «", akcja: "warp:nether"}
 npc-postawione: {}
+
+# PIENIADZE: jesli jest EssentialsX/inna ekonomia przez Vault - uzywamy jej; jesli nie - wlasna WestMC.
+kasa:
+  symbol: "$"
+  start: 500            # ile dostaje nowy gracz (tylko wlasna ekonomia)
+czeki:
+  min: 100
+coinflip:
+  min: 100
+  max: 10000000
+  podatek: 0.05         # 5% puli dla serwera
+  ogloszenie-od: 50000  # ogloszenie na czacie od takiej puli
+czas:
+  punkty-za-minute: 1
+  afk-nie-liczy: true
+  komenda-sklepu: "sklep czas"
