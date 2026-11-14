@@ -265,6 +265,25 @@ ustawka:
 # SCOREBOARD + TAB (grafika HD z paczki WestMC)
 hud:
   scoreboard: true
+  # styl: tekst = ikonki + tekst (jak na gildiach) | hd = duzy panel z paczki
+  styl: tekst
+  tytul: "&#C08BFF&lWEST&f&lMC&#C08BFF&l.EU"
+  # max 15 linii; {GRACZ} {RANGA} {KLAN} {KASA} {PUNKTY} {CZAS} {ZABOJSTWA} {SMIERCI} {ONLINE}
+  # ikonki: \uE460 gracz, \uE461 ranga, \uE465 klan, \uE467 kasa, \uE469 punkty, \uE466 czas, \uE463 zabojstwa, \uE464 smierci, \uE468 online
+  linie:
+    - " "
+    - "\uE460 &7Gracz: &f{GRACZ}"
+    - "\uE461 &7Ranga: {RANGA}"
+    - "\uE465 &7Klan: {KLAN}"
+    - "  "
+    - "\uE467 &7Stan konta: &#FFC23D{KASA}"
+    - "\uE469 &7Punkty czasu: &#4EE08F{PUNKTY}"
+    - "\uE466 &7Czas gry: &e{CZAS}"
+    - "\uE463 &7Zabójstwa: &c{ZABOJSTWA}"
+    - "\uE464 &7Śmierci: &7{SMIERCI}"
+    - "   "
+    - "\uE468 &7Online: &a{ONLINE}"
+    - "&8» &#C08BFFwestmc.eu"
   tab: true
   odswiezanie-tickow: 40
   tlo-liczb: "#140A2E"

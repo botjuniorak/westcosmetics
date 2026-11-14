@@ -50,8 +50,25 @@ final class Hud implements Listener {
         return cfg().getString("czat.ranga-domyslna", "");
     }
 
+    private boolean tekstowy() { return !cfg().getString("hud.styl", "tekst").equalsIgnoreCase("hd"); }
+
     private Component tytul() {
+        if (tekstowy()) return kolor(cfg().getString("hud.tytul", "&#C08BFF&lWEST&f&lMC&#C08BFF&l.EU"));
         return Tlo.glify(Tlo.siatka(TABLICA, new int[]{60, 60, 12}, 3, 3, 132));
+    }
+
+    private String wstaw(Player p, String l) {
+        String klan = pl.klany == null ? null : pl.klany.tagGoly(p);
+        String r = ranga(p);
+        return l.replace("{GRACZ}", p.getName())
+            .replace("{RANGA}", r.isEmpty() ? "&7Gracz" : r.trim())
+            .replace("{KLAN}", klan == null ? "&7brak" : "&l" + klan)
+            .replace("{KASA}", pl.kasa.fmt(pl.kasa.saldo(p)))
+            .replace("{PUNKTY}", String.valueOf(pl.bank == null ? 0 : pl.bank.punkty(p)))
+            .replace("{CZAS}", czas(p.getStatistic(Statistic.PLAY_ONE_MINUTE)))
+            .replace("{ZABOJSTWA}", String.valueOf(p.getStatistic(Statistic.PLAYER_KILLS)))
+            .replace("{SMIERCI}", String.valueOf(p.getStatistic(Statistic.DEATHS)))
+            .replace("{ONLINE}", String.valueOf(Bukkit.getOnlinePlayers().size()));
     }
 
     /** Ciemne tlo (znak ze zwyklej czcionki - rysuje sie przed tekstem) + wartosc. */
@@ -88,7 +105,16 @@ final class Hud implements Listener {
     void update(Player p) {
         Scoreboard sb = boards.get(p.getUniqueId());
         Objective o = sb == null ? null : sb.getObjective("westsmp");
-        if (o != null) {
+        if (o != null && tekstowy()) {
+            java.util.List<String> l = cfg().getStringList("hud.linie");
+            for (int i = 0; i < LINII; i++) {
+                org.bukkit.scoreboard.Score sc = o.getScore("l" + i);
+                if (i >= l.size()) { if (sc.isScoreSet()) sb.resetScores("l" + i); continue; }
+                if (!sc.isScoreSet() || sc.getScore() != LINII - i) sc.setScore(LINII - i);
+                sc.customName(kolor(wstaw(p, l.get(i))));
+            }
+            o.displayName(tytul());
+        } else if (o != null) {
             String[] t = new String[LINII];
             t[5] = "&#FFC23D&l" + pl.kasa.fmt(pl.kasa.saldo(p));
             String klan = pl.klany == null ? null : pl.klany.tagGoly(p);
