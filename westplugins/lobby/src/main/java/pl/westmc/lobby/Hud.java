@@ -104,7 +104,7 @@ final class Hud {
                 t[6] = ranga;
                 t[9] = liczba(pl.getConfig().getString("hud.serwer-gildie", "gildie"));
                 t[10] = liczba(pl.getConfig().getString("hud.serwer-duels", "duels"));
-                t[11] = pl.getConfig().getString("hud.wkrotce", "&7???");
+                t[11] = pl.fillOnline(pl.getConfig().getString("hud.wkrotce", "&7???"));
                 int all = pl.online("ALL");
                 t[13] = "&a&l" + (all < 0 ? Bukkit.getOnlinePlayers().size() : all);
                 int[] at = new int[LINII];

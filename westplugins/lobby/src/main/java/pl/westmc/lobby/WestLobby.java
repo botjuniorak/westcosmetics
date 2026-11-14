@@ -187,7 +187,7 @@ public final class WestLobby extends JavaPlugin implements Listener, PluginMessa
         return c(b.toString());
     }
 
-    private String fillOnline(String l) {
+    String fillOnline(String l) {
         int all = online("ALL");
         l = l.replace("{ONLINE}", all < 0 ? String.valueOf(Bukkit.getOnlinePlayers().size()) : String.valueOf(all));
         int i;
