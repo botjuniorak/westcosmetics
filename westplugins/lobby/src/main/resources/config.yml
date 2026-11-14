@@ -262,7 +262,7 @@ hud:
   tab: true
   serwer-gildie: gildie
   serwer-duels: duels
-  wkrotce: "&7???"
+  wkrotce: "&7&l???"
   tab-linia: "&7Jestes na &#3AA0FF&lLOBBY &8• &7Graczy na sieci&8: &a&l{ONLINE}"
   tab-podpowiedz: "&7Wybierz tryb gry &fkompasem &8(&fPPM&8)"
 # Rangi w scoreboardzie i TAB. Gracz dostaje range, gdy ma uprawnienie westlobby.ranga.<nazwa>

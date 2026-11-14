@@ -53,7 +53,7 @@ final class Hud {
 
     private String liczba(String srv) {
         int on = pl.online(srv);
-        return on < 0 ? "&7?" : "&a" + on;
+        return on < 0 ? "&7&l?" : "&a&l" + on;
     }
 
     void join(Player p) {
@@ -80,7 +80,7 @@ final class Hud {
             Objective o = sb == null ? null : sb.getObjective("westlobby");
             if (o != null) {
                 String[] t = new String[LINII];
-                t[5] = "&#5AB4FF" + p.getName();
+                t[5] = "&f" + p.getName();
                 t[6] = ranga;
                 t[9] = liczba(pl.getConfig().getString("hud.serwer-gildie", "gildie"));
                 t[10] = liczba(pl.getConfig().getString("hud.serwer-duels", "duels"));
