@@ -10,7 +10,20 @@ commands:
   eventowka:
     description: Eventowki - daj / lista
     aliases: [eventowki]
+  spawn: {description: Teleport na spawn}
+  end: {description: Teleport na spawn Endu}
+  nether: {description: Teleport na spawn Netheru}
+  afk: {description: Teleport do strefy AFK}
+  warp: {description: Warpy}
+  setwarp: {description: Ustaw spawn/warp, permission: westsmp.admin}
+  delwarp: {description: Usun warp, permission: westsmp.admin}
+  teleporty: {description: Menu teleportow, aliases: [warpy, spawny]}
+  npc: {description: NPC na spawnie, permission: westsmp.admin}
 permissions:
+  westsmp.admin:
+    default: op
+  westsmp.teleport.natychmiast:
+    default: op
   westsmp.eventowki.admin:
     default: op
   westsmp.szafa.wszystko:

@@ -43,3 +43,31 @@ eventowki:
   miecz:    {wlaczona: true, procent: 0.15, max-leczenie: 3.0}
   buty:     {wlaczona: true, sila: 0.9}
   perla:    {wlaczona: true}
+
+# TELEPORTY: /spawn /end /nether /afk /warp <nazwa> /teleporty (menu)
+# Admin: /setwarp <spawn|end|nether|afk|nazwa> [ladna nazwa] - ustawia tam, gdzie stoisz.
+teleport:
+  odliczanie: 3              # sekundy (ruch = anulowanie); OP i westsmp.teleport.natychmiast - od razu
+  nowi-na-spawn: true
+  odrodzenie-na-spawnie: true   # po smierci na spawn (chyba ze lozko/kotwica)
+warpy:
+  spawn:  {nazwa: "&#3AA0FF&lSPAWN"}
+  end:    {nazwa: "&#B06AFF&lSPAWN ENDU"}
+  nether: {nazwa: "&#FF7A2A&lSPAWN NETHERU"}
+  afk:    {nazwa: "&#4EE08F&lSTREFA AFK"}
+teleporty-menu:
+  spawn:  {slot: 10, ikona: LODESTONE, nazwa: "&#3AA0FF&lSpawn", opis: ["&7Glowny spawn serwera"]}
+  end:    {slot: 11, ikona: ENDER_EYE, nazwa: "&#B06AFF&lEnd", opis: ["&7Spawn Endu - event Smok"]}
+  nether: {slot: 12, ikona: NETHERRACK, nazwa: "&#FF7A2A&lNether", opis: ["&7Spawn Netheru"]}
+  afk:    {slot: 14, ikona: CLOCK, nazwa: "&#4EE08F&lStrefa AFK", opis: ["&7Stoj i zbieraj nagrody"]}
+  rtp:    {slot: 15, ikona: GRASS_BLOCK, nazwa: "&#FFC93D&lLosowy teleport", opis: ["&7Nowe miejsce na baze"], akcja: "komenda:rtp"}
+  szafa:  {slot: 16, ikona: ARMOR_STAND, nazwa: "&#C08BFF&lSzafa", opis: ["&7Pety, kostiumy, papugi"], akcja: "komenda:szafa"}
+# NPC: /npc <typ> (stoisz tam, gdzie ma stac) | /npc usun
+npc:
+  przewodnik:       {skin: przewodnik, nazwa: "&#3AA0FF&lPRZEWODNIK", podpis: "&7» Teleporty «", akcja: "menu:teleporty"}
+  kowal:            {skin: kowal, nazwa: "&#E8913A&lKOWAL", podpis: "&7» Naprawa i ulepszanie «", akcja: "komenda:kowal"}
+  handlarz:         {skin: handlarz, nazwa: "&#45C27A&lHANDLARZ", podpis: "&7» Sklep «", akcja: "komenda:sklep"}
+  bankier:          {skin: bankier, nazwa: "&#FFC93D&lBANKIER", podpis: "&7» Portfel i czeki «", akcja: "komenda:portfel"}
+  straznik_endu:    {skin: straznik_endu, nazwa: "&#B06AFF&lSTRAZNIK ENDU", podpis: "&7» Teleport do Endu «", akcja: "warp:end"}
+  straznik_netheru: {skin: straznik_netheru, nazwa: "&#FF7A2A&lSTRAZNIK NETHERU", podpis: "&7» Teleport do Netheru «", akcja: "warp:nether"}
+npc-postawione: {}

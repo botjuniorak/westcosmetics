@@ -8,6 +8,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class WestSMP extends JavaPlugin {
     Szafa szafa;
     Eventowki eventowki;
+    Teleporty teleporty;
+    Npc npc;
 
     @Override
     public void onEnable() {
@@ -20,10 +22,17 @@ public final class WestSMP extends JavaPlugin {
         eventowki = new Eventowki(this);
         getServer().getPluginManager().registerEvents(eventowki, this);
         getCommand("eventowka").setExecutor(eventowki);
+        teleporty = new Teleporty(this);
+        getServer().getPluginManager().registerEvents(teleporty, this);
+        for (String c : new String[]{"spawn", "end", "nether", "afk", "warp", "setwarp", "delwarp", "teleporty"}) getCommand(c).setExecutor(teleporty);
+        npc = new Npc(this);
+        getServer().getPluginManager().registerEvents(npc, this);
+        getCommand("npc").setExecutor(npc);
+        npc.start();
     }
 
     @Override
-    public void onDisable() { if (szafa != null) szafa.stop(); }
+    public void onDisable() { if (szafa != null) szafa.stop(); if (npc != null) npc.stop(); }
 
     static String c(String s) {
         if (s == null) return "";
