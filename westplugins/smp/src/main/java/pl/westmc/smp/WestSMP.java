@@ -20,6 +20,7 @@ public final class WestSMP extends JavaPlugin {
     Ustawka ustawka;
     Hud hud;
     Topki topki;
+    Eventy eventy;
 
     @Override
     public void onEnable() {
@@ -74,10 +75,14 @@ public final class WestSMP extends JavaPlugin {
         getCommand("topki").setExecutor(topki); getCommand("topki").setTabCompleter(topki);
         topki.sprzatnij();
         topki.start();
+        eventy = new Eventy(this);
+        getServer().getPluginManager().registerEvents(eventy, this);
+        getCommand("smok").setExecutor(eventy); getCommand("minievent").setExecutor(eventy);
+        eventy.start();
     }
 
     @Override
-    public void onDisable() { if (szafa != null) szafa.stop(); if (npc != null) npc.stop(); if (bank != null) bank.stop(); if (kasa != null) kasa.zapisz(); if (narzedzia != null) narzedzia.stop(); if (hud != null) hud.stop(); if (topki != null) topki.stop(); }
+    public void onDisable() { if (szafa != null) szafa.stop(); if (npc != null) npc.stop(); if (bank != null) bank.stop(); if (kasa != null) kasa.zapisz(); if (narzedzia != null) narzedzia.stop(); if (hud != null) hud.stop(); if (topki != null) topki.stop(); if (eventy != null) eventy.stop(); }
 
     static String c(String s) {
         if (s == null) return "";

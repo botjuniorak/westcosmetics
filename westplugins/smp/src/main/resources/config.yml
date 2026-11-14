@@ -262,3 +262,35 @@ topki:
   wysokosc: 1.0
   zasieg: 48
   odwroc: false
+
+# EVENT SMOK [End]: o tych godzinach (i /smok start) w Endzie wylatuje Smok Westusia.
+# Ogloszenia 10, 5 i 1 min wczesniej. Ataki: deszcz ognia, sludzy, piorun, fala uderzeniowa.
+smok:
+  swiat: world_the_end
+  godziny: ["20:00"]
+  nazwa: "&#C08BFF&lSmok Westusia"
+  zycie: 800
+  wysokosc: 90
+  atak-co-sekund: 12
+  limit-minut: 30
+  min-obrazen: 20
+  nagrody:
+    top1: ["kasa:25000", "klucz:legendarna 1", "eventowka:miecz 1"]
+    top2: ["kasa:15000", "klucz:epicka 2"]
+    top3: ["kasa:10000", "klucz:epicka 1"]
+    uczestnik: ["kasa:2500", "klucz:zwykla 1"]
+# MINI EVENTY na czacie co X minut (przepisz, matma, rozsypanka, zgadnij liczbe). Admin: /minievent <typ>
+# "deszcz" = deszcz nagrod na spawnie (wymaga /setwarp spawn)
+mini-eventy:
+  wlaczone: true
+  co-minut: 20
+  min-graczy: 3
+  czas-sekund: 60
+  nagrody: ["kasa:1000"]
+  slowa: [westmc, klany, diament, smok, eventowka, kowadlo, netherite, enderchest, coinflip, szafa]
+  deszcz-nagrod-automatycznie: false
+  deszcz:
+    sekund: 20
+    promien: 12
+    na-pol-sekundy: 2
+    przedmioty: ["DIAMOND 1", "GOLDEN_APPLE 1", "EMERALD 3", "EXPERIENCE_BOTTLE 4", "klucz:zwykla 1"]

@@ -53,6 +53,8 @@ commands:
   klan: {description: Klany, aliases: [klany, clan]}
   ustawka: {description: Ustawka 1v1 o stawke, aliases: [duel, wyzwij]}
   topki: {description: Topki serwera, aliases: [top, ranking]}
+  smok: {description: Event Smok w Endzie}
+  minievent: {description: Mini eventy (admin), aliases: [mini]}
 permissions:
   westsmp.vanish: {default: op}
   westsmp.adminchat: {default: op}
