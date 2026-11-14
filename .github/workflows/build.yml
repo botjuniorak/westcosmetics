@@ -135,4 +135,5 @@ jobs:
             westplugins/backup/build/libs/WestBackup-*.jar
             westplugins/osiagniecia/build/libs/WestOsiagniecia-*.jar
             westplugins/lobby/build/libs/WestLobby-*.jar
+            westplugins/czolg/build/libs/WestCzolg-*.jar
           make_latest: false
