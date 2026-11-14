@@ -387,7 +387,8 @@ public final class WestLobby extends JavaPlugin implements Listener, PluginMessa
             t.obraz(cx - 17 - 8, st, 35);
         }
         t.idz(0);
-        return Glify.lobby(t.tekst());
+        // bialy kolor: gra rysuje tytul skrzyni na ciemnoszaro i przyciemnia nim cala grafike
+        return Glify.lobby(t.tekst()).color(net.kyori.adventure.text.format.NamedTextColor.WHITE);
     }
 
     void openSelector(Player p) {
