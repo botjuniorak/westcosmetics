@@ -174,7 +174,7 @@ final class Npc implements Listener, CommandExecutor {
         ConfigurationSection t = pl.getConfig().getConfigurationSection("npc." + typ);
         if (t == null) return;
         p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_TRADE, 0.7f, 1.1f);
-        String a = t.getString("akcja", "");
+        String a = wartosc(typ, "akcja", "");
         if (a.startsWith("menu:teleporty")) pl.teleporty.otworz(p);
         else if (a.startsWith("warp:")) pl.teleporty.teleport(p, a.substring(5));
         else if (a.startsWith("komenda:")) p.performCommand(a.substring(8));
