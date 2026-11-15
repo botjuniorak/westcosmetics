@@ -97,13 +97,13 @@ final class Npc implements Listener, CommandExecutor {
             ItemMeta m = it.getItemMeta(); m.setItemModel(NamespacedKey.fromString("westmc:postac/" + t.getString("skin") + "_" + CZ[i])); it.setItemMeta(m);
             n.cz[i] = base.getWorld().spawn(base, ItemDisplay.class, d -> {
                 d.setPersistent(false); d.setItemStack(it); d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
-                d.setViewRange(1f); d.setShadowRadius(0f);
+                d.setViewRange(pl.zasieg("npc", 128)); d.setShadowRadius(0f);
                 d.getPersistentDataContainer().set(KEY, PersistentDataType.STRING, tag);
             });
             n.all.add(n.cz[i]);
         }
         float h = 2f * n.s;
-        n.nazwa = base.getWorld().spawn(base.clone().add(0, h + 0.3, 0), TextDisplay.class, d -> {
+        n.nazwa = base.getWorld().spawn(base.clone().add(0, h + 0.3, 0), TextDisplay.class, d -> { d.setViewRange(pl.zasieg("npc", 128));
             d.setPersistent(false); d.setBillboard(Display.Billboard.CENTER); d.setShadowed(true);
             d.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
             d.setText(WestSMP.c(t.getString("nazwa", typ)) + "\n" + WestSMP.c(t.getString("podpis", "&7» Kliknij «")));

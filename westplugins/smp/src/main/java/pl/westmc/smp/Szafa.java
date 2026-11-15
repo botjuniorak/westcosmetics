@@ -115,7 +115,7 @@ final class Szafa implements Listener {
             d.setItemStack(model(key));
             d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
             d.setTeleportDuration(2);
-            d.setViewRange(0.6f);
+            d.setViewRange(pl.zasieg("pety", 64));
             d.setShadowRadius(0f);
             d.setRotation(0f, 0f);
         });
@@ -139,7 +139,7 @@ final class Szafa implements Listener {
                 t.setBackgroundColor(org.bukkit.Color.fromARGB(0, 0, 0, 0));
                 t.setShadowed(true);
                 t.setTeleportDuration(2);
-                t.setViewRange(0.4f);
+                t.setViewRange(pl.zasieg("pety", 64) * 0.7f);
                 t.setText(WestSMP.c(pl.getConfig().getString("szafa.pety." + s.pet + ".nazwa", s.pet)) + "\n" + WestSMP.c("&7" + p.getName()));
                 t.setTransformation(new org.bukkit.util.Transformation(new org.joml.Vector3f(), new org.joml.AxisAngle4f(), new org.joml.Vector3f(0.6f, 0.6f, 0.6f), new org.joml.AxisAngle4f()));
             });

@@ -148,7 +148,7 @@ final class Topki implements CommandExecutor, TabCompleter, Listener {
             t.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
             t.setShadowed(al != TextDisplay.TextAlignment.CENTER);
             t.setBrightness(new Display.Brightness(15, 15));
-            t.setViewRange(pl.getConfig().getInt("topki.zasieg", 48) / 64f);
+            t.setViewRange(pl.getConfig().getInt("topki.zasieg", 128) / 64f);
             t.setTransformation(new Transformation(new Vector3f(), new AxisAngle4f(), new Vector3f(skala, skala, skala), new AxisAngle4f()));
             t.getPersistentDataContainer().set(KLUCZ, PersistentDataType.STRING, id);
         });

@@ -327,7 +327,7 @@ topki:
   odswiezanie-sekund: 300
   skala: 0.8
   wysokosc: 1.0
-  zasieg: 48
+  zasieg: 128
   odwroc: false
 
 # EVENT SMOK [End]: o tych godzinach (i /smok start) w Endzie wylatuje Smok Westusia.
@@ -377,3 +377,10 @@ rynek:
 # cena w opisie itemow wymaga pluginu PacketEvents na serwerze
 sprzedaz:
   cena-w-opisie: true
+
+# ZASIEG WIDZENIA (w kratkach) modeli z pluginu - dodatkowo musi pozwalac spigot.yml (entity-tracking-range: display)
+# i ustawienie gracza "Odleglosc renderowania bytow"
+zasieg-widzenia:
+  npc: 128
+  skrzynie: 128
+  pety: 64

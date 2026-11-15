@@ -120,7 +120,7 @@ final class SkrzynieModele implements org.bukkit.event.Listener {
             d.setItemStack(it); d.setPersistent(false);
             d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
             d.setTransformation(new Transformation(new Vector3f(), new AxisAngle4f(), new Vector3f(sk, sk, sk), new AxisAngle4f()));
-            d.setViewRange(1.5f);
+            d.setViewRange(pl.zasieg("skrzynie", 128));
             d.getPersistentDataContainer().set(KLUCZ, PersistentDataType.STRING, key);
         });
         org.bukkit.entity.Interaction klik = b.getWorld().spawn(b.getLocation().add(0.5, 0, 0.5), org.bukkit.entity.Interaction.class, d -> {
@@ -130,7 +130,7 @@ final class SkrzynieModele implements org.bukkit.event.Listener {
         TextDisplay napis = b.getWorld().spawn(b.getLocation().add(0.5, 0.3 + 0.98 * sk, 0.5), TextDisplay.class, d -> {
             String nz = pl.getConfig().getString("skrzynie." + typ + ".nazwa", typ);
             d.text(net.kyori.adventure.text.Component.text(WestSMP.c(nz + "\n" + pl.getConfig().getString("skrzynie.napis-pod", "&7PPM &8- &fotworz &8| &7LPM &8- &fnagrody"))));
-            d.setBillboard(Display.Billboard.CENTER); d.setPersistent(false); d.setShadowed(true);
+            d.setBillboard(Display.Billboard.CENTER); d.setPersistent(false); d.setShadowed(true); d.setViewRange(pl.zasieg("skrzynie", 128));
             d.setBackgroundColor(Color.fromARGB(90, 10, 6, 24));
             d.setBrightness(new Display.Brightness(15, 15));
             d.getPersistentDataContainer().set(KLUCZ, PersistentDataType.STRING, key);

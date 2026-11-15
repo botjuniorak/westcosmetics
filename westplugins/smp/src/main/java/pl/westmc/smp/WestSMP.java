@@ -39,6 +39,7 @@ public final class WestSMP extends JavaPlugin {
             for (String t : new String[]{"zwykla", "epicka", "legendarna"}) getConfig().set("skrzynie." + t + ".nagrody", getConfig().getDefaults().getList("skrzynie." + t + ".nagrody"));
             getConfig().set("skrzynie.wersja-nagrod", 2);
         }
+        if (getConfig().getInt("topki.zasieg", 128) == 48) getConfig().set("topki.zasieg", 128);
         if (getConfig().getDouble("eventowki.czarna_dziura.promien", 5) == 8.0) getConfig().set("eventowki.czarna_dziura.promien", 5.0);
         if (getConfig().getDouble("eventowki.hydro.promien", 5) == 3.0) { getConfig().set("eventowki.hydro.promien", 5.0); getConfig().set("eventowki.hydro.sekund", 10); }
         if (getConfig().getDouble("skrzynie.wielkosc-modelu", 1.7) == 1.0) getConfig().set("skrzynie.wielkosc-modelu", 1.7);
@@ -118,6 +119,9 @@ public final class WestSMP extends JavaPlugin {
 
     @Override
     public void onDisable() { if (szafa != null) szafa.stop(); if (npc != null) npc.stop(); if (bank != null) bank.stop(); if (kasa != null) kasa.zapisz(); if (narzedzia != null) narzedzia.stop(); if (hud != null) hud.stop(); if (topki != null) topki.stop(); if (eventy != null) eventy.stop(); if (rynek != null) rynek.stop(); if (sprzedaz != null) sprzedaz.stop(); if (skrzynieModele != null) skrzynieModele.stop(); if (eventowkiMoc != null) eventowkiMoc.stop(); }
+
+    /** Zasieg widzenia bytow (kratki z configu) -> view_range dla display entity. */
+    float zasieg(String k, int dom) { return Math.max(16, getConfig().getInt("zasieg-widzenia." + k, dom)) / 64f; }
 
     static String c(String s) {
         if (s == null) return "";
