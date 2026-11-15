@@ -59,6 +59,14 @@ final class Narzedzia implements Listener, CommandExecutor {
     private final Map<UUID, Set<Location>> szklo = new HashMap<>();
     private final Map<UUID, Long> cdRtp = new HashMap<>(), cdHelpop = new HashMap<>();
     private final Map<UUID, Integer> afk = new HashMap<>();
+    private long ostatniKlucz = -1;
+
+    /** Ile sekund do nastepnego darmowego klucza (pelne godziny wg zegara serwera / co X minut). */
+    long sekundDoKlucza() {
+        long co = Math.max(60, cfg().getInt("klucz-co-godzine.co-minut", 60) * 60L);
+        long now = System.currentTimeMillis() / 1000 + java.time.ZoneId.systemDefault().getRules().getOffset(java.time.Instant.now()).getTotalSeconds();
+        return co - (now % co);
+    }
     private final Random rnd = new Random();
     private BossBar bar;
     private int msgIdx, barIdx;
@@ -122,6 +130,21 @@ final class Narzedzia implements Listener, CommandExecutor {
             for (Player p : Bukkit.getOnlinePlayers()) for (String c : cfg().getStringList("keyall.komendy")) Bukkit.dispatchCommand(Bukkit.getConsoleSender(), c.replace("{GRACZ}", p.getName()));
             Bukkit.broadcast(Component.text(WestSMP.c(cfg().getString("keyall.wiadomosc", "&#FFC93D&lKEYALL &8» &7Kazdy dostal klucz!"))));
             for (Player p : Bukkit.getOnlinePlayers()) p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.7f, 1.2f);
+        }
+        // --- klucz co godzine dla kazdego gracza online
+        if (cfg().getBoolean("klucz-co-godzine.wlaczony", true)) {
+            long za = sekundDoKlucza();
+            if (za == 60 || za == 10) Bukkit.broadcast(Component.text(WestSMP.c(cfg().getString("klucz-co-godzine.przypomnienie", "&#FFC93D&lKLUCZ &8» &7Darmowy klucz dla wszystkich za &f{CZAS}&7!").replace("{CZAS}", za == 60 ? "1 min" : "10 s"))));
+            long blok = System.currentTimeMillis() / 1000 / Math.max(60, cfg().getInt("klucz-co-godzine.co-minut", 60) * 60L);
+            if (ostatniKlucz < 0) ostatniKlucz = blok;
+            if (blok != ostatniKlucz) {
+                ostatniKlucz = blok;
+                for (Player p : Bukkit.getOnlinePlayers()) {
+                    for (String c : cfg().getStringList("klucz-co-godzine.komendy")) Bukkit.dispatchCommand(Bukkit.getConsoleSender(), c.replace("{GRACZ}", p.getName()));
+                    p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.7f, 1.3f);
+                }
+                Bukkit.broadcast(Component.text(WestSMP.c(cfg().getString("klucz-co-godzine.wiadomosc", "&#FFC93D&lKLUCZ &8» &7Kazdy gracz online dostal &fklucz do Skrzyni Zwyklej&7!"))));
+            }
         }
         // --- strefa AFK: nagroda co X minut
         BoundingBox strefa = box("strefa-afk");

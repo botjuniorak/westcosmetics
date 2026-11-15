@@ -315,6 +315,7 @@ hud:
     - "\uE463 &7Zabójstwa: &c{ZABOJSTWA}"
     - "\uE464 &7Śmierci: &7{SMIERCI}"
     - "   "
+    - "\uE46A &7Darmowy klucz: &#FFC23D{KLUCZ}"
     - "\uE468 &7Online: &a{ONLINE}"
     - "&8» &#C08BFFwestmc.eu"
   tab: true
@@ -392,3 +393,12 @@ domy:
   # tylko do opisu w menu ("Dom nr 4 dostepny od rangi SVIP")
   rangi: {VIP: 3, SVIP: 5, Elita: 7}
   zablokowane-swiaty: []
+
+# DARMOWY KLUCZ CO GODZINE dla kazdego gracza online (o pelnych godzinach wg zegara serwera)
+# odliczanie w scoreboardzie: {KLUCZ}
+klucz-co-godzine:
+  wlaczony: true
+  co-minut: 60
+  komendy: ["klucz daj {GRACZ} zwykla 1"]
+  wiadomosc: "&#FFC93D&lKLUCZ &8» &7Kazdy gracz online dostal &fklucz do Skrzyni Zwyklej&7!"
+  przypomnienie: "&#FFC93D&lKLUCZ &8» &7Darmowy klucz dla wszystkich za &f{CZAS}&7!"

@@ -68,7 +68,8 @@ final class Hud implements Listener {
             .replace("{CZAS}", czas(p.getStatistic(Statistic.PLAY_ONE_MINUTE)))
             .replace("{ZABOJSTWA}", String.valueOf(p.getStatistic(Statistic.PLAYER_KILLS)))
             .replace("{SMIERCI}", String.valueOf(p.getStatistic(Statistic.DEATHS)))
-            .replace("{ONLINE}", String.valueOf(Bukkit.getOnlinePlayers().size()));
+            .replace("{ONLINE}", String.valueOf(Bukkit.getOnlinePlayers().size()))
+            .replace("{KLUCZ}", kluczTekst());
     }
 
     /** Ciemne tlo (znak ze zwyklej czcionki - rysuje sie przed tekstem) + wartosc. */
@@ -97,6 +98,12 @@ final class Hud implements Listener {
         update(p);
     }
 
+    private String kluczTekst() {
+        if (pl.narzedzia == null || !cfg().getBoolean("klucz-co-godzine.wlaczony", true)) return "-";
+        long s = pl.narzedzia.sekundDoKlucza();
+        return (s >= 3600 ? s / 3600 + "h " : "") + String.format("%02d:%02d", (s % 3600) / 60, s % 60);
+    }
+
     static String czas(long tickow) {
         long m = tickow / 20 / 60;
         return (m / 60) + "h " + String.format("%02d", m % 60) + "m";
@@ -107,6 +114,11 @@ final class Hud implements Listener {
         Objective o = sb == null ? null : sb.getObjective("westsmp");
         if (o != null && tekstowy()) {
             java.util.List<String> l = cfg().getStringList("hud.linie");
+            if (cfg().getBoolean("hud.dodaj-linie-klucza", true) && l.stream().noneMatch(x -> x.contains("{KLUCZ}"))) {
+                l = new java.util.ArrayList<>(l);
+                int gdzie = Math.max(0, l.size() - 2);
+                l.add(gdzie, "\uE46A &7Darmowy klucz: &#FFC23D{KLUCZ}");
+            }
             for (int i = 0; i < LINII; i++) {
                 org.bukkit.scoreboard.Score sc = o.getScore("l" + i);
                 if (i >= l.size()) { if (sc.isScoreSet()) sb.resetScores("l" + i); continue; }
