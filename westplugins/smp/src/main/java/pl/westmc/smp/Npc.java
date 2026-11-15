@@ -82,6 +82,13 @@ final class Npc implements Listener, CommandExecutor {
         return l;
     }
 
+    /** Wartosc z configu, a gdy jej brak - z domyslnego configu pluginu. */
+    private String wartosc(String typ, String k, String dom) {
+        String v = pl.getConfig().getString("npc." + typ + "." + k);
+        if (v == null && pl.getConfig().getDefaults() != null) v = pl.getConfig().getDefaults().getString("npc." + typ + "." + k);
+        return v == null ? dom : v;
+    }
+
     private void spawn(String id) {
         N old = npc.remove(id);
         if (old != null) for (Entity e : old.all) if (e.isValid()) e.remove();
@@ -106,7 +113,7 @@ final class Npc implements Listener, CommandExecutor {
         n.nazwa = base.getWorld().spawn(base.clone().add(0, h + 0.3, 0), TextDisplay.class, d -> { d.setViewRange(pl.zasieg("npc", 128));
             d.setPersistent(false); d.setBillboard(Display.Billboard.CENTER); d.setShadowed(true);
             d.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
-            d.setText(WestSMP.c(t.getString("nazwa", typ)) + "\n" + WestSMP.c(t.getString("podpis", "&7» Kliknij «")));
+            d.setText(WestSMP.c(wartosc(typ, "nazwa", typ)) + "\n" + WestSMP.c(wartosc(typ, "podpis", "&7» Kliknij «")));
         });
         n.all.add(n.nazwa);
         n.klik = base.getWorld().spawn(base, Interaction.class, i -> {
@@ -181,6 +188,11 @@ final class Npc implements Listener, CommandExecutor {
     @Override
     public boolean onCommand(CommandSender s, Command cmd, String label, String[] a) {
         if (!(s instanceof Player p) || !p.hasPermission("westsmp.admin")) { s.sendMessage(WestSMP.c("&cBrak uprawnien.")); return true; }
+        if (a.length >= 1 && a[0].equalsIgnoreCase("przeladuj")) {
+            pl.reloadConfig();
+            for (String id : new java.util.ArrayList<>(npc.keySet())) spawn(id);
+            p.sendMessage(WestSMP.c("&aPrzeladowano NPC z configu (" + npc.size() + ").")); return true;
+        }
         if (a.length >= 1 && a[0].equalsIgnoreCase("usun")) {
             String best = null; double bd = 49;
             for (N n : npc.values()) if (n.base.getWorld() == p.getWorld()) { double d = n.base.distanceSquared(p.getLocation()); if (d < bd) { bd = d; best = n.id; } }
