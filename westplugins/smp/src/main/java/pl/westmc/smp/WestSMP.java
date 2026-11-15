@@ -25,6 +25,7 @@ public final class WestSMP extends JavaPlugin {
     Ceny ceny;
     Sprzedaz sprzedaz;
     SkrzynieModele skrzynieModele;
+    EventowkiMoc eventowkiMoc;
 
     @Override
     public void onEnable() {
@@ -38,6 +39,8 @@ public final class WestSMP extends JavaPlugin {
             for (String t : new String[]{"zwykla", "epicka", "legendarna"}) getConfig().set("skrzynie." + t + ".nagrody", getConfig().getDefaults().getList("skrzynie." + t + ".nagrody"));
             getConfig().set("skrzynie.wersja-nagrod", 2);
         }
+        if (getConfig().getDouble("eventowki.czarna_dziura.promien", 5) == 8.0) getConfig().set("eventowki.czarna_dziura.promien", 5.0);
+        if (getConfig().getDouble("eventowki.hydro.promien", 5) == 3.0) { getConfig().set("eventowki.hydro.promien", 5.0); getConfig().set("eventowki.hydro.sekund", 10); }
         if (getConfig().getDouble("skrzynie.wielkosc-modelu", 1.7) == 1.0) getConfig().set("skrzynie.wielkosc-modelu", 1.7);
         getConfig().options().copyDefaults(true);
         saveConfig();
@@ -102,7 +105,8 @@ public final class WestSMP extends JavaPlugin {
         sprzedaz = new Sprzedaz(this);
         getServer().getPluginManager().registerEvents(sprzedaz, this);
         getCommand("sell").setExecutor(sprzedaz); getCommand("cena").setExecutor(sprzedaz);
-        getServer().getPluginManager().registerEvents(new EventowkiMoc(this), this);
+        eventowkiMoc = new EventowkiMoc(this);
+        getServer().getPluginManager().registerEvents(eventowkiMoc, this);
         skrzynieModele = new SkrzynieModele(this);
         skrzynieModele.start();
         getServer().getPluginManager().registerEvents(skrzynieModele, this);
@@ -113,7 +117,7 @@ public final class WestSMP extends JavaPlugin {
     }
 
     @Override
-    public void onDisable() { if (szafa != null) szafa.stop(); if (npc != null) npc.stop(); if (bank != null) bank.stop(); if (kasa != null) kasa.zapisz(); if (narzedzia != null) narzedzia.stop(); if (hud != null) hud.stop(); if (topki != null) topki.stop(); if (eventy != null) eventy.stop(); if (rynek != null) rynek.stop(); if (sprzedaz != null) sprzedaz.stop(); if (skrzynieModele != null) skrzynieModele.stop(); }
+    public void onDisable() { if (szafa != null) szafa.stop(); if (npc != null) npc.stop(); if (bank != null) bank.stop(); if (kasa != null) kasa.zapisz(); if (narzedzia != null) narzedzia.stop(); if (hud != null) hud.stop(); if (topki != null) topki.stop(); if (eventy != null) eventy.stop(); if (rynek != null) rynek.stop(); if (sprzedaz != null) sprzedaz.stop(); if (skrzynieModele != null) skrzynieModele.stop(); if (eventowkiMoc != null) eventowkiMoc.stop(); }
 
     static String c(String s) {
         if (s == null) return "";

@@ -43,7 +43,7 @@ eventowki:
   miecz:    {wlaczona: true, procent: 0.15, max-leczenie: 3.0}
   buty:     {wlaczona: true, sila: 0.9}
   perla:    {wlaczona: true}
-  czarna_dziura: {wlaczona: true, odnowienie: 60, sekund: 5, promien: 8.0, sila: 0.35, obrazenia: 1.5}
+  czarna_dziura: {wlaczona: true, odnowienie: 60, sekund: 5, promien: 5.0, sila: 0.35, obrazenia: 1.5}
   meteor:   {wlaczona: true, odnowienie: 45, promien: 4.0, obrazenia: 8.0}
   kula:     {wlaczona: true, odnowienie: 60, sekund: 10, szybkosc: 2, skok: 1}
   zegarek:  {wlaczona: true, odnowienie: 40, sekund: 3}
@@ -51,7 +51,7 @@ eventowki:
   excalibur: {wlaczona: true, zabojstw-do-pelna: 100, max-bonus: 4.0}
   siekiera_grincha: {wlaczona: true, odnowienie: 60, procent: 30}
   sakiewka: {wlaczona: true}
-  hydro:    {wlaczona: true, odnowienie: 45, promien: 3.0, sekund: 3}
+  hydro:    {wlaczona: true, odnowienie: 45, promien: 5.0, wysokosc: 5, sekund: 10}
 
 # TELEPORTY: /spawn /end /nether /afk /warp <nazwa> /teleporty (menu)
 # Admin: /setwarp <spawn|end|nether|afk|nazwa> [ladna nazwa] - ustawia tam, gdzie stoisz.

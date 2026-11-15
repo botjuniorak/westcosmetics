@@ -88,8 +88,8 @@ final class Eventowki implements Listener, CommandExecutor {
 
     private static List<String> opis(String id) {
         return switch (id) {
-            case "kilof" -> List.of("&7Kopie &f3x3 &7bloki naraz.");
-            case "siekiera" -> List.of("&7Scina &fcale drzewo &7jednym ciosem.");
+            case "kilof" -> List.of("&7Wykuty w sercu Netheru przez", "&7pradawnych tytanow. Kazde uderzenie", "&7rozbija skale &f3x3 &7naraz.");
+            case "siekiera" -> List.of("&7Stary drwal mawial: jeden cios", "&7wystarczy. Scina &fcale drzewo", "&7od korzenia po korone.");
             case "rzucak" -> List.of("&7Rzuc - wybucha i &fodrzuca graczy&7.", "&7Nie niszczy blokow.");
             case "totem" -> List.of("&7Trzymaj w ekwipunku - po smierci", "&fzachowasz wszystkie rzeczy&7. (1 raz)");
             case "luk" -> List.of("&7Trafiona strzala &fprzywoluje piorun&7.");
@@ -114,7 +114,7 @@ final class Eventowki implements Listener, CommandExecutor {
             if (!t[0].equals(id)) continue;
             ItemStack it = new ItemStack((Material) t[1], Math.max(1, ilosc));
             ItemMeta m = it.getItemMeta();
-            m.setItemModel(NamespacedKey.fromString("westmc:event/" + id));
+            if (!id.equals("kilof") && !id.equals("siekiera")) m.setItemModel(NamespacedKey.fromString("westmc:event/" + id));
             m.setDisplayName(WestSMP.c((String) t[2]));
             List<String> lore = new ArrayList<>();
             lore.add(WestSMP.c("&8&m                         "));

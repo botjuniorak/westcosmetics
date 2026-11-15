@@ -126,17 +126,20 @@ final class EventowkiMoc implements Listener {
     }
 
     private void dziura(Player p, Location c0) {
-        Location c = c0.clone().add(0, 1.2, 0);
-        World w = c.getWorld();
-        double r = c("czarna_dziura", "promien", 8), sila = c("czarna_dziura", "sila", 0.35), dmg = c("czarna_dziura", "obrazenia", 1.5);
+        World w = c0.getWorld();
+        Location c = c0.clone(); c.setY(Math.floor(c.getY()) + 0.06);
+        double r = c("czarna_dziura", "promien", 5), sila = c("czarna_dziura", "sila", 0.35), dmg = c("czarna_dziura", "obrazenia", 1.5);
+        float sk = (float) (r * 1.3);
         int ticks = (int) (c("czarna_dziura", "sekund", 5) * 20);
-        ItemDisplay model = w.spawn(c, ItemDisplay.class, d -> {
-            ItemStack it = new ItemStack(Material.PAPER); ItemMeta m = it.getItemMeta(); m.setItemModel(NamespacedKey.fromString("westmc:event/czarna_dziura")); it.setItemMeta(m);
-            d.setItemStack(it); d.setPersistent(false); d.setBillboard(Display.Billboard.CENTER); d.setBrightness(new Display.Brightness(15, 15));
-            d.setTransformation(new Transformation(new Vector3f(), new AxisAngle4f(), new Vector3f(0.2f, 0.2f, 0.2f), new AxisAngle4f()));
+        Location lm = c.clone(); lm.setYaw(0); lm.setPitch(0);
+        ItemDisplay model = w.spawn(lm, ItemDisplay.class, d -> {
+            ItemStack it = new ItemStack(Material.PAPER); ItemMeta m = it.getItemMeta(); m.setItemModel(NamespacedKey.fromString("westmc:event/dziura_kolo")); it.setItemMeta(m);
+            d.setItemStack(it); d.setPersistent(false); d.setBillboard(Display.Billboard.FIXED); d.setBrightness(new Display.Brightness(15, 15));
+            d.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
+            d.setTransformation(new Transformation(new Vector3f(), new AxisAngle4f((float) -Math.PI / 2, 1, 0, 0), new Vector3f(0.05f, 0.05f, 0.05f), new AxisAngle4f()));
         });
-        Bukkit.getScheduler().runTaskLater(pl, () -> { model.setInterpolationDelay(0); model.setInterpolationDuration(10);
-            model.setTransformation(new Transformation(new Vector3f(), new AxisAngle4f(), new Vector3f(2.6f, 2.6f, 2.6f), new AxisAngle4f())); }, 2L);
+        Bukkit.getScheduler().runTaskLater(pl, () -> { model.setInterpolationDelay(0); model.setInterpolationDuration(12);
+            model.setTransformation(new Transformation(new Vector3f(), new AxisAngle4f((float) -Math.PI / 2, 1, 0, 0), new Vector3f(sk, sk, sk), new AxisAngle4f())); }, 2L);
         w.playSound(c, Sound.ENTITY_WARDEN_SONIC_CHARGE, 2f, 0.5f);
         w.playSound(c, Sound.BLOCK_PORTAL_TRIGGER, 1.2f, 0.6f);
         final int[] n = {0};
@@ -144,28 +147,27 @@ final class EventowkiMoc implements Listener {
             n[0] += 2;
             if (n[0] > ticks) {
                 task.cancel();
-                model.setInterpolationDelay(0); model.setInterpolationDuration(8);
-                model.setTransformation(new Transformation(new Vector3f(), new AxisAngle4f(), new Vector3f(0.01f, 0.01f, 0.01f), new AxisAngle4f()));
-                w.spawnParticle(Particle.REVERSE_PORTAL, c, 120, 0.5, 0.5, 0.5, 0.6);
+                model.setInterpolationDelay(0); model.setInterpolationDuration(10);
+                model.setTransformation(new Transformation(new Vector3f(), new AxisAngle4f((float) -Math.PI / 2, 1, 0, 0), new Vector3f(0.01f, 0.01f, 0.01f), new AxisAngle4f()));
+                w.spawnParticle(Particle.REVERSE_PORTAL, c.clone().add(0, 0.3, 0), 120, r * 0.4, 0.2, r * 0.4, 0.4);
                 w.playSound(c, Sound.ENTITY_ENDERMAN_TELEPORT, 1.5f, 0.5f);
-                Bukkit.getScheduler().runTaskLater(pl, model::remove, 10L);
+                Bukkit.getScheduler().runTaskLater(pl, model::remove, 12L);
                 return;
             }
-            double a = n[0] * 0.35;
-            for (int i = 0; i < 3; i++) {
-                double aa = a + i * 2.094, rr = 3 - (n[0] % 20) * 0.14;
-                w.spawnParticle(Particle.DUST, c.clone().add(Math.cos(aa) * rr, Math.sin(aa * 0.5) * 0.3, Math.sin(aa) * rr), 2, 0.05, 0.05, 0.05, 0, new Particle.DustOptions(Color.fromRGB(0xA46BFF), 1.4f));
+            // wir czasteczek po ziemi do srodka
+            for (int i = 0; i < 6; i++) {
+                double aa = n[0] * 0.25 + i * Math.PI / 3, rr = r * (1 - ((n[0] * 3 + i * 7) % 20) / 20.0);
+                w.spawnParticle(Particle.DUST, c.clone().add(Math.cos(aa) * rr, 0.15, Math.sin(aa) * rr), 1, 0, 0, 0, 0, new Particle.DustOptions(Color.fromRGB(0xA46BFF), 1.3f));
             }
-            w.spawnParticle(Particle.PORTAL, c, 25, 1.5, 1, 1.5, 1.2);
+            w.spawnParticle(Particle.PORTAL, c.clone().add(0, 0.4, 0), 12, r * 0.3, 0.1, r * 0.3, 0.6);
             if (n[0] % 20 == 0) w.playSound(c, Sound.BLOCK_BEACON_AMBIENT, 1.5f, 0.5f);
             for (Player t : w.getPlayers()) {
                 if (swoj(p, t) || t.getGameMode() == org.bukkit.GameMode.SPECTATOR || t.getGameMode() == org.bukkit.GameMode.CREATIVE) continue;
-                double d = t.getLocation().distance(c);
-                if (d > r || spawn(t.getLocation())) continue;
-                Vector v = c.toVector().subtract(t.getLocation().toVector());
-                if (v.lengthSquared() < 0.01) continue;
-                t.setVelocity(t.getVelocity().multiply(0.5).add(v.normalize().multiply(sila * (1.2 - d / r * 0.6))));
-                if (d < 1.8 && n[0] % 20 == 0) t.damage(dmg, p);
+                Location tl = t.getLocation();
+                double dx = c.getX() - tl.getX(), dz = c.getZ() - tl.getZ(), d = Math.sqrt(dx * dx + dz * dz);
+                if (d > r || Math.abs(tl.getY() - c.getY()) > 4 || spawn(tl)) continue;
+                if (d > 0.3) t.setVelocity(t.getVelocity().multiply(0.4).add(new Vector(dx / d, -0.05, dz / d).multiply(sila * (1.3 - d / r * 0.6))));
+                if (d < 1.2 && n[0] % 20 == 0) t.damage(dmg, p);
             }
         }, 4L, 2L);
     }
@@ -392,47 +394,72 @@ final class EventowkiMoc implements Listener {
         }, 1L, 1L);
     }
 
+    private final Map<Block, Long> klatki = new HashMap<>();
+
     @EventHandler
     public void onHydroHit(org.bukkit.event.entity.ProjectileHitEvent e) {
         String w = e.getEntity().getPersistentDataContainer().get(HYDRO, org.bukkit.persistence.PersistentDataType.STRING);
         if (w == null) return;
-        Player p = Bukkit.getPlayer(UUID.fromString(w));
         Location c = e.getEntity().getLocation();
-        c.getWorld().spawnParticle(Particle.SPLASH, c, 120, 1.5, 0.5, 1.5, 0.3);
+        if (e.getHitBlock() != null) c = e.getHitBlock().getLocation().add(0.5, 1, 0.5);
+        if (spawn(c)) return;
+        c.getWorld().spawnParticle(Particle.SPLASH, c, 200, 3, 0.5, 3, 0.3);
         c.getWorld().playSound(c, Sound.ENTITY_PLAYER_SPLASH_HIGH_SPEED, 1.5f, 1f);
-        double r = c("hydro", "promien", 3);
-        long ms = (long) (c("hydro", "sekund", 3) * 1000);
+        c.getWorld().playSound(c, Sound.BLOCK_CONDUIT_ACTIVATE, 1.5f, 1.2f);
+        double r = c("hydro", "promien", 5);
+        int wys = (int) c("hydro", "wysokosc", 5);
+        long ms = (long) (c("hydro", "sekund", 10) * 1000);
+        Material[] wzor = {Material.LIGHT_BLUE_GLAZED_TERRACOTTA, Material.CYAN_GLAZED_TERRACOTTA, Material.BLUE_GLAZED_TERRACOTTA};
+        List<Block> nowe = new ArrayList<>();
+        int cx = c.getBlockX(), cy = c.getBlockY(), cz = c.getBlockZ();
+        int R = (int) Math.ceil(r);
+        for (int dx = -R; dx <= R; dx++) for (int dz = -R; dz <= R; dz++) {
+            double d = Math.sqrt(dx * dx + dz * dz);
+            boolean sciana = d > r - 1 && d <= r, wnetrze = d <= r;
+            if (!wnetrze) continue;
+            for (int dy = 0; dy <= wys; dy++) {
+                Material m;
+                if (dy == wys) m = (dx == 0 && dz == 0) ? Material.SEA_LANTERN : ((dx + dz) % 3 == 0 ? Material.LIGHT_BLUE_STAINED_GLASS : Material.PRISMARINE_BRICKS);
+                else if (!sciana) continue;
+                else if (dy == 0) m = Material.DARK_PRISMARINE;
+                else if (dy == wys - 1) m = Material.PRISMARINE_BRICKS;
+                else if (dy == 2 && (Math.abs(dx) + Math.abs(dz)) % 3 == 0) m = Material.LIGHT_BLUE_STAINED_GLASS;
+                else if (dy == 1 && (dx * 7 + dz * 3) % 5 == 0) m = Material.SEA_LANTERN;
+                else m = wzor[Math.floorMod(dx + dz + dy, 3)];
+                Block b = c.getWorld().getBlockAt(cx + dx, cy + dy, cz + dz);
+                if (!b.getType().isAir() || spawn(b.getLocation())) continue;
+                b.setType(m, false);
+                klatki.put(b, System.currentTimeMillis() + ms);
+                nowe.add(b);
+            }
+        }
+        Player p = Bukkit.getPlayer(UUID.fromString(w));
         for (Player t : c.getWorld().getPlayers()) {
             if (p != null && swoj(p, t)) continue;
-            if (t.getGameMode() == org.bukkit.GameMode.SPECTATOR || t.getGameMode() == org.bukkit.GameMode.CREATIVE || spawn(t.getLocation())) continue;
-            if (t.getLocation().distance(c) > r) continue;
-            klatka(t, ms);
+            Location tl = t.getLocation();
+            if (Math.hypot(tl.getX() - c.getX(), tl.getZ() - c.getZ()) > r || Math.abs(tl.getY() - c.getY()) > wys) continue;
+            t.showTitle(Title.title(Component.text(WestSMP.c("&#3AD8FF&lHYDRO KLATKA!")), Component.text(WestSMP.c("&7Jestes uwieziony na &f" + ms / 1000 + "s")),
+                Title.Times.times(Duration.ZERO, Duration.ofMillis(1500), Duration.ofMillis(300))));
         }
+        Bukkit.getScheduler().runTaskLater(pl, () -> {
+            for (Block b : nowe) { if (klatki.remove(b) != null) b.setType(Material.AIR, false); }
+            c.getWorld().spawnParticle(Particle.SPLASH, c.clone().add(0, 1, 0), 200, r * 0.6, 1.5, r * 0.6, 0.3);
+            c.getWorld().playSound(c, Sound.BLOCK_CONDUIT_DEACTIVATE, 1.5f, 1f);
+        }, ms / 50);
     }
 
-    private void klatka(Player t, long ms) {
-        zamrozeni.put(t.getUniqueId(), System.currentTimeMillis() + ms);
-        Location l = t.getLocation();
-        List<org.bukkit.entity.BlockDisplay> sciany = new ArrayList<>();
-        org.bukkit.block.data.BlockData szklo = Material.LIGHT_BLUE_STAINED_GLASS.createBlockData();
-        sciany.add(l.getWorld().spawn(l.clone().add(-0.7, -0.05, -0.7), org.bukkit.entity.BlockDisplay.class, d -> {
-            d.setBlock(szklo); d.setPersistent(false); d.setBrightness(new Display.Brightness(15, 15));
-            d.setTransformation(new Transformation(new Vector3f(), new AxisAngle4f(), new Vector3f(1.4f, 2.3f, 1.4f), new AxisAngle4f()));
-        }));
-        t.showTitle(Title.title(Component.text(WestSMP.c("&#3AD8FF&lHYDRO KLATKA!")), Component.text(WestSMP.c("&7Jestes uwieziony w wodzie")),
-            Title.Times.times(Duration.ZERO, Duration.ofMillis(ms), Duration.ofMillis(300))));
-        final int[] n = {0};
-        Bukkit.getScheduler().runTaskTimer(pl, task -> {
-            n[0] += 4;
-            if (!t.isOnline() || zamrozeni.getOrDefault(t.getUniqueId(), 0L) < System.currentTimeMillis()) {
-                zamrozeni.remove(t.getUniqueId()); task.cancel();
-                for (org.bukkit.entity.BlockDisplay d : sciany) d.remove();
-                if (t.isOnline()) t.getWorld().spawnParticle(Particle.SPLASH, t.getLocation().add(0, 1, 0), 60, 0.6, 0.8, 0.6, 0.2);
-                return;
-            }
-            t.getWorld().spawnParticle(Particle.BUBBLE_COLUMN_UP, t.getLocation().add(0, 0.2, 0), 6, 0.4, 0.2, 0.4, 0.05);
-            t.getWorld().spawnParticle(Particle.DRIPPING_WATER, t.getLocation().add(0, 2.1, 0), 4, 0.5, 0, 0.5, 0);
-            if (n[0] % 20 == 0) t.getWorld().playSound(t.getLocation(), Sound.BLOCK_BUBBLE_COLUMN_UPWARDS_AMBIENT, 1f, 1f);
-        }, 0L, 4L);
-    }
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onKlatkaBreak(org.bukkit.event.block.BlockBreakEvent e) { if (klatki.containsKey(e.getBlock())) e.setCancelled(true); }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onKlatkaBoom(org.bukkit.event.entity.EntityExplodeEvent e) { e.blockList().removeIf(klatki::containsKey); }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onKlatkaBoom2(org.bukkit.event.block.BlockExplodeEvent e) { e.blockList().removeIf(klatki::containsKey); }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onKlatkaTlok(org.bukkit.event.block.BlockPistonExtendEvent e) { for (Block b : e.getBlocks()) if (klatki.containsKey(b)) { e.setCancelled(true); return; } }
+
+    /** Przy wylaczeniu serwera - usun wszystkie klatki. */
+    void stop() { for (Block b : klatki.keySet()) b.setType(Material.AIR, false); klatki.clear(); }
 }

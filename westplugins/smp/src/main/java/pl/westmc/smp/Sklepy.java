@@ -153,7 +153,7 @@ final class Sklepy implements Listener, CommandExecutor {
     // ===================================================================== SKRZYNIE + KLUCZE
     ItemStack klucz(String typ) {
         ItemStack k = ikona(Material.TRIPWIRE_HOOK, "westmc:klucz/" + typ, pl.getConfig().getString("skrzynie." + typ + ".nazwa-klucza", "&fKlucz " + typ),
-            List.of("&7Otwiera: " + pl.getConfig().getString("skrzynie." + typ + ".nazwa", typ), "", "&7Uzyj przy skrzyni na spawnie", "&7albo w &f/skrzynie"), true);
+            List.of("&7Otwiera: " + pl.getConfig().getString("skrzynie." + typ + ".nazwa", typ), "", "&7Uzyj przy skrzyni na spawnie", "&7albo w &f/skrzynie"), false);
         ItemMeta m = k.getItemMeta(); m.getPersistentDataContainer().set(KLUCZ, PersistentDataType.STRING, typ); k.setItemMeta(m);
         return k;
     }
