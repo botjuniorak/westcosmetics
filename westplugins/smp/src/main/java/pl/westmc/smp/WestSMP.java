@@ -110,7 +110,7 @@ public final class WestSMP extends JavaPlugin {
         getCommand("sell").setExecutor(sprzedaz); getCommand("cena").setExecutor(sprzedaz);
         pomoc = new Pomoc(this);
         getServer().getPluginManager().registerEvents(pomoc, this);
-        getCommand("pomoc").setExecutor(pomoc);
+        getCommand("pomoc").setExecutor(pomoc); getCommand("zasady").setExecutor(pomoc);
         domy = new Domy(this);
         getServer().getPluginManager().registerEvents(domy, this);
         for (String k : new String[]{"home", "sethome", "delhome"}) { getCommand(k).setExecutor(domy); getCommand(k).setTabCompleter(domy); }

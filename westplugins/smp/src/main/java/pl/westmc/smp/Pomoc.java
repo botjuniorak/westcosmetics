@@ -89,6 +89,7 @@ final class Pomoc implements CommandExecutor, Listener {
     @Override
     public boolean onCommand(CommandSender s, Command cmd, String label, String[] a) {
         if (!(s instanceof Player p)) { s.sendMessage("Tylko w grze."); return true; }
+        if (cmd.getName().equalsIgnoreCase("zasady")) { wypisz(p, "zasady"); return true; }
         if (a.length > 0 && (a[0].equalsIgnoreCase("zasady") || pl.getConfig().isConfigurationSection("pomoc.kategorie." + a[0].toLowerCase()))) wypisz(p, a[0].toLowerCase());
         else otworz(p);
         return true;
