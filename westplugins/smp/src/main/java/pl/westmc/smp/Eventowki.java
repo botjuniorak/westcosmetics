@@ -75,6 +75,11 @@ final class Eventowki implements Listener, CommandExecutor {
         {"miecz", Material.NETHERITE_SWORD, "&#FF3A5A&lMiecz Wampira", "&#FF3A5A&lLEGENDARNA"},
         {"buty", Material.LEATHER_BOOTS, "&#4EE08F&lButy Skoczka", "&#4EE08F&lRZADKA"},
         {"perla", Material.ENDER_PEARL, "&#3FE0C8&lPerla Teleportu", "&#3FE0C8&lEPICKA"},
+        {"czarna_dziura", Material.PAPER, "&#A46BFF&lCzarna Dziura", "&#A46BFF&lLEGENDARNA"},
+        {"meteor", Material.PAPER, "&#FF7A2A&lMeteoryt", "&#FF7A2A&lEPICKA"},
+        {"kula", Material.PAPER, "&#3AD8FF&lSpeed Orb", "&#3AD8FF&lRZADKA"},
+        {"zegarek", Material.PAPER, "&#FFD84A&lTime Watch", "&#FFD84A&lLEGENDARNA"},
+        {"kostka", Material.PAPER, "&#FF4AD8&lKostka Chaosu", "&#FF4AD8&lEPICKA"},
     };
 
     private static List<String> opis(String id) {
@@ -87,6 +92,11 @@ final class Eventowki implements Listener, CommandExecutor {
             case "miecz" -> List.of("&7Kazde trafienie &fleczy cie&7.");
             case "buty" -> List.of("&7Kliknij &fspacje w powietrzu&7,", "&7zeby wykonac podwojny skok.");
             case "perla" -> List.of("&7Perla &fbez czasu odnowienia&7.");
+            case "czarna_dziura" -> List.of("&7PPM - tworzy &fczarna dziure&7,", "&7ktora wciaga graczy przez 5s.");
+            case "meteor" -> List.of("&7PPM - z nieba spada &fmeteoryt", "&7i rani graczy w promieniu 4 kratek.");
+            case "kula" -> List.of("&7PPM - &fsuper szybkosc &7i &fwysoki skok", "&7przez 10 sekund.");
+            case "zegarek" -> List.of("&7Uderz gracza, aby &fzatrzymac go", "&fw czasie &7na 3 sekundy.");
+            case "kostka" -> List.of("&7Uderz gracza, aby &fpomieszac", "&7mu pasek szybkiego wyboru.");
             default -> List.of();
         };
     }

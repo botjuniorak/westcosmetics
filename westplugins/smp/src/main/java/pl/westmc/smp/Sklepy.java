@@ -258,7 +258,7 @@ final class Sklepy implements Listener, CommandExecutor {
         if (typ == null) return;
         e.setCancelled(true);
         if (e.getAction() == Action.LEFT_CLICK_BLOCK) podglad(e.getPlayer(), typ);
-        else if (e.getAction() == Action.RIGHT_CLICK_BLOCK) otworzSkrzynie(e.getPlayer(), typ);
+        else if (e.getAction() == Action.RIGHT_CLICK_BLOCK) { otworzSkrzynie(e.getPlayer(), typ); if (pl.skrzynieModele != null) pl.skrzynieModele.puls(key.replace('.', '_')); }
         b.getWorld().spawnParticle(Particle.END_ROD, b.getLocation().add(0.5, 1.2, 0.5), 6, 0.3, 0.2, 0.3, 0.02);
     }
 
@@ -464,8 +464,12 @@ final class Sklepy implements Listener, CommandExecutor {
                     Block b = p.getTargetBlockExact(6);
                     if (b == null) { p.sendMessage(WestSMP.c("&cPatrz na blok skrzyni.")); return true; }
                     String key = (b.getWorld().getName() + "," + b.getX() + "," + b.getY() + "," + b.getZ()).replace('.', '_');
-                    pl.getConfig().set("skrzynie-bloki." + key, a[1].equalsIgnoreCase("usun") ? null : a[1].toLowerCase()); pl.saveConfig();
-                    p.sendMessage(WestSMP.c("&aUstawiono skrzynie &f" + a[1] + " &ana tym bloku. (PPM = otworz, LPM = nagrody)"));
+                    boolean usun = a[1].equalsIgnoreCase("usun");
+                    if (!usun && !pl.getConfig().isConfigurationSection("skrzynie." + a[1].toLowerCase())) { p.sendMessage(WestSMP.c("&cNie ma skrzyni &f" + a[1] + "&c. Typy: zwykla, epicka, legendarna")); return true; }
+                    pl.getConfig().set("skrzynie-bloki." + key, usun ? null : a[1].toLowerCase()); pl.saveConfig();
+                    float yaw = Math.round((p.getLocation().getYaw() + 180) / 90f) * 90f;
+                    if (pl.skrzynieModele != null) pl.skrzynieModele.ustawiono(key, usun ? null : a[1].toLowerCase(), yaw, b);
+                    p.sendMessage(WestSMP.c(usun ? "&aUsunieto skrzynie z tego bloku." : "&aUstawiono skrzynie &f" + a[1] + " &ana tym bloku. (PPM = otworz, LPM = nagrody)"));
                 } else skrzynie(p);
             }
             case "zestawy" -> {

@@ -43,6 +43,11 @@ eventowki:
   miecz:    {wlaczona: true, procent: 0.15, max-leczenie: 3.0}
   buty:     {wlaczona: true, sila: 0.9}
   perla:    {wlaczona: true}
+  czarna_dziura: {wlaczona: true, odnowienie: 60, sekund: 5, promien: 8.0, sila: 0.35, obrazenia: 1.5}
+  meteor:   {wlaczona: true, odnowienie: 45, promien: 4.0, obrazenia: 8.0}
+  kula:     {wlaczona: true, odnowienie: 60, sekund: 10, szybkosc: 2, skok: 1}
+  zegarek:  {wlaczona: true, odnowienie: 40, sekund: 3}
+  kostka:   {wlaczona: true, odnowienie: 30}
 
 # TELEPORTY: /spawn /end /nether /afk /warp <nazwa> /teleporty (menu)
 # Admin: /setwarp <spawn|end|nether|afk|nazwa> [ladna nazwa] - ustawia tam, gdzie stoisz.
@@ -191,6 +196,11 @@ sklep:
 # SKRZYNIE: /skrzynie ; postaw skrzynie na spawnie: patrz na blok i /skrzynie ustaw <zwykla|epicka|legendarna>
 # Klucze: /klucz daj <gracz|*> <typ> [ilosc]   (np. w keyall)
 skrzynie:
+  # modele 3D na spawnie (blok staje sie niewidzialna bariera, wraca po /skrzynie ustaw usun)
+  modele-3d: true
+  wielkosc-modelu: 1.0
+  odwroc-model: false
+  napis-pod: "&7PPM &8- &fotworz &8| &7LPM &8- &fnagrody"
   zwykla:
     nazwa: "&f&lSkrzynia Zwykla"
     nazwa-klucza: "&fKlucz do Skrzyni Zwyklej"

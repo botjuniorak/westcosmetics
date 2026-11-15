@@ -24,6 +24,7 @@ public final class WestSMP extends JavaPlugin {
     Rynek rynek;
     Ceny ceny;
     Sprzedaz sprzedaz;
+    SkrzynieModele skrzynieModele;
 
     @Override
     public void onEnable() {
@@ -96,6 +97,9 @@ public final class WestSMP extends JavaPlugin {
         sprzedaz = new Sprzedaz(this);
         getServer().getPluginManager().registerEvents(sprzedaz, this);
         getCommand("sell").setExecutor(sprzedaz); getCommand("cena").setExecutor(sprzedaz);
+        getServer().getPluginManager().registerEvents(new EventowkiMoc(this), this);
+        skrzynieModele = new SkrzynieModele(this);
+        skrzynieModele.start();
         if (getServer().getPluginManager().getPlugin("packetevents") != null) {
             try { CenyPakiety.podepnij(this); getLogger().info("Ceny w opisie itemow: wlaczone (PacketEvents)."); }
             catch (Throwable t) { getLogger().warning("PacketEvents: " + t); }
@@ -103,7 +107,7 @@ public final class WestSMP extends JavaPlugin {
     }
 
     @Override
-    public void onDisable() { if (szafa != null) szafa.stop(); if (npc != null) npc.stop(); if (bank != null) bank.stop(); if (kasa != null) kasa.zapisz(); if (narzedzia != null) narzedzia.stop(); if (hud != null) hud.stop(); if (topki != null) topki.stop(); if (eventy != null) eventy.stop(); if (rynek != null) rynek.stop(); if (sprzedaz != null) sprzedaz.stop(); }
+    public void onDisable() { if (szafa != null) szafa.stop(); if (npc != null) npc.stop(); if (bank != null) bank.stop(); if (kasa != null) kasa.zapisz(); if (narzedzia != null) narzedzia.stop(); if (hud != null) hud.stop(); if (topki != null) topki.stop(); if (eventy != null) eventy.stop(); if (rynek != null) rynek.stop(); if (sprzedaz != null) sprzedaz.stop(); if (skrzynieModele != null) skrzynieModele.stop(); }
 
     static String c(String s) {
         if (s == null) return "";
