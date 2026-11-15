@@ -53,9 +53,13 @@ final class Teleporty implements Listener, CommandExecutor {
     void teleport(Player p, String nazwa) {
         Location to = warp(nazwa);
         if (to == null) { p.sendMessage(WestSMP.c("&cTen spawn nie jest jeszcze ustawiony. &7(/setwarp " + nazwa + ")")); return; }
+        teleport(p, to, pl.getConfig().getString("warpy." + nazwa.toLowerCase() + ".nazwa", nazwa));
+    }
+
+    /** Teleport z odliczaniem do dowolnego miejsca (np. dom). */
+    void teleport(Player p, Location to, String ladna) {
         int sek = p.hasPermission("westsmp.teleport.natychmiast") ? 0 : pl.getConfig().getInt("teleport.odliczanie", 3);
         anuluj(p, false);
-        String ladna = pl.getConfig().getString("warpy." + nazwa.toLowerCase() + ".nazwa", nazwa);
         if (sek <= 0) { wykonaj(p, to, ladna); return; }
         start.put(p.getUniqueId(), p.getLocation());
         final int[] left = {sek};

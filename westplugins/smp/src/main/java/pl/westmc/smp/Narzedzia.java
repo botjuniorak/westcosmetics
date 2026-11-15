@@ -186,7 +186,7 @@ final class Narzedzia implements Listener, CommandExecutor {
     }
 
     // ===================================================================== antylogout ze szklem
-    private boolean wWalce(Player p) { Long t = walka.get(p.getUniqueId()); return t != null && t > System.currentTimeMillis(); }
+    boolean wWalce(Player p) { Long t = walka.get(p.getUniqueId()); return t != null && t > System.currentTimeMillis(); }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onHit(EntityDamageByEntityEvent e) {

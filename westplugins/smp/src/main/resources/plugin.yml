@@ -58,6 +58,9 @@ commands:
   rynek: {description: Rynek graczy, aliases: [ah, market]}
   sell: {description: Sprzedaz przedmiotow, aliases: [sprzedaj]}
   cena: {description: Cena przedmiotu w rece, aliases: [worth]}
+  home: {description: Domy, aliases: [homes, domy, dom]}
+  sethome: {description: Ustaw dom}
+  delhome: {description: Usun dom}
 permissions:
   westsmp.spawn.buduj: {default: op}
   westsmp.vanish: {default: op}

@@ -384,3 +384,10 @@ zasieg-widzenia:
   npc: 128
   skrzynie: 128
   pety: 64
+
+# DOMY (/home): gracz ma limit-gracz domow; wiecej: uprawnienie westsmp.home.<liczba> (np. westsmp.home.3 dla VIP)
+domy:
+  limit-gracz: 2
+  # tylko do opisu w menu ("Dom nr 4 dostepny od rangi SVIP")
+  rangi: {VIP: 3, SVIP: 5, Elita: 7}
+  zablokowane-swiaty: []
