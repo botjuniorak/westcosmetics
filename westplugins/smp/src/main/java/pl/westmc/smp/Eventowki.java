@@ -81,7 +81,7 @@ final class Eventowki implements Listener, CommandExecutor {
         {"zegarek", Material.PAPER, "&#FFD84A&lTime Watch", "&#FFD84A&lLEGENDARNA"},
         {"kostka", Material.PAPER, "&#FF4AD8&lKostka Chaosu", "&#FF4AD8&lEPICKA"},
         {"excalibur", Material.NETHERITE_SWORD, "&#FFD84A&lExcalibur", "&#FFD84A&lLEGENDARNA"},
-        {"siekiera_grincha", Material.GOLDEN_AXE, "&#4EE08F&lSiekiera Grincha", "&#4EE08F&lLEGENDARNA"},
+        {"siekiera_grincha", Material.GOLDEN_AXE, "&#3AD8FF&lSiekiera Burzy", "&#3AD8FF&lLEGENDARNA"},
         {"sakiewka", Material.RABBIT_FOOT, "&#E8A95A&lSakiewka Dropu", "&#E8A95A&lEPICKA"},
         {"hydro", Material.BLAZE_ROD, "&#3AD8FF&lWyrzutnia Hydro Klatki", "&#3AD8FF&lEPICKA"},
     };

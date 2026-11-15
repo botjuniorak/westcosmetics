@@ -227,7 +227,7 @@ final class EventowkiMoc implements Listener {
             double h = t.getHealth(), zab = h * c("siekiera_grincha", "procent", 30) / 100.0;
             Bukkit.getScheduler().runTask(pl, () -> { if (t.isValid() && !t.isDead()) t.setHealth(Math.max(0.5, t.getHealth() - zab)); });
             t.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, t.getLocation().add(0, 1, 0), 25, 0.4, 0.6, 0.4, 0);
-            bar(p, "&#4EE08F&lSIEKIERA GRINCHA! &7Zabrano &c" + String.format(java.util.Locale.ROOT, "%.1f", zab / 2) + " ❤ &7graczowi &f" + t.getName());
+            bar(p, "&#3AD8FF&lSIEKIERA BURZY! &7Zabrano &c" + String.format(java.util.Locale.ROOT, "%.1f", zab / 2) + " ❤ &7graczowi &f" + t.getName());
             return;
         }
         if (id.equals("zegarek")) {
