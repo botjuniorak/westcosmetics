@@ -27,6 +27,7 @@ public final class WestSMP extends JavaPlugin {
     SkrzynieModele skrzynieModele;
     EventowkiMoc eventowkiMoc;
     Domy domy;
+    Pomoc pomoc;
 
     @Override
     public void onEnable() {
@@ -107,6 +108,9 @@ public final class WestSMP extends JavaPlugin {
         sprzedaz = new Sprzedaz(this);
         getServer().getPluginManager().registerEvents(sprzedaz, this);
         getCommand("sell").setExecutor(sprzedaz); getCommand("cena").setExecutor(sprzedaz);
+        pomoc = new Pomoc(this);
+        getServer().getPluginManager().registerEvents(pomoc, this);
+        getCommand("pomoc").setExecutor(pomoc);
         domy = new Domy(this);
         getServer().getPluginManager().registerEvents(domy, this);
         for (String k : new String[]{"home", "sethome", "delhome"}) { getCommand(k).setExecutor(domy); getCommand(k).setTabCompleter(domy); }

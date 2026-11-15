@@ -402,3 +402,115 @@ klucz-co-godzine:
   komendy: ["klucz daj {GRACZ} zwykla 1"]
   wiadomosc: "&#FFC93D&lKLUCZ &8» &7Kazdy gracz online dostal &fklucz do Skrzyni Zwyklej&7!"
   przypomnienie: "&#FFC93D&lKLUCZ &8» &7Darmowy klucz dla wszystkich za &f{CZAS}&7!"
+
+# POMOC (/pomoc, /help): kategorie w menu. Linia "/komenda|opis" = klikalna komenda, inna linia = zwykly tekst.
+pomoc:
+  zasady:
+    - "&f1. &7Szanuj innych graczy - zakaz obrazania i spamu."
+    - "&f2. &7Zakaz cheatow, X-raya, autoclickerow i makr."
+    - "&f3. &7Zakaz wykorzystywania bugow - zglos je administracji."
+    - "&f4. &7Zakaz oszukiwania przy wymianach i na rynku."
+    - "&f5. &7Zakaz reklamowania innych serwerow."
+    - "&f6. &7Logout w trakcie walki = smierc i utrata rzeczy."
+    - "&f7. &7Decyzja administracji jest ostateczna."
+    - ""
+    - "&7Problem? Napisz &f/helpop <wiadomosc>"
+  kategorie:
+    start:
+      slot: 19
+      ikona: KNOWLEDGE_BOOK
+      nazwa: "&#4EE08F&lPIERWSZE KROKI"
+      opis: ["&7Nowy na serwerze? Zacznij tutaj."]
+      linie:
+        - "&7Witaj na &#C08BFF&lSMP WestMC&7! Na start:"
+        - "/kit|odbierz darmowy zestaw startowy"
+        - "/rtp|losowy teleport - znajdz miejsce na baze"
+        - "/sethome <nazwa>|ustaw dom w swojej bazie"
+        - "/nagrody|codzienna nagroda (seria 7 dni!)"
+        - "/szafa|darmowe kosmetyki i pety"
+        - "/klan|zaloz klan albo dolacz do znajomych"
+    teleporty:
+      slot: 21
+      ikona: ENDER_PEARL
+      nazwa: "&#3ADFFF&lTELEPORTY"
+      opis: ["&7Jak sie poruszac po mapie."]
+      linie:
+        - "/spawn|powrot na spawn"
+        - "/home|twoje domy (/sethome, /delhome)"
+        - "/rtp|losowy teleport w dzikie tereny"
+        - "/warp <nazwa>|warpy serwera (end, nether, afk)"
+        - "/teleporty|menu wszystkich teleportow"
+        - "/afk|strefa AFK - nagrody za stanie"
+        - "&7Teleport trwa &f3s &7- nie ruszaj sie!"
+    kasa:
+      slot: 23
+      ikona: GOLD_INGOT
+      nazwa: "&#FFC23D&lPIENIADZE"
+      opis: ["&7Zarabianie i wydawanie $."]
+      linie:
+        - "/money|twoje saldo"
+        - "/pay <gracz> <kwota>|przelej pieniadze"
+        - "/sell|sprzedaj przedmioty (cena w opisie itemu)"
+        - "/cena|cena przedmiotu w rece"
+        - "/rynek|kupuj i sprzedawaj z graczami"
+        - "/sklep|sklep serwera ($ i punkty czasu)"
+        - "/czek <kwota>|wypisz czek"
+        - "/coinflip <kwota>|zaklad z innym graczem"
+        - "/portfel|wszystko o twoich pieniadzach"
+    klany:
+      slot: 25
+      ikona: DIAMOND_SWORD
+      nazwa: "&#FF5A68&lKLANY"
+      opis: ["&7Graj razem ze znajomymi."]
+      linie:
+        - "/klan|menu klanu"
+        - "/klan zaloz <tag>|zaloz klan"
+        - "/klan zapros <gracz>|zapros gracza"
+        - "/klan dolacz <tag>|dolacz do klanu"
+        - "/klan baza|teleport do bazy klanu"
+        - "/klan wplac <kwota>|wplac do skarbca"
+        - "/ustawka <gracz>|walka 1v1 o stawke"
+        - "&7W klanie nie ma friendly fire. Punkty za zabojstwa!"
+    skrzynie:
+      slot: 37
+      ikona: CHEST_MINECART
+      nazwa: "&#C08BFF&lSKRZYNIE I NAGRODY"
+      opis: ["&7Klucze, skrzynie i darmowe nagrody."]
+      linie:
+        - "/skrzynie|skrzynie i twoje klucze"
+        - "&7Skrzynie stoja na &fspawnie&7: PPM - otworz, LPM - nagrody"
+        - "&7Co &fgodzine &7kazdy online dostaje &fdarmowy klucz&7!"
+        - "/nagrody|codzienna nagroda"
+        - "/kit|zestawy"
+        - "/kod <kod>|kody promocyjne"
+    eventowki:
+      slot: 39
+      ikona: NETHER_STAR
+      nazwa: "&#C08BFF&lEVENTOWKI I EVENTY"
+      opis: ["&7Specjalne przedmioty i eventy."]
+      linie:
+        - "&7Wszystkie eventowki zobaczysz u &fKustosza &7na spawnie."
+        - "&7Zdobedziesz je ze &fskrzyn&7, eventow i konkursow."
+        - "/smok|kiedy wylatuje Smok w Endzie"
+        - "/kowadlo|magiczne kowadlo - wlasne zaczarowania"
+        - "/kowal|naprawa i ulepszanie przedmiotow"
+        - "/topki|rankingi serwera"
+    szafa:
+      slot: 41
+      ikona: FEATHER
+      nazwa: "&#FF7AE0&lSZAFA"
+      opis: ["&7Pety, kostiumy i papugi."]
+      linie:
+        - "/szafa|otworz szafe"
+        - "&7Pety chodza za toba, kostiumy zakladasz na glowe,"
+        - "&7a papuga siedzi ci na ramieniu."
+    rangi:
+      slot: 43
+      ikona: EMERALD
+      nazwa: "&#4EE08F&lRANGI"
+      opis: ["&7Co daja rangi."]
+      linie:
+        - "&#FFC23DVIP&7: zestaw VIP, &f3 &7domy, &f10 &7ofert na rynku"
+        - "&#C08BFFSVIP&7: zestaw SVIP, &f5 &7domow"
+        - "&#FF5A68Elita&7: zestaw Elita, &f7 &7domow"
+        - "&7Rangi kupisz na &fwestmc.eu"

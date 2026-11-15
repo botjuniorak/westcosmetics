@@ -61,6 +61,8 @@ commands:
   home: {description: Domy, aliases: [homes, domy, dom]}
   sethome: {description: Ustaw dom}
   delhome: {description: Usun dom}
+  pomoc: {description: Pomoc, aliases: [help, komendy, '?']}
+  zasady: {description: Zasady serwera}
 permissions:
   westsmp.spawn.buduj: {default: op}
   westsmp.vanish: {default: op}
