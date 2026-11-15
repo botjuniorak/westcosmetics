@@ -78,6 +78,7 @@ npc:
   handlarz:         {skin: handlarz, nazwa: "&#45C27A&lHANDLARZ", podpis: "&7» Sklep «", akcja: "komenda:sklep"}
   bankier:          {skin: bankier, nazwa: "&#FFC93D&lBANKIER", podpis: "&7» Portfel i czeki «", akcja: "komenda:portfel"}
   straznik_endu:    {skin: straznik_endu, nazwa: "&#B06AFF&lSTRAZNIK ENDU", podpis: "&7» Teleport do Endu «", akcja: "warp:end"}
+  kustosz:          {skin: kustosz, nazwa: "&#C08BFF&lKUSTOSZ EVENTOWEK", podpis: "&7» Wszystkie eventowki «", akcja: "menu:eventowki"}
   straznik_netheru: {skin: straznik_netheru, nazwa: "&#FF7A2A&lSTRAZNIK NETHERU", podpis: "&7» Teleport do Netheru «", akcja: "warp:nether"}
 npc-postawione: {}
 

@@ -172,6 +172,7 @@ final class Npc implements Listener, CommandExecutor {
         else if (a.startsWith("warp:")) pl.teleporty.teleport(p, a.substring(5));
         else if (a.startsWith("komenda:")) p.performCommand(a.substring(8));
         else if (a.startsWith("szafa")) pl.szafa.open(p, "pety", 0);
+        else if (a.startsWith("menu:eventowki")) pl.eventowki.katalog(p);
         for (String line : t.getStringList("wiadomosc")) p.sendMessage(WestSMP.c(line));
     }
 

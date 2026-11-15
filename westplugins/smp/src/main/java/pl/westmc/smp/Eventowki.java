@@ -145,6 +145,68 @@ final class Eventowki implements Listener, CommandExecutor {
             WestSMP.c("&7Dodatkowe obrazenia: &c+" + String.format(java.util.Locale.ROOT, "%.1f", p * pl.getConfig().getDouble("eventowki.excalibur.max-bonus", 4.0))));
     }
 
+    // ===================================================================== katalog (NPC Kustosz) - tylko podglad
+    static final class Katalog implements org.bukkit.inventory.InventoryHolder {
+        org.bukkit.inventory.Inventory inv; @Override public org.bukkit.inventory.Inventory getInventory() { return inv; }
+    }
+    private static final int[] KAT_SLOTY = {10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34};
+
+    @SuppressWarnings("unchecked")
+    private List<String> gdzie(String id) {
+        List<String> r = new ArrayList<>();
+        for (String typ : new String[]{"zwykla", "epicka", "legendarna"}) {
+            List<Map<?, ?>> n = pl.getConfig().getMapList("skrzynie." + typ + ".nagrody");
+            int suma = 0; for (Map<?, ?> m : n) suma += ((Number) ((Map<String, Object>) m).getOrDefault("szansa", 1)).intValue();
+            for (Map<?, ?> m0 : n) {
+                Map<String, Object> m = (Map<String, Object>) m0;
+                String prz = String.valueOf(m.getOrDefault("przedmiot", ""));
+                if (prz.split("\\s+")[0].equalsIgnoreCase("eventowka:" + id)) {
+                    double sz = 100.0 * ((Number) m.getOrDefault("szansa", 1)).intValue() / Math.max(1, suma);
+                    r.add("&8• &f" + org.bukkit.ChatColor.stripColor(WestSMP.c(pl.getConfig().getString("skrzynie." + typ + ".nazwa", typ))) + " &7(" + String.format(java.util.Locale.ROOT, "%.1f", sz) + "%)");
+                }
+            }
+        }
+        for (String g : pl.getConfig().getStringList("eventowki." + id + ".gdzie")) r.add("&8• &f" + g);
+        return r;
+    }
+
+    void katalog(Player p) {
+        Katalog h = new Katalog();
+        h.inv = Bukkit.createInventory(h, 54, Tlo.tytul(0xE280, 4));
+        int i = 0;
+        for (Object[] t : TYPY) {
+            if (i >= KAT_SLOTY.length) break;
+            String id = (String) t[0];
+            ItemStack it = item(id, 1);
+            ItemMeta m = it.getItemMeta();
+            List<String> lore = new ArrayList<>(m.getLore());
+            lore.add(WestSMP.c("&8&m                            "));
+            lore.add(WestSMP.c("&#C08BFFGdzie zdobyc:"));
+            List<String> g = gdzie(id);
+            if (g.isEmpty()) lore.add(WestSMP.c("&8• &7eventy i konkursy"));
+            for (String x : g) lore.add(WestSMP.c(x));
+            lore.add("");
+            lore.add(WestSMP.c("&8Tylko podglad - nie do kupienia"));
+            m.setLore(lore);
+            m.getPersistentDataContainer().remove(KEY);   // to nie jest prawdziwa eventowka
+            it.setItemMeta(m);
+            h.inv.setItem(KAT_SLOTY[i++], it);
+        }
+        h.inv.setItem(4, pl.sklepy.ikona(Material.BOOK, null, "&#FFC23D&lEVENTOWKI WESTMC", List.of("&7Najedz na przedmiot, aby zobaczyc,", "&7co robi i gdzie go zdobyc.", "", "&8Wszystkie: &f" + TYPY.length), false));
+        h.inv.setItem(49, pl.sklepy.ikona(Material.BARRIER, "westmc:przycisk_zamknij", "&c&lZamknij", null, false));
+        p.openInventory(h.inv);
+    }
+
+    @EventHandler
+    public void onKatClick(org.bukkit.event.inventory.InventoryClickEvent e) {
+        if (!(e.getInventory().getHolder() instanceof Katalog)) return;
+        e.setCancelled(true);
+        if (e.getRawSlot() == 49) e.getWhoClicked().closeInventory();
+    }
+
+    @EventHandler
+    public void onKatDrag(org.bukkit.event.inventory.InventoryDragEvent e) { if (e.getInventory().getHolder() instanceof Katalog) e.setCancelled(true); }
+
     String id(ItemStack it) {
         if (it == null || !it.hasItemMeta()) return null;
         return it.getItemMeta().getPersistentDataContainer().get(KEY, PersistentDataType.STRING);
