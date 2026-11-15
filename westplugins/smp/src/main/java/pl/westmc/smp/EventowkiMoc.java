@@ -400,8 +400,7 @@ final class EventowkiMoc implements Listener {
     public void onHydroHit(org.bukkit.event.entity.ProjectileHitEvent e) {
         String w = e.getEntity().getPersistentDataContainer().get(HYDRO, org.bukkit.persistence.PersistentDataType.STRING);
         if (w == null) return;
-        Location c = e.getEntity().getLocation();
-        if (e.getHitBlock() != null) c = e.getHitBlock().getLocation().add(0.5, 1, 0.5);
+        final Location c = e.getHitBlock() != null ? e.getHitBlock().getLocation().add(0.5, 1, 0.5) : e.getEntity().getLocation();
         if (spawn(c)) return;
         c.getWorld().spawnParticle(Particle.SPLASH, c, 200, 3, 0.5, 3, 0.3);
         c.getWorld().playSound(c, Sound.ENTITY_PLAYER_SPLASH_HIGH_SPEED, 1.5f, 1f);
