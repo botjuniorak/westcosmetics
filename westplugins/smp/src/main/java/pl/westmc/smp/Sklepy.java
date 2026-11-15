@@ -93,7 +93,14 @@ final class Sklepy implements Listener, CommandExecutor {
         if (x[0].startsWith("ksiega:")) { ItemStack k = pl.ksiegi.ksiega(x[0].substring(7)); if (k != null) { k.setAmount(n); return k; } }
         if (x[0].startsWith("klucz:")) { ItemStack k = klucz(x[0].substring(6)); k.setAmount(n); return k; }
         Material m = Material.matchMaterial(x[0]);
-        return new ItemStack(m == null ? Material.STONE : m, n);
+        ItemStack it = new ItemStack(m == null ? Material.STONE : m, n);
+        // zaczarowania: "DIAMOND_SWORD 1 sharpness:5 unbreaking:3"
+        for (int i = 2; i < x.length; i++) {
+            String[] e = x[i].split(":");
+            org.bukkit.enchantments.Enchantment en = org.bukkit.Registry.ENCHANTMENT.get(org.bukkit.NamespacedKey.minecraft(e[0].toLowerCase()));
+            if (en != null) { ItemMeta im = it.getItemMeta(); im.addEnchant(en, e.length > 1 ? Integer.parseInt(e[1]) : 1, true); it.setItemMeta(im); }
+        }
+        return it;
     }
 
     private void wykonaj(Player p, List<String> komendy, List<String> przedmioty) {
@@ -199,7 +206,15 @@ final class Sklepy implements Listener, CommandExecutor {
 
     private ItemStack nagrodaIkona(Map<String, Object> m) {
         ItemStack it = przedmiot(String.valueOf(m.getOrDefault("przedmiot", m.getOrDefault("ikona", "PAPER"))));
-        if (m.containsKey("nazwa")) { ItemMeta im = it.getItemMeta(); im.setDisplayName(WestSMP.c(String.valueOf(m.get("nazwa")))); it.setItemMeta(im); }
+        ItemMeta im = it.getItemMeta();
+        if (m.containsKey("nazwa")) im.setDisplayName(WestSMP.c(String.valueOf(m.get("nazwa"))));
+        if (m.get("przedmioty") instanceof List<?> lp) {
+            List<String> lore = im.getLore() == null ? new ArrayList<>() : new ArrayList<>(im.getLore());
+            lore.add(WestSMP.c("&7Zawiera:"));
+            for (Object o : lp) lore.add(WestSMP.c("&8• &f" + String.valueOf(o).split("\\s+")[0].toLowerCase().replace('_', ' ')));
+            im.setLore(lore);
+        }
+        it.setItemMeta(im);
         return it;
     }
 
@@ -234,7 +249,9 @@ final class Sklepy implements Listener, CommandExecutor {
                 task.cancel();
                 losuje.remove(p.getUniqueId());
                 List<String> kom = (List<String>) wygrana.getOrDefault("komendy", List.of());
-                List<String> prz = wygrana.containsKey("przedmiot") ? List.of(String.valueOf(wygrana.get("przedmiot"))) : List.of();
+                List<String> prz = new ArrayList<>();
+                if (wygrana.containsKey("przedmiot")) prz.add(String.valueOf(wygrana.get("przedmiot")));
+                if (wygrana.get("przedmioty") instanceof List<?> lp) for (Object o : lp) prz.add(String.valueOf(o));
                 if (p.isOnline()) {
                     wykonaj(p, kom, prz);
                     String nz = WestSMP.c(String.valueOf(wygrana.getOrDefault("nazwa", nagrodaIkona(wygrana).getType().name())));

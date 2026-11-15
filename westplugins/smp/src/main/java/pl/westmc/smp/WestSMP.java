@@ -34,6 +34,10 @@ public final class WestSMP extends JavaPlugin {
             getConfig().set("czat.rangi", null);
             getConfig().set("czat.format", "{KLAN}{RANGA}&f{GRACZ} &8» &7");
         }
+        if (getConfig().getInt("skrzynie.wersja-nagrod", 1) < 2 && getConfig().getDefaults() != null) {
+            for (String t : new String[]{"zwykla", "epicka", "legendarna"}) getConfig().set("skrzynie." + t + ".nagrody", getConfig().getDefaults().getList("skrzynie." + t + ".nagrody"));
+            getConfig().set("skrzynie.wersja-nagrod", 2);
+        }
         if (getConfig().getDouble("skrzynie.wielkosc-modelu", 1.7) == 1.0) getConfig().set("skrzynie.wielkosc-modelu", 1.7);
         getConfig().options().copyDefaults(true);
         saveConfig();

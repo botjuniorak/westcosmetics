@@ -80,6 +80,10 @@ final class Eventowki implements Listener, CommandExecutor {
         {"kula", Material.PAPER, "&#3AD8FF&lSpeed Orb", "&#3AD8FF&lRZADKA"},
         {"zegarek", Material.PAPER, "&#FFD84A&lTime Watch", "&#FFD84A&lLEGENDARNA"},
         {"kostka", Material.PAPER, "&#FF4AD8&lKostka Chaosu", "&#FF4AD8&lEPICKA"},
+        {"excalibur", Material.NETHERITE_SWORD, "&#FFD84A&lExcalibur", "&#FFD84A&lLEGENDARNA"},
+        {"siekiera_grincha", Material.GOLDEN_AXE, "&#4EE08F&lSiekiera Grincha", "&#4EE08F&lLEGENDARNA"},
+        {"sakiewka", Material.RABBIT_FOOT, "&#E8A95A&lSakiewka Dropu", "&#E8A95A&lEPICKA"},
+        {"hydro", Material.BLAZE_ROD, "&#3AD8FF&lWyrzutnia Hydro Klatki", "&#3AD8FF&lEPICKA"},
     };
 
     private static List<String> opis(String id) {
@@ -97,6 +101,10 @@ final class Eventowki implements Listener, CommandExecutor {
             case "kula" -> List.of("&7PPM - &fsuper szybkosc &7i &fwysoki skok", "&7przez 10 sekund.");
             case "zegarek" -> List.of("&7Uderz gracza, aby &fzatrzymac go", "&fw czasie &7na 3 sekundy.");
             case "kostka" -> List.of("&7Uderz gracza, aby &fpomieszac", "&7mu pasek szybkiego wyboru.");
+            case "excalibur" -> List.of("&7Kazde &fzabojstwo gracza &7laduje pasek.", "&7Pelny pasek = obrazenia jak &fOstrosc VII&7.");
+            case "siekiera_grincha" -> List.of("&7Po uderzeniu strzela &fpiorun &7w przeciwnika", "&7i zabiera mu &c30% &7zycia. Raz na minute.");
+            case "sakiewka" -> List.of("&7Masz ja w ekwipunku = po &fzabiciu gracza", "&7jego rzeczy trafiaja do sakiewki!", "&7PPM - otworz sakiewke.");
+            case "hydro" -> List.of("&7PPM - wystrzeliwuje pocisk, ktory", "&7tworzy &fwodna klatke &7wiezaca", "&7przeciwnikow w miejscu.");
             default -> List.of();
         };
     }
@@ -111,6 +119,7 @@ final class Eventowki implements Listener, CommandExecutor {
             List<String> lore = new ArrayList<>();
             lore.add(WestSMP.c("&8&m                         "));
             for (String s : opis(id)) lore.add(WestSMP.c(s));
+            if (id.equals("excalibur")) lore.addAll(excaliburLore(0));
             lore.add("");
             lore.add(WestSMP.c("&7Rzadkosc: " + t[3]));
             lore.add(WestSMP.c("&8Eventowka WestMC"));
@@ -118,11 +127,22 @@ final class Eventowki implements Listener, CommandExecutor {
             m.setEnchantmentGlintOverride(true);
             m.addItemFlags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_DYE);
             m.getPersistentDataContainer().set(KEY, PersistentDataType.STRING, id);
+            if (id.equals("sakiewka")) { m.setMaxStackSize(1); m.getPersistentDataContainer().set(new NamespacedKey(pl, "sakiewka_id"), PersistentDataType.STRING, UUID.randomUUID().toString()); }
             if (m instanceof LeatherArmorMeta lm) lm.setColor(Color.fromRGB(0x2FBF6A));
             it.setItemMeta(m);
             return it;
         }
         return null;
+    }
+
+    /** Linie opisu Excalibura: zabojstwa, pasek postepu, bonus. */
+    List<String> excaliburLore(int kille) {
+        int prog = Math.max(1, pl.getConfig().getInt("eventowki.excalibur.zabojstw-do-pelna", 100));
+        double p = Math.min(1, (double) kille / prog);
+        int pel = (int) Math.round(p * 20);
+        return List.of("", WestSMP.c("&7Zabojstwa: &f" + kille + "&7/&f" + prog),
+            WestSMP.c("&#FFD84A" + "|".repeat(pel) + "&8" + "|".repeat(20 - pel) + " &#FFD84A" + (int) Math.round(p * 100) + "%"),
+            WestSMP.c("&7Dodatkowe obrazenia: &c+" + String.format(java.util.Locale.ROOT, "%.1f", p * pl.getConfig().getDouble("eventowki.excalibur.max-bonus", 4.0))));
     }
 
     String id(ItemStack it) {

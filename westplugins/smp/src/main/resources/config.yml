@@ -48,6 +48,10 @@ eventowki:
   kula:     {wlaczona: true, odnowienie: 60, sekund: 10, szybkosc: 2, skok: 1}
   zegarek:  {wlaczona: true, odnowienie: 40, sekund: 3}
   kostka:   {wlaczona: true, odnowienie: 30}
+  excalibur: {wlaczona: true, zabojstw-do-pelna: 100, max-bonus: 4.0}
+  siekiera_grincha: {wlaczona: true, odnowienie: 60, procent: 30}
+  sakiewka: {wlaczona: true}
+  hydro:    {wlaczona: true, odnowienie: 45, promien: 3.0, sekund: 3}
 
 # TELEPORTY: /spawn /end /nether /afk /warp <nazwa> /teleporty (menu)
 # Admin: /setwarp <spawn|end|nether|afk|nazwa> [ladna nazwa] - ustawia tam, gdzie stoisz.
@@ -201,38 +205,56 @@ skrzynie:
   wielkosc-modelu: 1.7
   odwroc-model: false
   napis-pod: "&7PPM &8- &fotworz &8| &7LPM &8- &fnagrody"
+  wersja-nagrod: 2
   zwykla:
     nazwa: "&f&lSkrzynia Zwykla"
     nazwa-klucza: "&fKlucz do Skrzyni Zwyklej"
     nagrody:
-      - {przedmiot: "IRON_INGOT 16", szansa: 30}
-      - {przedmiot: "GOLD_INGOT 8", szansa: 25}
-      - {przedmiot: "DIAMOND 2", szansa: 15}
-      - {przedmiot: "EXPERIENCE_BOTTLE 16", szansa: 15}
+      - {przedmiot: "IRON_INGOT 16", szansa: 28}
+      - {przedmiot: "GOLD_INGOT 8", szansa: 22}
+      - {przedmiot: "DIAMOND 2", szansa: 14}
+      - {przedmiot: "EXPERIENCE_BOTTLE 16", szansa: 13}
       - {ikona: "GOLD_NUGGET", nazwa: "&6+1000$", komendy: ["eco daj {GRACZ} 1000"], szansa: 12}
+      - {przedmiot: "DIAMOND_SWORD 1 sharpness:2", szansa: 5}
+      - {ikona: "DIAMOND_CHESTPLATE", nazwa: "&b&lDiamentowy Set", przedmioty: ["DIAMOND_HELMET 1", "DIAMOND_CHESTPLATE 1", "DIAMOND_LEGGINGS 1", "DIAMOND_BOOTS 1"], szansa: 3, ogloszenie: true}
       - {przedmiot: "klucz:epicka 1", szansa: 3, ogloszenie: true}
   epicka:
     nazwa: "&#C08BFF&lSkrzynia Epicka"
     nazwa-klucza: "&#C08BFFKlucz do Skrzyni Epickiej"
     nagrody:
-      - {przedmiot: "DIAMOND 8", szansa: 25}
-      - {przedmiot: "ENCHANTED_GOLDEN_APPLE 1", szansa: 10}
-      - {przedmiot: "eventowka:rzucak 3", szansa: 20}
-      - {przedmiot: "eventowka:buty 1", szansa: 12}
-      - {przedmiot: "eventowka:perla 8", szansa: 15}
-      - {ikona: "GOLD_BLOCK", nazwa: "&6+10 000$", komendy: ["eco daj {GRACZ} 10000"], szansa: 15}
+      - {przedmiot: "DIAMOND 8", szansa: 14}
+      - {przedmiot: "ENCHANTED_GOLDEN_APPLE 1", szansa: 7}
+      - {przedmiot: "eventowka:rzucak 3", szansa: 10}
+      - {przedmiot: "eventowka:buty 1", szansa: 7}
+      - {przedmiot: "eventowka:perla 8", szansa: 8}
+      - {ikona: "GOLD_BLOCK", nazwa: "&6+10 000$", komendy: ["eco daj {GRACZ} 10000"], szansa: 10}
+      - {ikona: "DIAMOND_CHESTPLATE", nazwa: "&b&lDiamentowy Set (Ochrona III)", przedmioty: ["DIAMOND_HELMET 1 protection:3 unbreaking:2", "DIAMOND_CHESTPLATE 1 protection:3 unbreaking:2", "DIAMOND_LEGGINGS 1 protection:3 unbreaking:2", "DIAMOND_BOOTS 1 protection:3 unbreaking:2"], szansa: 10, ogloszenie: true}
+      - {przedmiot: "NETHERITE_SWORD 1 sharpness:3", szansa: 5}
+      - {przedmiot: "eventowka:hydro 1", szansa: 6, ogloszenie: true}
+      - {przedmiot: "eventowka:sakiewka 1", szansa: 6, ogloszenie: true}
+      - {przedmiot: "eventowka:kula 1", szansa: 8}
+      - {przedmiot: "eventowka:kostka 1", szansa: 6}
       - {przedmiot: "klucz:legendarna 1", szansa: 3, ogloszenie: true}
   legendarna:
     nazwa: "&#FFC93D&lSkrzynia Legendarna"
     nazwa-klucza: "&#FFC93DKlucz do Skrzyni Legendarnej"
     nagrody:
-      - {przedmiot: "eventowka:kilof 1", szansa: 15, ogloszenie: true}
-      - {przedmiot: "eventowka:miecz 1", szansa: 15, ogloszenie: true}
-      - {przedmiot: "eventowka:totem 1", szansa: 15, ogloszenie: true}
-      - {przedmiot: "eventowka:siekiera 1", szansa: 15}
-      - {przedmiot: "eventowka:luk 1", szansa: 15}
-      - {przedmiot: "NETHERITE_INGOT 2", szansa: 15}
-      - {ikona: "NETHER_STAR", nazwa: "&6+50 000$", komendy: ["eco daj {GRACZ} 50000"], szansa: 10, ogloszenie: true}
+      - {przedmiot: "eventowka:kilof 1", szansa: 6, ogloszenie: true}
+      - {przedmiot: "eventowka:miecz 1", szansa: 6, ogloszenie: true}
+      - {przedmiot: "eventowka:totem 1", szansa: 6, ogloszenie: true}
+      - {przedmiot: "eventowka:siekiera 1", szansa: 5}
+      - {przedmiot: "eventowka:luk 1", szansa: 5}
+      - {przedmiot: "NETHERITE_INGOT 2", szansa: 6}
+      - {ikona: "NETHER_STAR", nazwa: "&6+50 000$", komendy: ["eco daj {GRACZ} 50000"], szansa: 5, ogloszenie: true}
+      - {ikona: "NETHERITE_CHESTPLATE", nazwa: "&#C08BFF&lNetherytowy Set (Ochrona IV)", przedmioty: ["NETHERITE_HELMET 1 protection:4 unbreaking:3", "NETHERITE_CHESTPLATE 1 protection:4 unbreaking:3", "NETHERITE_LEGGINGS 1 protection:4 unbreaking:3", "NETHERITE_BOOTS 1 protection:4 unbreaking:3 feather_falling:4"], szansa: 8, ogloszenie: true}
+      - {przedmiot: "NETHERITE_SWORD 1 sharpness:5 unbreaking:3 fire_aspect:2", szansa: 6}
+      - {przedmiot: "eventowka:excalibur 1", szansa: 4, ogloszenie: true}
+      - {przedmiot: "eventowka:siekiera_grincha 1", szansa: 7, ogloszenie: true}
+      - {przedmiot: "eventowka:hydro 1", szansa: 9}
+      - {przedmiot: "eventowka:sakiewka 1", szansa: 9}
+      - {przedmiot: "eventowka:czarna_dziura 1", szansa: 7, ogloszenie: true}
+      - {przedmiot: "eventowka:meteor 1", szansa: 8}
+      - {przedmiot: "eventowka:zegarek 1", szansa: 7, ogloszenie: true}
 skrzynie-bloki: {}
 # ZESTAWY: /zestawy ; przedmioty z ekwipunku: /zestawy zapisz <nazwa> (zapisuje caly twoj ekwipunek)
 zestawy:

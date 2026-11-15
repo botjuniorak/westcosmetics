@@ -45,7 +45,18 @@ final class EventowkiMoc implements Listener {
     private final Map<String, Long> cd = new HashMap<>();
     private final Map<UUID, Long> zamrozeni = new HashMap<>();
 
-    EventowkiMoc(WestSMP pl) { this.pl = pl; }
+    private final java.io.File plikSak;
+    private final org.bukkit.configuration.file.YamlConfiguration sak;
+    private final NamespacedKey SAK_ID, EX_KILLE, HYDRO;
+
+    EventowkiMoc(WestSMP pl) {
+        this.pl = pl;
+        plikSak = new java.io.File(pl.getDataFolder(), "sakiewki.yml");
+        sak = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(plikSak);
+        SAK_ID = new NamespacedKey(pl, "sakiewka_id"); EX_KILLE = new NamespacedKey(pl, "ex_kille"); HYDRO = new NamespacedKey(pl, "hydro");
+    }
+
+    private void zapiszSak() { try { sak.save(plikSak); } catch (Exception e) { pl.getLogger().warning("sakiewki.yml: " + e.getMessage()); } }
 
     private double c(String id, String k, double d) { return pl.getConfig().getDouble("eventowki." + id + "." + k, d); }
     private boolean wl(String id) { return pl.getConfig().getBoolean("eventowki." + id + ".wlaczona", true); }
@@ -75,12 +86,14 @@ final class EventowkiMoc implements Listener {
         if (e.getHand() != EquipmentSlot.HAND) return;
         Player p = e.getPlayer();
         String id = pl.eventowki.id(p.getInventory().getItemInMainHand());
-        if (id == null || !(id.equals("czarna_dziura") || id.equals("meteor") || id.equals("kula"))) return;
+        if (id == null || !(id.equals("czarna_dziura") || id.equals("meteor") || id.equals("kula") || id.equals("hydro") || id.equals("sakiewka"))) return;
         e.setCancelled(true);
         if (!wl(id)) return;
+        if (id.equals("sakiewka")) { otworzSakiewke(p, p.getInventory().getItemInMainHand()); return; }
         if (spawn(p.getLocation())) { bar(p, "&cNa spawnie eventowki nie dzialaja."); return; }
         switch (id) {
             case "kula" -> { if (gotowe(p, id, 60)) kula(p); }
+            case "hydro" -> { if (gotowe(p, id, 45)) hydroStrzal(p); }
             case "czarna_dziura", "meteor" -> {
                 Location cel = cel(p, id.equals("meteor") ? 40 : 25);
                 if (spawn(cel)) { bar(p, "&cNie mozesz celowac w spawn."); return; }
@@ -204,8 +217,17 @@ final class EventowkiMoc implements Listener {
     public void onHit(EntityDamageByEntityEvent e) {
         if (!(e.getDamager() instanceof Player p) || !(e.getEntity() instanceof Player t)) return;
         String id = pl.eventowki.id(p.getInventory().getItemInMainHand());
-        if (id == null || !(id.equals("zegarek") || id.equals("kostka")) || !wl(id)) return;
+        if (id == null || !(id.equals("zegarek") || id.equals("kostka") || id.equals("siekiera_grincha")) || !wl(id)) return;
         if (spawn(p.getLocation()) || spawn(t.getLocation()) || swoj(p, t)) return;
+        if (id.equals("siekiera_grincha")) {
+            if (!gotowe(p, id, 60)) return;
+            t.getWorld().strikeLightningEffect(t.getLocation());
+            double h = t.getHealth(), zab = h * c("siekiera_grincha", "procent", 30) / 100.0;
+            Bukkit.getScheduler().runTask(pl, () -> { if (t.isValid() && !t.isDead()) t.setHealth(Math.max(0.5, t.getHealth() - zab)); });
+            t.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, t.getLocation().add(0, 1, 0), 25, 0.4, 0.6, 0.4, 0);
+            bar(p, "&#4EE08F&lSIEKIERA GRINCHA! &7Zabrano &c" + String.format(java.util.Locale.ROOT, "%.1f", zab / 2) + " ❤ &7graczowi &f" + t.getName());
+            return;
+        }
         if (id.equals("zegarek")) {
             if (!gotowe(p, id, 40)) return;
             long ms = (long) (c("zegarek", "sekund", 3) * 1000);
@@ -247,5 +269,170 @@ final class EventowkiMoc implements Listener {
             if (t.getY() < f.getY()) n.setY(t.getY());   // spadac moze
             e.setTo(n);
         }
+    }
+
+    // ================================================================= EXCALIBUR
+    private int kille(ItemStack it) { return it.getItemMeta().getPersistentDataContainer().getOrDefault(EX_KILLE, org.bukkit.persistence.PersistentDataType.INTEGER, 0); }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onExDmg(EntityDamageByEntityEvent e) {
+        if (!(e.getDamager() instanceof Player p)) return;
+        ItemStack it = p.getInventory().getItemInMainHand();
+        if (!"excalibur".equals(pl.eventowki.id(it)) || !wl("excalibur")) return;
+        int prog = Math.max(1, pl.getConfig().getInt("eventowki.excalibur.zabojstw-do-pelna", 100));
+        e.setDamage(e.getDamage() + Math.min(1, (double) kille(it) / prog) * c("excalibur", "max-bonus", 4.0));
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onExKill(org.bukkit.event.entity.PlayerDeathEvent e) {
+        Player k = e.getEntity().getKiller();
+        if (k == null || k.equals(e.getEntity())) return;
+        ItemStack it = k.getInventory().getItemInMainHand();
+        if (!"excalibur".equals(pl.eventowki.id(it))) return;
+        int n = kille(it) + 1;
+        ItemMeta m = it.getItemMeta();
+        m.getPersistentDataContainer().set(EX_KILLE, org.bukkit.persistence.PersistentDataType.INTEGER, n);
+        List<String> lore = m.getLore() == null ? new ArrayList<>() : new ArrayList<>(m.getLore());
+        int i = -1;
+        for (int j = 0; j < lore.size(); j++) if (lore.get(j).contains("Zabojstwa:")) { i = j; break; }
+        List<String> nowe = pl.eventowki.excaliburLore(n);
+        if (i > 0 && i + 2 < lore.size()) { for (int j = 0; j < 4; j++) lore.set(i - 1 + j, nowe.get(j)); m.setLore(lore); }
+        it.setItemMeta(m);
+        int prog = Math.max(1, pl.getConfig().getInt("eventowki.excalibur.zabojstw-do-pelna", 100));
+        if (n == prog) { bar(k, "&#FFD84A&lEXCALIBUR NALADOWANY! &7Pelna moc!"); k.getWorld().playSound(k.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f); }
+    }
+
+    // ================================================================= SAKIEWKA DROPU
+    static final class SakMenu implements org.bukkit.inventory.InventoryHolder {
+        org.bukkit.inventory.Inventory inv; String id;
+        @Override public org.bukkit.inventory.Inventory getInventory() { return inv; }
+    }
+
+    private String sakId(ItemStack it) {
+        if (it == null || !it.hasItemMeta()) return null;
+        return it.getItemMeta().getPersistentDataContainer().get(SAK_ID, org.bukkit.persistence.PersistentDataType.STRING);
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<ItemStack> zawartosc(String id) {
+        List<ItemStack> r = new ArrayList<>();
+        List<?> l = sak.getList(id);
+        if (l != null) for (Object o : l) r.add(o instanceof ItemStack i ? i : null);
+        while (r.size() < 54) r.add(null);
+        return r;
+    }
+
+    private void otworzSakiewke(Player p, ItemStack it) {
+        String id = sakId(it);
+        if (id == null) {   // stara sakiewka bez id
+            id = UUID.randomUUID().toString();
+            ItemMeta m = it.getItemMeta(); m.getPersistentDataContainer().set(SAK_ID, org.bukkit.persistence.PersistentDataType.STRING, id); it.setItemMeta(m);
+        }
+        SakMenu h = new SakMenu(); h.id = id;
+        h.inv = Bukkit.createInventory(h, 54, Component.text(WestSMP.c("&#E8A95A&lSakiewka Dropu")));
+        List<ItemStack> z = zawartosc(id);
+        for (int i = 0; i < 54; i++) h.inv.setItem(i, z.get(i));
+        p.openInventory(h.inv);
+        p.playSound(p.getLocation(), Sound.ITEM_BUNDLE_DROP_CONTENTS, 1f, 1f);
+    }
+
+    @EventHandler
+    public void onSakClose(org.bukkit.event.inventory.InventoryCloseEvent e) {
+        if (!(e.getInventory().getHolder() instanceof SakMenu h)) return;
+        List<ItemStack> l = new ArrayList<>();
+        for (ItemStack i : h.inv.getContents()) l.add(i);
+        sak.set(h.id, l); zapiszSak();
+    }
+
+    @EventHandler
+    public void onSakClick(org.bukkit.event.inventory.InventoryClickEvent e) {
+        if (!(e.getInventory().getHolder() instanceof SakMenu)) return;
+        ItemStack c = e.getCurrentItem(), cur = e.getCursor();
+        // nie wolno wkladac sakiewki do sakiewki
+        if ("sakiewka".equals(pl.eventowki.id(c)) && e.getClickedInventory() != e.getInventory() && e.isShiftClick()) e.setCancelled(true);
+        if ("sakiewka".equals(pl.eventowki.id(cur)) && e.getClickedInventory() == e.getInventory()) e.setCancelled(true);
+        if (e.getClick() == org.bukkit.event.inventory.ClickType.NUMBER_KEY && e.getClickedInventory() == e.getInventory()) e.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onSakDeath(org.bukkit.event.entity.PlayerDeathEvent e) {
+        Player k = e.getEntity().getKiller();
+        if (k == null || k.equals(e.getEntity()) || e.getKeepInventory() || !wl("sakiewka")) return;
+        ItemStack s = null;
+        for (ItemStack i : k.getInventory().getContents()) if ("sakiewka".equals(pl.eventowki.id(i))) { s = i; break; }
+        if (s == null) return;
+        String id = sakId(s);
+        if (id == null) { id = UUID.randomUUID().toString(); ItemMeta m = s.getItemMeta(); m.getPersistentDataContainer().set(SAK_ID, org.bukkit.persistence.PersistentDataType.STRING, id); s.setItemMeta(m); }
+        // jesli ktos ma ja otwarta - zapisz najpierw
+        for (Player o : Bukkit.getOnlinePlayers()) if (o.getOpenInventory().getTopInventory().getHolder() instanceof SakMenu h && h.id.equals(id)) o.closeInventory();
+        List<ItemStack> z = zawartosc(id);
+        int ile = 0;
+        java.util.Iterator<ItemStack> it = e.getDrops().iterator();
+        while (it.hasNext()) {
+            ItemStack d = it.next();
+            int wolne = z.indexOf(null);
+            if (wolne < 0) break;
+            z.set(wolne, d); it.remove(); ile++;
+        }
+        sak.set(id, z); zapiszSak();
+        if (ile > 0) { bar(k, "&#E8A95A&lSAKIEWKA! &7Przedmioty &f" + e.getEntity().getName() + " &7trafily do sakiewki (&f" + ile + "&7)"); k.playSound(k.getLocation(), Sound.ITEM_BUNDLE_INSERT, 1f, 1f); }
+    }
+
+    // ================================================================= HYDRO KLATKA
+    private void hydroStrzal(Player p) {
+        org.bukkit.entity.Snowball sb = p.launchProjectile(org.bukkit.entity.Snowball.class, p.getLocation().getDirection().multiply(1.8));
+        sb.setItem(new ItemStack(Material.HEART_OF_THE_SEA));
+        sb.getPersistentDataContainer().set(HYDRO, org.bukkit.persistence.PersistentDataType.STRING, p.getUniqueId().toString());
+        p.getWorld().playSound(p.getLocation(), Sound.ITEM_BUCKET_EMPTY, 1f, 1.4f);
+        p.getWorld().playSound(p.getLocation(), Sound.ENTITY_BREEZE_SHOOT, 0.8f, 1.2f);
+        Bukkit.getScheduler().runTaskTimer(pl, task -> {
+            if (!sb.isValid()) { task.cancel(); return; }
+            sb.getWorld().spawnParticle(Particle.BUBBLE_POP, sb.getLocation(), 4, 0.1, 0.1, 0.1, 0.02);
+            sb.getWorld().spawnParticle(Particle.DRIPPING_WATER, sb.getLocation(), 2, 0.1, 0.1, 0.1, 0);
+        }, 1L, 1L);
+    }
+
+    @EventHandler
+    public void onHydroHit(org.bukkit.event.entity.ProjectileHitEvent e) {
+        String w = e.getEntity().getPersistentDataContainer().get(HYDRO, org.bukkit.persistence.PersistentDataType.STRING);
+        if (w == null) return;
+        Player p = Bukkit.getPlayer(UUID.fromString(w));
+        Location c = e.getEntity().getLocation();
+        c.getWorld().spawnParticle(Particle.SPLASH, c, 120, 1.5, 0.5, 1.5, 0.3);
+        c.getWorld().playSound(c, Sound.ENTITY_PLAYER_SPLASH_HIGH_SPEED, 1.5f, 1f);
+        double r = c("hydro", "promien", 3);
+        long ms = (long) (c("hydro", "sekund", 3) * 1000);
+        for (Player t : c.getWorld().getPlayers()) {
+            if (p != null && swoj(p, t)) continue;
+            if (t.getGameMode() == org.bukkit.GameMode.SPECTATOR || t.getGameMode() == org.bukkit.GameMode.CREATIVE || spawn(t.getLocation())) continue;
+            if (t.getLocation().distance(c) > r) continue;
+            klatka(t, ms);
+        }
+    }
+
+    private void klatka(Player t, long ms) {
+        zamrozeni.put(t.getUniqueId(), System.currentTimeMillis() + ms);
+        Location l = t.getLocation();
+        List<org.bukkit.entity.BlockDisplay> sciany = new ArrayList<>();
+        org.bukkit.block.data.BlockData szklo = Material.LIGHT_BLUE_STAINED_GLASS.createBlockData();
+        sciany.add(l.getWorld().spawn(l.clone().add(-0.7, -0.05, -0.7), org.bukkit.entity.BlockDisplay.class, d -> {
+            d.setBlock(szklo); d.setPersistent(false); d.setBrightness(new Display.Brightness(15, 15));
+            d.setTransformation(new Transformation(new Vector3f(), new AxisAngle4f(), new Vector3f(1.4f, 2.3f, 1.4f), new AxisAngle4f()));
+        }));
+        t.showTitle(Title.title(Component.text(WestSMP.c("&#3AD8FF&lHYDRO KLATKA!")), Component.text(WestSMP.c("&7Jestes uwieziony w wodzie")),
+            Title.Times.times(Duration.ZERO, Duration.ofMillis(ms), Duration.ofMillis(300))));
+        final int[] n = {0};
+        Bukkit.getScheduler().runTaskTimer(pl, task -> {
+            n[0] += 4;
+            if (!t.isOnline() || zamrozeni.getOrDefault(t.getUniqueId(), 0L) < System.currentTimeMillis()) {
+                zamrozeni.remove(t.getUniqueId()); task.cancel();
+                for (org.bukkit.entity.BlockDisplay d : sciany) d.remove();
+                if (t.isOnline()) t.getWorld().spawnParticle(Particle.SPLASH, t.getLocation().add(0, 1, 0), 60, 0.6, 0.8, 0.6, 0.2);
+                return;
+            }
+            t.getWorld().spawnParticle(Particle.BUBBLE_COLUMN_UP, t.getLocation().add(0, 0.2, 0), 6, 0.4, 0.2, 0.4, 0.05);
+            t.getWorld().spawnParticle(Particle.DRIPPING_WATER, t.getLocation().add(0, 2.1, 0), 4, 0.5, 0, 0.5, 0);
+            if (n[0] % 20 == 0) t.getWorld().playSound(t.getLocation(), Sound.BLOCK_BUBBLE_COLUMN_UPWARDS_AMBIENT, 1f, 1f);
+        }, 0L, 4L);
     }
 }
