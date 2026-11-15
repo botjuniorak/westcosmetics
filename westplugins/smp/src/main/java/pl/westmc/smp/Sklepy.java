@@ -460,14 +460,17 @@ final class Sklepy implements Listener, CommandExecutor {
         switch (n) {
             case "sklep" -> sklep(p, a.length > 0 && a[0].equalsIgnoreCase("czas") ? "czas" : "dolary");
             case "skrzynie" -> {
-                if (a.length >= 2 && a[0].equalsIgnoreCase("ustaw") && p.hasPermission("westsmp.admin")) {
+                if (a.length >= 2 && a[0].equalsIgnoreCase("obroc") && p.hasPermission("westsmp.admin")) {
+                    float o; try { o = Float.parseFloat(a[1]); } catch (NumberFormatException ex) { p.sendMessage(WestSMP.c("&7/skrzynie obroc <stopnie>  &8(np. 15, -45)")); return true; }
+                    p.sendMessage(WestSMP.c(pl.skrzynieModele != null && pl.skrzynieModele.obroc(p, o) ? "&aObrocono skrzynie o &f" + o + "&a stopni." : "&cStan blizej skrzyni (do 3 kratek)."));
+                } else if (a.length >= 2 && a[0].equalsIgnoreCase("ustaw") && p.hasPermission("westsmp.admin")) {
                     Block b = p.getTargetBlockExact(6);
                     if (b == null) { p.sendMessage(WestSMP.c("&cPatrz na blok skrzyni.")); return true; }
                     String key = (b.getWorld().getName() + "," + b.getX() + "," + b.getY() + "," + b.getZ()).replace('.', '_');
                     boolean usun = a[1].equalsIgnoreCase("usun");
                     if (!usun && !pl.getConfig().isConfigurationSection("skrzynie." + a[1].toLowerCase())) { p.sendMessage(WestSMP.c("&cNie ma skrzyni &f" + a[1] + "&c. Typy: zwykla, epicka, legendarna")); return true; }
                     pl.getConfig().set("skrzynie-bloki." + key, usun ? null : a[1].toLowerCase()); pl.saveConfig();
-                    float yaw = Math.round((p.getLocation().getYaw() + 180) / 90f) * 90f;
+                    float yaw = Math.round(p.getLocation().getYaw() + 180);
                     if (pl.skrzynieModele != null) pl.skrzynieModele.ustawiono(key, usun ? null : a[1].toLowerCase(), yaw, b);
                     p.sendMessage(WestSMP.c(usun ? "&aUsunieto skrzynie z tego bloku." : "&aUstawiono skrzynie &f" + a[1] + " &ana tym bloku. (PPM = otworz, LPM = nagrody)"));
                 } else skrzynie(p);

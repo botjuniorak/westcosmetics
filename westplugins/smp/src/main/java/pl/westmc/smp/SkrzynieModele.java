@@ -28,7 +28,7 @@ import java.util.Map;
  * Modele 3D skrzyn na spawnie: blok skrzyni zamienia sie w niewidzialna bariere, na nim stoi model 3D (ItemDisplay),
  * nad nim napis, dookola czasteczki. Oryginalny blok jest zapamietany i wraca po /skrzynie ustaw usun.
  */
-final class SkrzynieModele {
+final class SkrzynieModele implements org.bukkit.event.Listener {
     private final WestSMP pl;
     private final NamespacedKey KLUCZ;
     private final Map<String, Entity[]> enc = new HashMap<>();
@@ -94,7 +94,7 @@ final class SkrzynieModele {
                 b.setType(Material.BARRIER, false);
             }
             Entity[] t = enc.get(key);
-            if (t == null || !t[0].isValid() || !t[1].isValid()) { usunEnc(key); t = postaw(key, typ, b); enc.put(key, t); }
+            if (t == null || !t[0].isValid() || !t[1].isValid() || !t[2].isValid()) { usunEnc(key); t = postaw(key, typ, b); enc.put(key, t); }
             Color k = KOLORY.getOrDefault(typ, Color.WHITE);
             Location c = b.getLocation().add(0.5, 0.6, 0.5);
             double a = tik * 0.4;
@@ -112,7 +112,7 @@ final class SkrzynieModele {
 
     private Entity[] postaw(String key, String typ, Block b) {
         float yaw = (float) pl.getConfig().getDouble("skrzynie-modele." + key + ".yaw", 0) + (pl.getConfig().getBoolean("skrzynie.odwroc-model", false) ? 180 : 0);
-        float sk = (float) pl.getConfig().getDouble("skrzynie.wielkosc-modelu", 1.0);
+        float sk = (float) pl.getConfig().getDouble("skrzynie.wielkosc-modelu", 1.7);
         Location l = b.getLocation().add(0.5, 0, 0.5);
         l.setYaw(yaw);
         ItemDisplay m = b.getWorld().spawn(l, ItemDisplay.class, d -> {
@@ -123,7 +123,11 @@ final class SkrzynieModele {
             d.setViewRange(1.5f);
             d.getPersistentDataContainer().set(KLUCZ, PersistentDataType.STRING, key);
         });
-        TextDisplay napis = b.getWorld().spawn(b.getLocation().add(0.5, 1.15 + 0.3 * sk, 0.5), TextDisplay.class, d -> {
+        org.bukkit.entity.Interaction klik = b.getWorld().spawn(b.getLocation().add(0.5, 0, 0.5), org.bukkit.entity.Interaction.class, d -> {
+            d.setInteractionWidth(0.9f * sk); d.setInteractionHeight(0.95f * sk); d.setResponsive(true); d.setPersistent(false);
+            d.getPersistentDataContainer().set(KLUCZ, PersistentDataType.STRING, key);
+        });
+        TextDisplay napis = b.getWorld().spawn(b.getLocation().add(0.5, 0.3 + 0.98 * sk, 0.5), TextDisplay.class, d -> {
             String nz = pl.getConfig().getString("skrzynie." + typ + ".nazwa", typ);
             d.text(net.kyori.adventure.text.Component.text(WestSMP.c(nz + "\n" + pl.getConfig().getString("skrzynie.napis-pod", "&7PPM &8- &fotworz &8| &7LPM &8- &fnagrody"))));
             d.setBillboard(Display.Billboard.CENTER); d.setPersistent(false); d.setShadowed(true);
@@ -131,17 +135,57 @@ final class SkrzynieModele {
             d.setBrightness(new Display.Brightness(15, 15));
             d.getPersistentDataContainer().set(KLUCZ, PersistentDataType.STRING, key);
         });
-        return new Entity[]{m, napis};
+        return new Entity[]{m, napis, klik};
     }
 
     /** Animacja przy otwieraniu: skrzynia "podskakuje". */
     void puls(String key) {
         Entity[] t = enc.get(key);
         if (t == null || !(t[0] instanceof ItemDisplay d)) return;
-        float sk = (float) pl.getConfig().getDouble("skrzynie.wielkosc-modelu", 1.0);
+        float sk = (float) pl.getConfig().getDouble("skrzynie.wielkosc-modelu", 1.7);
         d.setInterpolationDelay(0); d.setInterpolationDuration(3);
         d.setTransformation(new Transformation(new Vector3f(0, 0.15f, 0), new AxisAngle4f(), new Vector3f(sk * 1.12f, sk * 1.12f, sk * 1.12f), new AxisAngle4f()));
         Bukkit.getScheduler().runTaskLater(pl, () -> { if (d.isValid()) { d.setInterpolationDelay(0); d.setInterpolationDuration(5);
             d.setTransformation(new Transformation(new Vector3f(), new AxisAngle4f(), new Vector3f(sk, sk, sk), new AxisAngle4f())); } }, 4L);
+    }
+
+    // ================================================================= klikanie w model (Interaction)
+    private String klucz(Entity e) { return e instanceof org.bukkit.entity.Interaction ? e.getPersistentDataContainer().get(KLUCZ, PersistentDataType.STRING) : null; }
+
+    @org.bukkit.event.EventHandler
+    public void onPpm(org.bukkit.event.player.PlayerInteractEntityEvent e) {
+        String key = klucz(e.getRightClicked());
+        if (key == null || e.getHand() != org.bukkit.inventory.EquipmentSlot.HAND) return;
+        e.setCancelled(true);
+        String typ = pl.getConfig().getString("skrzynie-bloki." + key);
+        if (typ == null) return;
+        pl.sklepy.otworzSkrzynie(e.getPlayer(), typ);
+        puls(key);
+    }
+
+    @org.bukkit.event.EventHandler
+    public void onLpm(io.papermc.paper.event.player.PrePlayerAttackEntityEvent e) {
+        String key = klucz(e.getAttacked());
+        if (key == null) return;
+        e.setCancelled(true);
+        String typ = pl.getConfig().getString("skrzynie-bloki." + key);
+        if (typ != null) pl.sklepy.podglad(e.getPlayer(), typ);
+    }
+
+    /** /skrzynie obroc <stopnie> - obraca skrzynie, na ktora patrzysz. */
+    boolean obroc(org.bukkit.entity.Player p, float o) {
+        String best = null; double bd = 9;
+        for (Map.Entry<String, Entity[]> en : enc.entrySet()) {
+            Entity m = en.getValue()[0];
+            if (!m.getWorld().equals(p.getWorld())) continue;
+            double d = m.getLocation().distanceSquared(p.getLocation());
+            if (d < bd) { bd = d; best = en.getKey(); }
+        }
+        if (best == null) return false;
+        double y = pl.getConfig().getDouble("skrzynie-modele." + best + ".yaw", 0) + o;
+        pl.getConfig().set("skrzynie-modele." + best + ".yaw", ((y % 360) + 360) % 360);
+        pl.saveConfig();
+        usunEnc(best);
+        return true;
     }
 }

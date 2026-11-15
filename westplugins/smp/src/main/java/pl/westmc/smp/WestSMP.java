@@ -34,6 +34,7 @@ public final class WestSMP extends JavaPlugin {
             getConfig().set("czat.rangi", null);
             getConfig().set("czat.format", "{KLAN}{RANGA}&f{GRACZ} &8» &7");
         }
+        if (getConfig().getDouble("skrzynie.wielkosc-modelu", 1.7) == 1.0) getConfig().set("skrzynie.wielkosc-modelu", 1.7);
         getConfig().options().copyDefaults(true);
         saveConfig();
         kasa = new Kasa(this);
@@ -100,6 +101,7 @@ public final class WestSMP extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new EventowkiMoc(this), this);
         skrzynieModele = new SkrzynieModele(this);
         skrzynieModele.start();
+        getServer().getPluginManager().registerEvents(skrzynieModele, this);
         if (getServer().getPluginManager().getPlugin("packetevents") != null) {
             try { CenyPakiety.podepnij(this); getLogger().info("Ceny w opisie itemow: wlaczone (PacketEvents)."); }
             catch (Throwable t) { getLogger().warning("PacketEvents: " + t); }

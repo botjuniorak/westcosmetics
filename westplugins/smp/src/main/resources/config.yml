@@ -198,7 +198,7 @@ sklep:
 skrzynie:
   # modele 3D na spawnie (blok staje sie niewidzialna bariera, wraca po /skrzynie ustaw usun)
   modele-3d: true
-  wielkosc-modelu: 1.0
+  wielkosc-modelu: 1.7
   odwroc-model: false
   napis-pod: "&7PPM &8- &fotworz &8| &7LPM &8- &fnagrody"
   zwykla:
