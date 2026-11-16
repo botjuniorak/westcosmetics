@@ -28,6 +28,8 @@ public final class WestSMP extends JavaPlugin {
     EventowkiMoc eventowkiMoc;
     Domy domy;
     Pomoc pomoc;
+    Serca serca;
+    Otchlan otchlan;
 
     @Override
     public void onEnable() {
@@ -47,6 +49,7 @@ public final class WestSMP extends JavaPlugin {
         if (getConfig().getDouble("skrzynie.wielkosc-modelu", 1.7) == 1.0) getConfig().set("skrzynie.wielkosc-modelu", 1.7);
         getConfig().options().copyDefaults(true);
         saveConfig();
+        reloadConfig();   // nowe sekcje z domyslnego configu od razu jako prawdziwe wartosci (bez drugiego restartu)
         kasa = new Kasa(this);
         kasa.start();
         for (String c : new String[]{"money", "pay", "eco"}) getCommand(c).setExecutor(kasa);
@@ -108,6 +111,12 @@ public final class WestSMP extends JavaPlugin {
         sprzedaz = new Sprzedaz(this);
         getServer().getPluginManager().registerEvents(sprzedaz, this);
         getCommand("sell").setExecutor(sprzedaz); getCommand("cena").setExecutor(sprzedaz);
+        serca = new Serca(this);
+        getServer().getPluginManager().registerEvents(serca, this);
+        getCommand("serca").setExecutor(serca);
+        otchlan = new Otchlan(this);
+        getServer().getPluginManager().registerEvents(otchlan, this);
+        getCommand("otchlan").setExecutor(otchlan);
         pomoc = new Pomoc(this);
         getServer().getPluginManager().registerEvents(pomoc, this);
         getCommand("pomoc").setExecutor(pomoc); getCommand("zasady").setExecutor(pomoc);

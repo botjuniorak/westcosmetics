@@ -69,7 +69,9 @@ final class Hud implements Listener {
             .replace("{ZABOJSTWA}", String.valueOf(p.getStatistic(Statistic.PLAYER_KILLS)))
             .replace("{SMIERCI}", String.valueOf(p.getStatistic(Statistic.DEATHS)))
             .replace("{ONLINE}", String.valueOf(Bukkit.getOnlinePlayers().size()))
-            .replace("{KLUCZ}", kluczTekst());
+            .replace("{KLUCZ}", kluczTekst())
+            .replace("{SERCA}", pl.serca == null ? "10" : String.valueOf(pl.serca.serca(p)))
+            .replace("{SERCA_MAX}", pl.serca == null ? "20" : String.valueOf(pl.serca.max()));
     }
 
     /** Ciemne tlo (znak ze zwyklej czcionki - rysuje sie przed tekstem) + wartosc. */
@@ -118,6 +120,11 @@ final class Hud implements Listener {
                 l = new java.util.ArrayList<>(l);
                 int gdzie = Math.max(0, l.size() - 2);
                 l.add(gdzie, "\uE46A &7Darmowy klucz: &#FFC23D{KLUCZ}");
+            }
+            if (cfg().getBoolean("serca.wlaczone", true) && l.stream().noneMatch(x -> x.contains("{SERCA}"))) {
+                l = new java.util.ArrayList<>(l);
+                int gdzie = Math.min(l.size(), 4);
+                l.add(gdzie, "&c❤ &7Serca: &c{SERCA}&7/&c{SERCA_MAX}");
             }
             for (int i = 0; i < LINII; i++) {
                 org.bukkit.scoreboard.Score sc = o.getScore("l" + i);

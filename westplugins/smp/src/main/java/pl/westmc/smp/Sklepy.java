@@ -50,6 +50,7 @@ final class Sklepy implements Listener, CommandExecutor {
     private final YamlConfiguration dane;
     private final Random rnd = new Random();
     private final Set<UUID> losuje = new HashSet<>();
+    private final Set<UUID> pomin = new HashSet<>();
     private static final int[] SIATKA = {10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34, 37, 38, 39, 40, 41, 42, 43};
     private static final String[] TYPY = {"zwykla", "epicka", "legendarna"};
 
@@ -234,12 +235,16 @@ final class Sklepy implements Listener, CommandExecutor {
         Menu h = menu("ruletka", 27, 0xE1C0, 3);
         h.inv.setItem(4, ikona(Material.HOPPER, null, "&#FFC93D▼", null, false));
         h.inv.setItem(22, ikona(Material.HOPPER, null, "&#FFC93D▲", null, false));
+        h.inv.setItem(26, ikona(Material.FEATHER, null, "&#4EE08F&lPOMIN ANIMACJE", List.of("&7Od razu pokaz wygrana.", "", "&#4EE08F» Kliknij"), false));
+        h.akcje.put(26, "pomin");
+        pomin.remove(p.getUniqueId());
         p.openInventory(h.inv);
         List<ItemStack> tasma = new ArrayList<>();
         int kroki = 34;
         for (int i = 0; i < kroki + 9; i++) tasma.add(nagrodaIkona(i == kroki + 4 ? wygrana : losuj(typ)));
         int[] k = {0}, czek = {0};
         Bukkit.getScheduler().runTaskTimer(pl, task -> {
+            if (pomin.remove(p.getUniqueId())) { k[0] = kroki; czek[0] = 99; }
             int odstep = k[0] < 18 ? 1 : k[0] < 26 ? 2 : k[0] < 31 ? 3 : 5;
             if (++czek[0] < odstep && k[0] < kroki) return;
             czek[0] = 0;
@@ -444,6 +449,7 @@ final class Sklepy implements Listener, CommandExecutor {
         if (a == null) return;
         p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.3f);
         if (a.equals("zamknij")) { p.closeInventory(); return; }
+        if (a.equals("pomin")) { pomin.add(p.getUniqueId()); return; }
         if (a.equals("wstecz")) { skrzynie(p); return; }
         if (a.startsWith("tab:")) { sklep(p, a.substring(4)); return; }
         if (a.startsWith("kup:")) { kup(p, h.tab, a.substring(4), e.isRightClick()); return; }

@@ -115,11 +115,13 @@ final class Narzedzia implements Listener, CommandExecutor {
                 Bukkit.broadcast(Component.text(WestSMP.c("&#FF7A5A&lCZYSZCZENIE &8» &7Itemy z ziemi znikna za &f" + left + "s")));
             if (left <= 0) {
                 int n = 0;
+                List<ItemStack> doOtchlani = new ArrayList<>();
                 for (World w : Bukkit.getWorlds()) for (Entity e : w.getEntities()) {
-                    if (e instanceof Item it && !chroniony(it.getItemStack())) { e.remove(); n++; }
+                    if (e instanceof Item it && !chroniony(it.getItemStack())) { doOtchlani.add(it.getItemStack().clone()); e.remove(); n++; }
                     else if (e instanceof Arrow a && a.isInBlock()) { e.remove(); n++; }
                 }
                 Bukkit.broadcast(Component.text(WestSMP.c("&#FF7A5A&lCZYSZCZENIE &8» &7Usunieto &f" + n + " &7itemow z ziemi.")));
+                if (pl.otchlan != null) pl.otchlan.wrzuc(doOtchlani);
                 clearAt = now + cfg().getLong("czyszczenie.co-ile-minut", 10) * 60_000L;
             }
         }

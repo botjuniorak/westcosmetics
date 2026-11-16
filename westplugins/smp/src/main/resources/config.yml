@@ -514,3 +514,16 @@ pomoc:
         - "&#C08BFFSVIP&7: zestaw SVIP, &f5 &7domow"
         - "&#FF5A68Elita&7: zestaw Elita, &f7 &7domow"
         - "&7Rangi kupisz na &fwestmc.eu"
+
+# SERCA (lifesteal): zabicie gracza = +1 serce, smierc z reki gracza = -1 serce
+serca:
+  wlaczone: true
+  start: 10
+  min: 3
+  max: 20
+  zabojca-dostaje-gdy-ofiara-na-minimum: false
+# OTCHLAN: itemy z czyszczenia trafiaja do /otchlan na X sekund
+otchlan:
+  wlaczona: true
+  sekund: 120
+  max-stackow: 540

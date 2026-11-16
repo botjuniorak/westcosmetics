@@ -63,6 +63,8 @@ commands:
   delhome: {description: Usun dom}
   pomoc: {description: Pomoc, aliases: [help, komendy, '?']}
   zasady: {description: Zasady serwera}
+  serca: {description: Serca (lifesteal), aliases: [serce, hearts]}
+  otchlan: {description: Otchlan - itemy z czyszczenia, aliases: [abyss]}
 permissions:
   westsmp.spawn.buduj: {default: op}
   westsmp.vanish: {default: op}
